@@ -8,6 +8,7 @@ import Settings from '../pages/Settings';
 import DashboardLayout from '../layouts/DashbordLayout';
 import Login from '../pages/Login';
 import PublicRoute from './PublicRoutes';
+import StockIn from '../pages/StockIn';
 // import ProtectedRoute from './ProtectedRoutes';
 export default function AppRoutes() {
   return (
@@ -27,12 +28,13 @@ export default function AppRoutes() {
         <Route
           element={
             // <ProtectedRoute>  to be uncommented when the backend is ready
-              <DashboardLayout />
+            <DashboardLayout />
             // </ProtectedRoute>
           }
         >
           <Route path="/" element={<Dashboard />} />
           <Route path="/users" element={<Users />} />
+          <Route path="/stock" element={<StockIn />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/settings" element={<Settings />} />
