@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,13 +7,14 @@
 /* Design system color palette */
 :root {
   /* Brand colors */
-  --color-primary: #1F6FEB;   /* Indigo Blue */
-  --color-secondary: #0D9488; /* Teal */
-  --color-accent: #F59E0B;    /* Amber for warnings */
+  --color-primary: #073c56; /* Indigo Blue */
+  --color-secondary: #e5e7eb; /* Teal */
+  --color-accent: #f59e0b; /* Amber for warnings */
+  --color-primary-800:#03283a;
 
   /* Base colors */
-  --color-background: #F9FAFB; /* Almost white */
-  --color-text: #111827;       /* Deep black-gray */
+  --color-background: #f9fafb; /* Almost white */
+  --color-text: #111827; /* Deep black-gray */
 
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -61,7 +61,7 @@ button {
 }
 
 button:hover {
-  background-color: #1a5bcc; /* slightly darker primary */
+  background-color: var(--color-primary-800); /* slightly darker primary */
 }
 
 button:focus,
