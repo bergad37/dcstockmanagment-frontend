@@ -30,11 +30,11 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 sm:px-6 py-10 bg-white">
-      <div className="w-full sm:w-3/4 md:w-1/2 lg:w-1/3  bg-white rounded-xl shadow-sm p-6 sm:p-10">
+    <div className="flex min-h-screen   items-center justify-center px-4 sm:px-6 py-10 bg-white">
+      <div className="w-full border border-[ #1e5e7eff]  sm:w-3/4 md:w-1/2 lg:w-1/3  bg-white rounded-xl shadow-lg p-6 sm:p-10">
         <div className="flex flex-col items-center">
           <img
-            alt="Company Logo"
+            alt="dc survey ltd logo Company Logo"
             src="https://res.cloudinary.com/ds04ivdrj/image/upload/v1764774518/dcstocklogo_sk2qvt.png"
             className="mx-auto rounded-full h-32 w-32 sm:h-40 sm:w-40 object-cover"
           />
