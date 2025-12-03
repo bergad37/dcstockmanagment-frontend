@@ -23,7 +23,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       set({ loading: true });
       const res = await userApi.login(data);
-      localStorage.setItem('token', res.data.token);
+      localStorage.setItem('token', res.data.data.token);
       set({ user: res.data.user, loading: false });
       return true;
     } catch {

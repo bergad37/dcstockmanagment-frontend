@@ -9,14 +9,17 @@ import DashboardLayout from '../layouts/DashbordLayout';
 import Login from '../pages/Login';
 import PublicRoute from './PublicRoutes';
 import StockIn from '../pages/StockIn';
-// import ProtectedRoute from './ProtectedRoutes';
+import ProtectedRoute from './ProtectedRoutes';
+import { Toaster } from 'sonner';
 export default function AppRoutes() {
   return (
     <BrowserRouter>
+      <Toaster richColors position="top-right" />
+
       <Routes>
         {/* Public Route */}
         <Route
-          path="/login"
+          path="/"
           element={
             <PublicRoute>
               <Login />
@@ -27,12 +30,12 @@ export default function AppRoutes() {
         {/* Protected Routes */}
         <Route
           element={
-            // <ProtectedRoute>  to be uncommented when the backend is ready
-            <DashboardLayout />
-            // </ProtectedRoute>
+            <ProtectedRoute>
+              <DashboardLayout />
+            </ProtectedRoute>
           }
         >
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/users" element={<Users />} />
           <Route path="/stock" element={<StockIn />} />
           <Route path="/clients" element={<Clients />} />

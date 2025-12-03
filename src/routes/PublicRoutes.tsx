@@ -8,7 +8,7 @@ export default function PublicRoute({
   children: React.ReactElement;
 }) {
   if (isAuthenticated()) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
   return children;
 }

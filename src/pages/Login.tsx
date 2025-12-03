@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
+import { toast } from 'sonner';
 
 // Validation Schema
 const LoginSchema = Yup.object().shape({
@@ -20,7 +21,12 @@ const Login = () => {
 
   const submit = async (values: { email: string; password: string }) => {
     const ok = await login(values);
-    if (ok) navigate('/dashboard');
+    if (!ok) {
+      toast.error('Login failed');
+    }
+    if (ok) {
+      navigate('/dashboard');
+    }
   };
 
   return (

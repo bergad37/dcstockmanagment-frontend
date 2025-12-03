@@ -12,7 +12,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 
 const menuItems = [
-  { title: 'Dashboard', icon: LayoutDashboard, path: '/' },
+  { title: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
   { title: 'Users', icon: Users, path: '/users' },
   { title: 'Clients', icon: Briefcase, path: '/clients' },
   { title: 'Stock In / Out', icon: ArrowDownUp, path: '/stock' },
@@ -26,7 +26,7 @@ export default function Sidebar() {
 
   const logout = () => {
     localStorage.removeItem('token');
-    navigate('/login');
+    navigate('/');
   };
 
   return (
