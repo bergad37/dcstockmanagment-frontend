@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
@@ -59,7 +59,7 @@ const Login = () => {
                     id="email"
                     name="email"
                     type="email"
-                    className={`mt-2 block w-full rounded-lg px-3 py-2 text-gray-900
+                    className={`mt-2 block w-full rounded-3xl px-3 py-2 text-gray-900
                     border ${
                       errors.email && touched.email
                         ? 'border-red-500'
@@ -85,19 +85,19 @@ const Login = () => {
                       Password
                     </label>
 
-                    <a
-                      href="#"
+                    <Link
+                      to="/forgot-password"
                       className="text-xs font-semibold text-[#073c56] hover:underline"
                     >
                       Forgot password?
-                    </a>
+                    </Link>
                   </div>
 
                   <Field
                     id="password"
                     name="password"
                     type="password"
-                    className={`mt-2 block w-full rounded-lg px-3 py-2 text-gray-900 
+                    className={`mt-2 block w-full rounded-3xl px-3 py-2 text-gray-900 
                     border ${
                       errors.password && touched.password
                         ? 'border-red-500'
@@ -117,7 +117,7 @@ const Login = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex w-full justify-center rounded-lg px-3 py-2 
+                  className="flex  rounded-3xl w-full justify-center px-3 py-2 
                   text-sm font-semibold text-white shadow 
                   bg-[#073c56] hover:bg-[#062e42] 
                   disabled:opacity-50"
