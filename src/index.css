@@ -10,7 +10,7 @@
   --color-primary: #073c56; /* Indigo Blue */
   --color-secondary: #e5e7eb; /* Teal */
   --color-accent: #f59e0b; /* Amber for warnings */
-  --color-primary-800:#03283a;
+  --color-primary-800: #03283a;
 
   /* Base colors */
   --color-background: #f9fafb; /* Almost white */
@@ -69,3 +69,7 @@ button:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
+  button {
+    @apply focus:outline-none focus:ring-0 active:outline-none active:ring-0;
+  }
+
