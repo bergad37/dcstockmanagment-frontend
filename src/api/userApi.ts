@@ -8,7 +8,7 @@ export interface LoginPayload {
 const userApi = {
   login: (payload: LoginPayload) => axiosClient.post('/auth/login', payload),
 
-  profile: () => axiosClient.get('/users/me')
+  profile: () => axiosClient.get('/auth/profile')
 };
 
 export default userApi;
