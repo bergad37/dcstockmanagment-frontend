@@ -15,6 +15,7 @@ const menuItems = [
   { title: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
   { title: 'Users', icon: Users, path: '/users' },
   { title: 'Clients', icon: Briefcase, path: '/clients' },
+  { title: 'Products/Equipments', icon: Briefcase, path: '/products' },
   { title: 'Stock In / Out', icon: ArrowDownUp, path: '/stock' },
   { title: 'Analytics', icon: TrendingUp, path: '/analytics' },
   { title: 'Settings', icon: Settings, path: '/settings' }

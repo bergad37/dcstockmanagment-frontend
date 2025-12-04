@@ -1,13 +1,16 @@
-const Dashboard = () => {
-  return  <div>
+const Products = () => {
+  return (
+    <div>
       <div>
         <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#073c56]">
-          Overview
+          Products
         </h2>
         <p className="py-2 text-sm text-gray-600">
-          Summary of the stock status </p>
+          Manage and view all products in the stock.
+        </p>
       </div>
-    </div>;
+    </div>
+  );
 };
 
-export default Dashboard;
+export default Products;

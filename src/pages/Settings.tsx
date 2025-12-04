@@ -1,5 +1,61 @@
+import DataTable from 'react-data-table-component';
+import { productCategoriesColumns } from '../utils/columns/category.column';
+import Button from '../components/ui/Button';
+
 const Settings = () => {
-  return <div>Settings</div>;
+  const categories = [
+    { id: '1', name: 'Electronics' },
+    { id: '2', name: 'Furniture' },
+    { id: '3', name: 'Office Supplies' },
+    { id: '4', name: 'Groceries' },
+    { id: '5', name: 'Clothing' },
+    { id: '6', name: 'Accessories' },
+    { id: '7', name: 'Home Appliances' },
+    { id: '8', name: 'Sports Equipment' },
+    { id: '9', name: 'Automotive' },
+    { id: '10', name: 'Books & Stationery' }
+  ];
+
+  return (
+    <div className="w-full sm:p-6">
+      {/* Top header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div >
+          <h2 className="py-1 text-xl sm:text-2xl font-bold tracking-tight text-[#073c56]">
+            Settings
+          </h2>
+        </div>
+      </div>
+
+      {/* Table section */}
+      <div className="w-full sm:w-3/4 lg:w-1/2 m-2 rounded-xl border border-[#EAECF0] bg-white">
+        {/* Header row (Responsive) */}
+        <div className="flex flex-col sm:flex-row w-full items-start sm:items-center justify-between gap-2 px-4 py-4">
+          <h2 className="text-lg sm:text-xl font-bold tracking-tight text-[#073c56]">
+            Configured Categories
+          </h2>
+
+          <Button
+            label="Add category"
+            onClick={() => console.log('clicked')}
+            className="self-start sm:self-auto"
+          />
+        </div>
+
+        {/* Table wrapper for horizontal scrolling on mobile */}
+        <div className="overflow-x-auto">
+          <DataTable
+            columns={productCategoriesColumns()}
+            data={categories}
+            pagination
+            paginationPerPage={5}
+            fixedHeader
+            responsive
+          />
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Settings;

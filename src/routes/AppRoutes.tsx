@@ -11,6 +11,7 @@ import PublicRoute from './PublicRoutes';
 import StockIn from '../pages/StockIn';
 import ProtectedRoute from './ProtectedRoutes';
 import { Toaster } from 'sonner';
+import Products from '../pages/Products';
 export default function AppRoutes() {
   return (
     <BrowserRouter>
@@ -37,6 +38,7 @@ export default function AppRoutes() {
         >
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/users" element={<Users />} />
+          <Route path="/products" element={<Products />} />
           <Route path="/stock" element={<StockIn />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/analytics" element={<Analytics />} />
