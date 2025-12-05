@@ -4,29 +4,35 @@ import Button from '../components/ui/Button';
 import { useEffect, useState } from 'react';
 import CategoryForm from './Categories/categories.form';
 import { useCategoryStore } from '../store/categoriesStore';
+import { Edit2, TrashIcon } from 'lucide-react';
 
 const Settings = () => {
-  const { categories, loading, fetchCategories } = useCategoryStore();
+  const { categories, fetchCategories } = useCategoryStore();
   const [showForm, setShowForm] = useState(false);
-
-  //   const categories = [
-  //     { id: '1', name: 'Electronics' },
-  //     { id: '2', name: 'Furniture' },
-  //     { id: '3', name: 'Office Supplies' },
-  //     { id: '4', name: 'Groceries' },
-  //     { id: '5', name: 'Clothing' },
-  //     { id: '6', name: 'Accessories' },
-  //     { id: '7', name: 'Home Appliances' },
-  //     { id: '8', name: 'Sports Equipment' },
-  //     { id: '9', name: 'Automotive' },
-  //     { id: '10', name: 'Books & Stationery' }
-  //   ];
 
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
 
-  console.log(loading);
+
+
+const deleteAction=()=>{};
+
+const editAction=()=>{};
+
+
+ const actions = [
+    {
+      icon: <Edit2 className='h-[20px] w-[20px] text-[#475467]' />,
+      handler: editAction,
+      label: 'Edit'
+    },
+    {
+      icon: <TrashIcon className='h-[20px] w-[20px] text-[#475467]' />,
+      handler: deleteAction,
+      label: 'Delete'
+    }
+  ];
 
   const handleClose = () => {
     setShowForm(false);
@@ -61,7 +67,7 @@ const Settings = () => {
           {/* Table wrapper for horizontal scrolling on mobile */}
           <div className="overflow-x-auto">
             <DataTable
-              columns={productCategoriesColumns()}
+              columns={productCategoriesColumns(actions)}
               data={categories ?? []}
               pagination
               paginationPerPage={5}
