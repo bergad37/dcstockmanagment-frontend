@@ -5,6 +5,11 @@ import categoryApi, { type CategoryPayload } from '../../api/categoryApi';
 import { toast } from 'sonner';
 import { useCategoryStore } from '../../store/categoriesStore';
 
+export interface InitialValuesType {
+  id: string | null;
+  name: string;
+}
+
 // Validation schema
 const CategorySchema = Yup.object().shape({
   name: Yup.string()
@@ -15,9 +20,10 @@ const CategorySchema = Yup.object().shape({
 
 interface CategoryFormProps {
   handleClose: () => void;
+  initialValues: InitialValuesType;
 }
 
-const CategoryForm = ({ handleClose }: CategoryFormProps) => {
+const CategoryForm = ({ handleClose, initialValues }: CategoryFormProps) => {
   const { fetchCategories } = useCategoryStore();
 
   const handleSubmit = async (values: CategoryPayload) => {
@@ -42,7 +48,7 @@ const CategoryForm = ({ handleClose }: CategoryFormProps) => {
       </h2>
 
       <Formik
-        initialValues={{ name: '' }}
+        initialValues={initialValues}
         validationSchema={CategorySchema}
         onSubmit={handleSubmit}
       >
