@@ -51,7 +51,6 @@ const Settings = () => {
     setShowForm(false);
   };
 
-  console.log('###############', deleteItem);
 
   return (
     <>
