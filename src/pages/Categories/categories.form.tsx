@@ -3,6 +3,7 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import categoryApi, { type CategoryPayload } from '../../api/categoryApi';
 import { toast } from 'sonner';
+import { useCategoryStore } from '../../store/categoriesStore';
 
 // Validation schema
 const CategorySchema = Yup.object().shape({
@@ -17,12 +18,15 @@ interface CategoryFormProps {
 }
 
 const CategoryForm = ({ handleClose }: CategoryFormProps) => {
+  const { fetchCategories } = useCategoryStore();
+
   const handleSubmit = async (values: CategoryPayload) => {
     try {
       const response = await categoryApi.create(values);
       if (response.data.success) {
         toast.success('Category added successfully!');
         handleClose();
+        fetchCategories();
       }
     } catch (error: any) {
       toast.warning(
@@ -78,8 +82,6 @@ const CategoryForm = ({ handleClose }: CategoryFormProps) => {
           </Form>
         )}
       </Formik>
-
-     
     </div>
   );
 };

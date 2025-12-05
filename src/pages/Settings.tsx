@@ -1,25 +1,32 @@
 import DataTable from 'react-data-table-component';
 import { productCategoriesColumns } from '../utils/columns/category.column';
 import Button from '../components/ui/Button';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import CategoryForm from './Categories/categories.form';
+import { useCategoryStore } from '../store/categoriesStore';
 
 const Settings = () => {
-
-
+  const { categories, loading, fetchCategories } = useCategoryStore();
   const [showForm, setShowForm] = useState(false);
-  const categories = [
-    { id: '1', name: 'Electronics' },
-    { id: '2', name: 'Furniture' },
-    { id: '3', name: 'Office Supplies' },
-    { id: '4', name: 'Groceries' },
-    { id: '5', name: 'Clothing' },
-    { id: '6', name: 'Accessories' },
-    { id: '7', name: 'Home Appliances' },
-    { id: '8', name: 'Sports Equipment' },
-    { id: '9', name: 'Automotive' },
-    { id: '10', name: 'Books & Stationery' }
-  ];
+
+  //   const categories = [
+  //     { id: '1', name: 'Electronics' },
+  //     { id: '2', name: 'Furniture' },
+  //     { id: '3', name: 'Office Supplies' },
+  //     { id: '4', name: 'Groceries' },
+  //     { id: '5', name: 'Clothing' },
+  //     { id: '6', name: 'Accessories' },
+  //     { id: '7', name: 'Home Appliances' },
+  //     { id: '8', name: 'Sports Equipment' },
+  //     { id: '9', name: 'Automotive' },
+  //     { id: '10', name: 'Books & Stationery' }
+  //   ];
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
+  console.log(loading);
 
   const handleClose = () => {
     setShowForm(false);
@@ -55,7 +62,7 @@ const Settings = () => {
           <div className="overflow-x-auto">
             <DataTable
               columns={productCategoriesColumns()}
-              data={categories}
+              data={categories ?? []}
               pagination
               paginationPerPage={5}
               fixedHeader
