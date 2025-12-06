@@ -8,25 +8,28 @@ interface Product {
 }
 
 type ProductState = {
-  items: Product[];
+  products: Product[];
   loading: boolean;
   error: string | null;
-  loadProducts: () => Promise<void>;
+  listProducts: () => Promise<void>;
 };
 
 export const useProductStore = create<ProductState>((set) => ({
-  items: [],
+  products: [],
   loading: false,
   error: null,
 
-  loadProducts: async () => {
+  listProducts: async () => {
     set({ loading: true, error: null });
     try {
       const res = await productApi.fetchProducts();
-      set({ items: res.data.data, loading: false });
-    } catch (e) {
-      console.log('@@@@@@@@', e);
-      set({ loading: false, error: 'Failed to load products' });
+      set({ products: res.data.data, loading: false });
+    } catch (e: any) {
+      console.log(e);
+      set({
+        loading: false,
+        error: `Failed to load products`
+      });
     }
   }
 }));

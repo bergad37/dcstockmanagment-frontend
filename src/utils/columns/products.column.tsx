@@ -1,22 +1,29 @@
-export const customerColumns = () => [
+import { ActionButtons } from '../../components/ui/ActionButtons';
+
+export const productColumns = (actions: any) => [
   {
     name: 'Names',
-    selector: (row: any) => row?.name
+    selector: (row) => row?.name
   },
   {
     name: 'Serial Number',
-    selector: (row: any) => row?.email
+    selector: (row) => row?.serialNumber
   },
-  { name: 'Category', selector: (row: any) => row?.phone },
-  { name: 'Supplier', selector: (row: any) => row?.address },
+  { name: 'Category', selector: (row) => row?.category },
+  { name: 'Supplier', selector: (row) => row?.address },
 
   {
-    name: 'Type',
-    selector: (row: any) => row?.role ?? 'user'
+    name: 'Price',
+    selector: (row) => row?.costPrice
   },
   //  if available it should be available in stock if not it should not be in stok
   {
-    name: 'Status',
-    selector: (row: any) => row?.status ?? 'available'
+    name: 'Warranty',
+    selector: (row) => row?.warranty ?? ''
+  },
+  {
+    name: 'Actions',
+    type: 'actions',
+    cell: (row) => [<ActionButtons row={row} key={row?.id} actions={actions} />]
   }
 ];

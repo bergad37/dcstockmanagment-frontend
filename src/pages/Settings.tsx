@@ -10,7 +10,8 @@ import { Edit2, TrashIcon } from 'lucide-react';
 import DeleteModal from '../components/ui/ConfirmModal';
 
 const Settings = () => {
-  const { categories, fetchCategories } = useCategoryStore();
+  const { categories, fetchCategories, deleteCategory } =
+    useCategoryStore();
   const [showForm, setShowForm] = useState(false);
   const [initialValues, setInitialValues] = useState<InitialValuesType>({
     id: null,
@@ -33,6 +34,13 @@ const Settings = () => {
     setInitialValues({ id: data.id, name: data.name });
   };
 
+  const handleDelete = () => {
+    if (deleteItem) {
+      deleteCategory(deleteItem);
+    }
+  };
+
+  
   const actions = [
     {
       icon: <Edit2 className="h-[20px] w-[20px] text-[#475467]" />,
@@ -52,12 +60,14 @@ const Settings = () => {
   };
 
 
+
+
   return (
     <>
       <DeleteModal
         isOpen={showDeleteModal}
         description="Are you sure you want to delete this department?"
-        onConfirm={() => console.log(deleteItem)}
+        onConfirm={() => handleDelete()}
         onCancel={handleClose}
         loading={false}
       />
