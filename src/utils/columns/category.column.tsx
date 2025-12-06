@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ActionButtons } from "../../components/ui/ActionButtons";
 
 export const productCategoriesColumns = (actions:any) => [

@@ -1,17 +1,17 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import Dashboard from '../pages/Dashboard';
-import Users from '../pages/Users';
-import Clients from '../pages/Clients';
-import Analytics from '../pages/Analytics';
-import Settings from '../pages/Settings';
+import Clients from '../pages/Customers/Clients';
+import Analytics from '../pages/Analytics/Analytics';
+import Settings from '../pages/Categories/Settings';
 import DashboardLayout from '../layouts/DashbordLayout';
 import Login from '../pages/Login';
 import PublicRoute from './PublicRoutes';
-import StockIn from '../pages/StockIn';
+import StockIn from '../pages/Stock/StockIn';
 import ProtectedRoute from './ProtectedRoutes';
 import { Toaster } from 'sonner';
-import Products from '../pages/Products';
+import Products from '../pages/Products/Products';
+import Users from '../pages/Users/Users';
 export default function AppRoutes() {
   return (
     <BrowserRouter>

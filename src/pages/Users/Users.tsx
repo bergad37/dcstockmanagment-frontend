@@ -1,6 +1,6 @@
 import DataTable from 'react-data-table-component';
-import { userColumns } from '../utils/columns/user.column';
-import Button from '../components/ui/Button';
+import Button from '../../components/ui/Button';
+import { userColumns } from '../../utils/columns/user.column';
 
 const Users = () => {
   const userList = [

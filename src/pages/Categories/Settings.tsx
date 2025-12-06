@@ -1,13 +1,13 @@
 import DataTable from 'react-data-table-component';
-import { productCategoriesColumns } from '../utils/columns/category.column';
-import Button from '../components/ui/Button';
+import { productCategoriesColumns } from '../../utils/columns/category.column';
+import Button from '../../components/ui/Button';
 import { useEffect, useState } from 'react';
 import CategoryForm, {
   type InitialValuesType
-} from './Categories/categories.form';
-import { useCategoryStore } from '../store/categoriesStore';
+} from './categories.form';
+import { useCategoryStore } from '../../store/categoriesStore';
 import { Edit2, TrashIcon } from 'lucide-react';
-import DeleteModal from '../components/ui/ConfirmModal';
+import DeleteModal from '../../components/ui/ConfirmModal';
 
 const Settings = () => {
   const { categories, fetchCategories, deleteCategory } =

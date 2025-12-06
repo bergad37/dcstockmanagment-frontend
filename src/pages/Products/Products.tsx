@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useProductStore } from '../store/productStore';
-import ProductForm, { type InitialValuesType } from './Products/product.form';
+import { useProductStore } from '../../store/productStore';
+import ProductForm, { type InitialValuesType } from './product.form';
 import DataTable from 'react-data-table-component';
-import Button from '../components/ui/Button';
+import Button from '../../components/ui/Button';
 import { Edit2, TrashIcon } from 'lucide-react';
-import DeleteModal from '../components/ui/ConfirmModal';
-import { productColumns } from '../utils/columns/products.column';
+import DeleteModal from '../../components/ui/ConfirmModal';
+import { productColumns } from '../../utils/columns/products.column';
 const Products = () => {
   const { listProducts } = useProductStore();
   const [showForm, setShowForm] = useState(false);
