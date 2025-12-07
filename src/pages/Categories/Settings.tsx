@@ -2,16 +2,13 @@ import DataTable from 'react-data-table-component';
 import { productCategoriesColumns } from '../../utils/columns/category.column';
 import Button from '../../components/ui/Button';
 import { useEffect, useState } from 'react';
-import CategoryForm, {
-  type InitialValuesType
-} from './categories.form';
+import CategoryForm, { type InitialValuesType } from './categories.form';
 import { useCategoryStore } from '../../store/categoriesStore';
 import { Edit2, TrashIcon } from 'lucide-react';
 import DeleteModal from '../../components/ui/ConfirmModal';
 
 const Settings = () => {
-  const { categories, fetchCategories, deleteCategory } =
-    useCategoryStore();
+  const { categories, fetchCategories, deleteCategory } = useCategoryStore();
   const [showForm, setShowForm] = useState(false);
   const [initialValues, setInitialValues] = useState<InitialValuesType>({
     id: null,
@@ -40,7 +37,6 @@ const Settings = () => {
     }
   };
 
-  
   const actions = [
     {
       icon: <Edit2 className="h-[20px] w-[20px] text-[#475467]" />,
@@ -57,10 +53,8 @@ const Settings = () => {
   const handleClose = () => {
     setShowDeleteModal(false);
     setShowForm(false);
+    setInitialValues({ id: null, name: '' });
   };
-
-
-
 
   return (
     <>
