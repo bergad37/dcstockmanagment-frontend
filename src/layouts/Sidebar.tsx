@@ -16,7 +16,8 @@ const menuItems = [
   { title: 'Users', icon: Users, path: '/users' },
   { title: 'Clients', icon: Briefcase, path: '/clients' },
   { title: 'Products/Equipments', icon: Briefcase, path: '/products' },
-  { title: 'Stock In / Out', icon: ArrowDownUp, path: '/stock' },
+  { title: 'Stock In', icon: ArrowDownUp, path: '/stockIn' },
+  { title: 'Stock Out', icon: ArrowDownUp, path: '/stockOut' },
   { title: 'Analytics', icon: TrendingUp, path: '/analytics' },
   { title: 'Settings', icon: Settings, path: '/settings' }
 ];

@@ -7,11 +7,13 @@ import Settings from '../pages/Categories/Settings';
 import DashboardLayout from '../layouts/DashbordLayout';
 import Login from '../pages/Login';
 import PublicRoute from './PublicRoutes';
-import StockIn from '../pages/Stock/StockIn';
+// import StockIn from '../pages/Stock/StockIn';
 import ProtectedRoute from './ProtectedRoutes';
 import { Toaster } from 'sonner';
 import Products from '../pages/Products/Products';
 import Users from '../pages/Users/Users';
+import StockOut from '../pages/Stock/StockOut';
+import StockIn from '../pages/Stock/StockIn';
 export default function AppRoutes() {
   return (
     <BrowserRouter>
@@ -39,7 +41,8 @@ export default function AppRoutes() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/users" element={<Users />} />
           <Route path="/products" element={<Products />} />
-          <Route path="/stock" element={<StockIn />} />
+          <Route path="/stockOut" element={<StockOut />} />
+          <Route path="/stockIn" element={<StockIn />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/settings" element={<Settings />} />
