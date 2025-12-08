@@ -62,7 +62,6 @@ const StockOut = () => {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      {/* Header */}
       <div className="mb-8">
         <h2 className="text-3xl font-bold tracking-tight text-[#073c56]">
           Stock Out Management
@@ -107,7 +106,6 @@ const StockOut = () => {
       {/* Action Bar */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          {/* Filter Buttons */}
           <div className="flex gap-2">
             {(['ALL', 'SOLD', 'RENTED'] as const).map((type) => (
               <button
@@ -140,7 +138,6 @@ const StockOut = () => {
         </div>
       )}
 
-      {/* Data Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         {stockOutLoading ? (
           <div className="flex items-center justify-center h-64">
