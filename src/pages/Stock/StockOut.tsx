@@ -72,6 +72,38 @@ const StockOut = () => {
         </p>
       </div>
 
+      {/* Summary Section */}
+      {filteredData.length > 0 && (
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm font-medium text-gray-700">
+              Total Sold Items
+            </p>
+            <p className="text-2xl font-bold text-blue-600 mt-2">
+              {stockOut
+                .filter((item) => item.type === 'SOLD')
+                .reduce((sum, item) => sum + item.quantity, 0)}
+            </p>
+          </div>
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <p className="text-sm font-medium text-gray-700">
+              Total Rented Items
+            </p>
+            <p className="text-2xl font-bold text-amber-600 mt-2">
+              {stockOut
+                .filter((item) => item.type === 'RENTED')
+                .reduce((sum, item) => sum + item.quantity, 0)}
+            </p>
+          </div>
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <p className="text-sm font-medium text-gray-700">Transactions</p>
+            <p className="text-2xl font-bold text-green-600 mt-2">
+              {stockOut.length}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Action Bar */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
@@ -81,7 +113,7 @@ const StockOut = () => {
               <button
                 key={type}
                 onClick={() => handleFilterChange(type)}
-                className={`px-4 py-2 rounded-full font-medium transition ${
+                className={`px-4 py-1 rounded-full font-medium transition ${
                   filterType === type
                     ? 'bg-[#073c56] text-white'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -92,7 +124,6 @@ const StockOut = () => {
             ))}
           </div>
 
-          {/* Add New Button */}
           <Button
             label="Record Stock Out"
             onClick={() => setShowForm(true)}
@@ -101,7 +132,6 @@ const StockOut = () => {
         </div>
       </div>
 
-      {/* Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-lg max-w-md w-full">
@@ -158,38 +188,6 @@ const StockOut = () => {
           />
         )}
       </div>
-
-      {/* Summary Section */}
-      {filteredData.length > 0 && (
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm font-medium text-gray-700">
-              Total Sold Items
-            </p>
-            <p className="text-2xl font-bold text-blue-600 mt-2">
-              {stockOut
-                .filter((item) => item.type === 'SOLD')
-                .reduce((sum, item) => sum + item.quantity, 0)}
-            </p>
-          </div>
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <p className="text-sm font-medium text-gray-700">
-              Total Rented Items
-            </p>
-            <p className="text-2xl font-bold text-amber-600 mt-2">
-              {stockOut
-                .filter((item) => item.type === 'RENTED')
-                .reduce((sum, item) => sum + item.quantity, 0)}
-            </p>
-          </div>
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <p className="text-sm font-medium text-gray-700">Transactions</p>
-            <p className="text-2xl font-bold text-green-600 mt-2">
-              {stockOut.length}
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

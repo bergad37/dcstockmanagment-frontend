@@ -41,7 +41,9 @@ const validationSchema = Yup.object().shape({
 });
 
 const StockOutForm = ({ handleClose }: StockOutFormProps) => {
-  const { products } = useProductStore();
+  let { products } = useProductStore();
+
+  console.log('use real products from backend', products);
   const { recordStockOut } = useStockStore();
 
   const initialValues: FormValues = {
@@ -52,6 +54,7 @@ const StockOutForm = ({ handleClose }: StockOutFormProps) => {
     quantity: '',
     returnDate: ''
   };
+  const dummyProducts = [{ name: 'Laptop', id: '123456' }];
 
   const handleSubmit = async (
     values: FormValues,
@@ -110,7 +113,7 @@ const StockOutForm = ({ handleClose }: StockOutFormProps) => {
                 className="w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40 focus:border-[#073c56] focus:outline-none"
               >
                 <option value="">Select a product...</option>
-                {products.map((product) => (
+                {dummyProducts.map((product) => (
                   <option key={product.id} value={product.id}>
                     {product.name}
                   </option>
