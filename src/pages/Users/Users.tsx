@@ -1,12 +1,14 @@
 import DataTable from 'react-data-table-component';
 import Button from '../../components/ui/Button';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import UserForm, { type UserInitialValues } from './user.form';
 import { Edit2, TrashIcon } from 'lucide-react';
 import DeleteModal from '../../components/ui/ConfirmModal';
 import { userColumns } from '../../utils/columns/user.column';
+import { useUserStore } from '../../store/userStore';
 
 const Users = () => {
+  const { listUsers, users } = useUserStore();
   const [initialValues, setInitialValues] = useState<UserInitialValues>({
     id: null,
     name: '',
@@ -14,75 +16,80 @@ const Users = () => {
     role: ''
   });
 
+  useEffect(() => {
+    listUsers();
+  }, [listUsers]);
+
   const [showForm, setShowForm] = useState(false);
   const [deleteItem, setDeleteItem] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const userList = [
-    {
-      id: '1',
-      name: 'John Doe',
-      email: 'john.doe@example.com',
-      role: 'admin'
-    },
-    {
-      id: '2',
-      name: 'Sarah Williams',
-      email: 'sarah.williams@example.com',
-      role: 'manager'
-    },
-    {
-      id: '3',
-      name: 'Michael Brown',
-      email: 'michael.brown@example.com',
-      role: 'staff'
-    },
-    {
-      id: '4',
+  //   const userList = [
+  //     {
+  //       id: '1',
+  //       name: 'John Doe',
+  //       email: 'john.doe@example.com',
+  //       role: 'admin'
+  //     },
+  //     {
+  //       id: '2',
+  //       name: 'Sarah Williams',
+  //       email: 'sarah.williams@example.com',
+  //       role: 'manager'
+  //     },
+  //     {
+  //       id: '3',
+  //       name: 'Michael Brown',
+  //       email: 'michael.brown@example.com',
+  //       role: 'staff'
+  //     },
+  //     {
+  //       id: '4',
 
-      name: 'Emma Johnson',
-      email: 'emma.johnson@example.com',
-      role: 'supervisor'
-    },
-    {
-      id: '5',
-      name: 'David Lee',
-      email: 'david.lee@example.com',
-      role: 'staff'
-    },
-    {
-      id: '6',
-      name: 'Olivia Martinez',
-      email: 'olivia.martinez@example.com',
-      role: 'admin'
-    },
-    {
-      id: '7',
-      name: 'James Anderson',
-      email: 'james.anderson@example.com',
-      role: 'staff'
-    },
-    {
-      id: '8',
-      name: 'Sophia Clark',
-      email: 'sophia.clark@example.com',
-      role: 'manager'
-    },
-    {
-      id: '9',
-      name: 'William Turner',
-      email: 'william.turner@example.com',
-      role: 'staff'
-    },
-    {
-      id: '10',
-      name: 'Ava Thompson',
-      email: 'ava.thompson@example.com',
-      role: 'admin'
-    }
-  ];
+  //       name: 'Emma Johnson',
+  //       email: 'emma.johnson@example.com',
+  //       role: 'supervisor'
+  //     },
+  //     {
+  //       id: '5',
+  //       name: 'David Lee',
+  //       email: 'david.lee@example.com',
+  //       role: 'staff'
+  //     },
+  //     {
+  //       id: '6',
+  //       name: 'Olivia Martinez',
+  //       email: 'olivia.martinez@example.com',
+  //       role: 'admin'
+  //     },
+  //     {
+  //       id: '7',
+  //       name: 'James Anderson',
+  //       email: 'james.anderson@example.com',
+  //       role: 'staff'
+  //     },
+  //     {
+  //       id: '8',
+  //       name: 'Sophia Clark',
+  //       email: 'sophia.clark@example.com',
+  //       role: 'manager'
+  //     },
+  //     {
+  //       id: '9',
+  //       name: 'William Turner',
+  //       email: 'william.turner@example.com',
+  //       role: 'staff'
+  //     },
+  //     {
+  //       id: '10',
+  //       name: 'Ava Thompson',
+  //       email: 'ava.thompson@example.com',
+  //       role: 'admin'
+  //     }
+  //   ];
 
   const handleClose = () => {
     setShowForm(false);
+    setShowDeleteModal(false);
   };
 
   const deleteAction = (data: any) => {
@@ -153,7 +160,7 @@ const Users = () => {
           <div className="m-2 rounded-[10px] border border-[#EAECF0]">
             <DataTable
               columns={userColumns(actions)}
-              data={userList}
+              data={users || []}
               pagination
               paginationPerPage={5}
               fixedHeader

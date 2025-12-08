@@ -1,6 +1,5 @@
 import { ErrorMessage, Field, Form, Formik } from 'formik';
 import * as Yup from 'yup';
-import Select from 'react-select';
 // import { toast } from 'sonner';
 // import { useEffect } from 'react';
 // import userApi from '../../api/userApi';
@@ -103,56 +102,17 @@ const UserForm = ({ handleClose, initialValues }: UserFormProps) => {
 
             {/* Role */}
             <div>
-              <label className="block mb-1 font-medium">Role</label>
+              <label htmlFor="role" className="block mb-1 font-medium">
+                Role
+              </label>
 
-              <Select
-                id="role"
+              <Field
                 name="role"
-                options={roleOptions}
-                placeholder="Select role"
-                isClearable
-                onChange={(option) =>
-                  formik.setFieldValue('role', option ? option.value : '')
-                }
-                value={
-                  roleOptions.find((opt) => opt.value === formik.values.role) ||
-                  null
-                }
-                className="mt-2"
-                classNamePrefix="react-select"
-                styles={{
-                  control: (base, state) => ({
-                    ...base,
-                    borderRadius: '0.75rem',
-                    padding: '2px',
-                    borderColor: state.isFocused ? '#073c56' : '#073c5666',
-                    boxShadow: state.isFocused
-                      ? '0 0 0 2px rgba(7,60,86,0.2)'
-                      : 'none',
-                    '&:hover': { borderColor: '#073c56' }
-                  }),
-                  placeholder: (base) => ({
-                    ...base,
-                    color: '#6b7280'
-                  }),
-                  menu: (base) => ({
-                    ...base,
-                    borderRadius: '0.75rem',
-                    overflow: 'hidden'
-                  }),
-                  option: (base, state) => ({
-                    ...base,
-                    backgroundColor: state.isSelected
-                      ? '#073c56'
-                      : state.isFocused
-                      ? '#073c5620'
-                      : 'white',
-                    color: state.isSelected ? 'white' : '#111827',
-                    padding: '10px 12px',
-                    cursor: 'pointer'
-                  })
-                }}
+                placeholder="Enter role"
+                className="mt-2 block w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40 
+               focus:border-[#073c56] focus:outline-none"
               />
+
               <ErrorMessage
                 name="role"
                 component="div"
