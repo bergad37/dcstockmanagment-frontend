@@ -1,6 +1,6 @@
 // src/components/ui/CustomSelect.tsx
 
-import Select, { type StylesConfig } from 'react-select';
+import Select, { type StylesConfig, type ActionMeta } from 'react-select';
 
 interface Option {
   value: string;
@@ -59,12 +59,16 @@ export default function CustomSelect({
   placeholder = 'Select...',
   isClearable = false
 }: CustomSelectProps) {
+  const handleChange = (newValue: unknown, _actionMeta: ActionMeta<unknown>) => {
+    onChange(newValue as Option | null);
+  };
+
   return (
     <Select
       id={id}
       options={options}
       value={value}
-      onChange={onChange}
+      onChange={handleChange}
       placeholder={placeholder}
       isClearable={isClearable}
       menuPortalTarget={document.body}
