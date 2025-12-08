@@ -5,10 +5,10 @@ export interface LoginPayload {
   password: string;
 }
 
-const userApi = {
+const authApi = {
   login: (payload: LoginPayload) => axiosClient.post('/auth/login', payload),
 
-  profile: () => axiosClient.get('/auth/profile')
+  profile: () => axiosClient.get('/auth/profile'),
 };
 
-export default userApi;
+export default authApi;

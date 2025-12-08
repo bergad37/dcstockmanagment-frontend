@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import userApi, { type LoginPayload } from '../api/userApi';
+import authApi, { type LoginPayload } from '../api/authApi';
 
 interface User {
   id: string;
@@ -22,7 +22,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (data) => {
     try {
       set({ loading: true });
-      const res = await userApi.login(data);
+      const res = await authApi.login(data);
       localStorage.setItem('token', res.data.data.token);
       set({ user: res.data.user, loading: false });
       return true;
