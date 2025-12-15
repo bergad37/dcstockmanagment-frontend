@@ -6,6 +6,7 @@ import { Edit2, TrashIcon } from 'lucide-react';
 import DeleteModal from '../../components/ui/ConfirmModal';
 import { userColumns } from '../../utils/columns/user.column';
 import { useUserStore } from '../../store/userStore';
+import Modal from '../../components/ui/Modal';
 
 const Users = () => {
   const { listUsers, users } = useUserStore();
@@ -168,9 +169,14 @@ const Users = () => {
           </div>
         </div>
       )}
-      {showForm && (
+      <Modal
+        isOpen={showForm}
+        onClose={handleClose}
+        title={'Register a New User'}
+      >
+        {' '}
         <UserForm handleClose={handleClose} initialValues={initialValues} />
-      )}
+      </Modal>
     </div>
   );
 };

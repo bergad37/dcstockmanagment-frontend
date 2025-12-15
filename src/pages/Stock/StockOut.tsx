@@ -4,6 +4,7 @@ import StockOutForm from './stock-out.form';
 import { useStockStore } from '../../store/stockStore';
 import { stockOutColumns } from '../../utils/columns/stock-out.column';
 import Button from '../../components/ui/Button';
+import Modal from '../../components/ui/Modal';
 
 const StockOut = () => {
   const [showForm, setShowForm] = useState(false);
@@ -130,13 +131,13 @@ const StockOut = () => {
         </div>
       </div>
 
-      {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-lg max-w-md w-full">
-            <StockOutForm handleClose={() => setShowForm(false)} />
-          </div>
-        </div>
-      )}
+      <Modal
+        isOpen={showForm}
+        onClose={() => setShowForm(false)}
+        title={'Register a New User'}
+      >
+        <StockOutForm handleClose={() => setShowForm(false)} />
+      </Modal>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
         {stockOutLoading ? (

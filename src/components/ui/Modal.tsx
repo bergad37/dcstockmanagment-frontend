@@ -1,0 +1,42 @@
+// components/Modal.jsx
+import { motion, AnimatePresence } from 'framer-motion';
+
+const Modal = ({ isOpen, onClose, title, children }) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          {/* Modal Container */}
+          <motion.div
+            className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 relative"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            {/* Title + Close button */}
+            <div className="flex items-center justify-between mb-4 ">
+              <h2 className="text-xl font-semibold">{title}</h2>
+              <button
+                onClick={onClose}
+                className="text-gray-500 hover:text-gray-800 transition bg-background hover:bg-background/60"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div>{children}</div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+export default Modal;

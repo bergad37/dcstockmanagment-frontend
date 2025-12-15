@@ -7,6 +7,7 @@ import { Edit2, TrashIcon } from 'lucide-react';
 import CustomerForm from './clients.form';
 import { useCustomerStore } from '../../store/CustomerStore';
 import DeleteModal from '../../components/ui/ConfirmModal';
+import Modal from '../../components/ui/Modal';
 
 const Clients = () => {
   const { fetchCustomer } = useCustomerStore();
@@ -189,13 +190,18 @@ const Clients = () => {
             </div>
           </div>
         )}
-        {showForm && (
+        <Modal
+          isOpen={showForm}
+          onClose={handleClose}
+          title={'Add New Customer'}
+        >
+          {' '}
           <CustomerForm
             handleClose={handleClose}
             initialValues={initialValues}
             listCustomers={fetchCustomer}
           />
-        )}
+        </Modal>
       </div>
     </>
   );

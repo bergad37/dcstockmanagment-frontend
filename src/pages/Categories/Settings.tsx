@@ -6,6 +6,7 @@ import CategoryForm, { type InitialValuesType } from './categories.form';
 import { useCategoryStore } from '../../store/categoriesStore';
 import { Edit2, TrashIcon } from 'lucide-react';
 import DeleteModal from '../../components/ui/ConfirmModal';
+import Modal from '../../components/ui/Modal';
 
 const Settings = () => {
   const { categories, fetchCategories, deleteCategory } = useCategoryStore();
@@ -106,12 +107,17 @@ const Settings = () => {
           </div>
         )}
 
-        {showForm && (
+        <Modal
+          isOpen={showForm}
+          onClose={handleClose}
+          title={'Add New Category'}
+        >
+          {' '}
           <CategoryForm
             handleClose={handleClose}
             initialValues={initialValues}
           />
-        )}
+        </Modal>
       </div>
     </>
   );

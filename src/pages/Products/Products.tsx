@@ -6,6 +6,7 @@ import Button from '../../components/ui/Button';
 import { Edit2, TrashIcon } from 'lucide-react';
 import DeleteModal from '../../components/ui/ConfirmModal';
 import { productColumns } from '../../utils/columns/products.column';
+import Modal from '../../components/ui/Modal';
 const Products = () => {
   const { listProducts } = useProductStore();
   const [showForm, setShowForm] = useState(false);
@@ -16,7 +17,9 @@ const Products = () => {
     warranty: '',
     category: '',
     serialNumber: '',
-    costPrice: ''
+    costPrice: null,
+    entryDate: '',
+    type: 'item'
   });
 
   const products = [
@@ -88,7 +91,9 @@ const Products = () => {
       warranty: data.warranty || '',
       category: data.category || '',
       serialNumber: data.serialNumber || '',
-      costPrice: data.costPrice || ''
+      costPrice: data.costPrice || null,
+      entryDate: data.entryDate || '',
+      type: data.type || 'item'
     });
   };
 
@@ -163,9 +168,13 @@ const Products = () => {
         </div>
       )}
 
-      {showForm && (
+      <Modal
+        isOpen={showForm}
+        onClose={handleClose}
+        title={'Add new product in stock'}
+      >
         <ProductForm handleClose={handleClose} initialValues={initialValues} />
-      )}
+      </Modal>
     </div>
   );
 };

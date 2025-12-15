@@ -5,26 +5,27 @@ import {
   Users,
   Briefcase,
   ArrowDownUp,
-  TrendingUp,
+  //   TrendingUp,
   Settings,
   LogOut
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const menuItems = [
   { title: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
   { title: 'Users', icon: Users, path: '/users' },
   { title: 'Clients', icon: Briefcase, path: '/clients' },
   { title: 'Products/Equipments', icon: Briefcase, path: '/products' },
-  { title: 'Stock In', icon: ArrowDownUp, path: '/stockIn' },
-  { title: 'Stock Out', icon: ArrowDownUp, path: '/stockOut' },
-  { title: 'Analytics', icon: TrendingUp, path: '/analytics' },
+  { title: 'Stock', icon: ArrowDownUp, path: '/stock' },
+  //   { title: 'Stock Out', icon: ArrowDownUp, path: '/stockOut' },
+  //   { title: 'Analytics', icon: TrendingUp, path: '/analytics' },
   { title: 'Settings', icon: Settings, path: '/settings' }
 ];
 
 export default function Sidebar() {
   const [open, setOpen] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation(); // <--- NEW
 
   const logout = () => {
     localStorage.removeItem('token');
@@ -52,21 +53,26 @@ export default function Sidebar() {
 
       {/* Menu */}
       <nav className="mt-6 flex flex-col gap-2">
-        {menuItems.map(({ title, icon: Icon, path }) => (
-          <Link
-            key={title}
-            to={path}
-            className="
-              flex items-center gap-4 px-4 py-3 
-              hover:bg-white/10 transition rounded-lg
-            "
-          >
-            <Icon size={22} />
-            <span className={`${open ? 'block' : 'hidden'} text-sm`}>
-              {title}
-            </span>
-          </Link>
-        ))}
+        {menuItems.map(({ title, icon: Icon, path }) => {
+          const isActive = location.pathname === path;
+
+          return (
+            <Link
+              key={title}
+              to={path}
+              className={`
+          flex items-center gap-4 px-4 py-3 rounded-lg transition
+          hover:bg-white/10
+          ${isActive ? 'bg-white/10' : ''}
+        `}
+            >
+              <Icon size={22} />
+              <span className={`${open ? 'block' : 'hidden'} text-sm`}>
+                {title}
+              </span>
+            </Link>
+          );
+        })}
       </nav>
 
       {/* Logout at bottom */}

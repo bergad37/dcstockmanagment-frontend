@@ -11,24 +11,42 @@ import Select from 'react-select';
 export interface InitialValuesType {
   id: string | null;
   name: string;
-  description: string;
-  warranty: string;
+  type: 'item' | 'quantity';
+  description: string | null;
+  warranty: string | null;
   category: string;
-  serialNumber: string;
-  costPrice: number | '';
+  serialNumber: string | null;
+  costPrice: number | null;
+  entryDate: string;
 }
 
-// Validation schema
+// FULL validation schema with ALL fields
 const ProductSchema = Yup.object().shape({
+  id: Yup.string().nullable(),
+
   name: Yup.string()
     .min(2, 'Product name too short')
     .max(50, 'Product name too long')
     .required('Product name is required'),
-  description: Yup.string(),
-  warranty: Yup.string(),
-  category: Yup.string(),
-  serialNumber: Yup.string(),
-  costPrice: Yup.number().typeError('Cost price must be a number')
+
+  type: Yup.string()
+    .oneOf(['item', 'quantity'], 'Invalid product type')
+    .required('Product type is required'),
+
+  description: Yup.string().nullable(),
+
+  warranty: Yup.string().nullable(),
+
+  category: Yup.string().required('Category is required'),
+
+  serialNumber: Yup.string().nullable(),
+
+  costPrice: Yup.number()
+    .typeError('Cost price must be a number')
+    .nullable()
+    .min(0, 'Cost price must be positive'),
+
+  entryDate: Yup.string().required('Entry date is required')
 });
 
 interface ProductFormProps {
@@ -64,6 +82,12 @@ const ProductForm = ({ handleClose, initialValues }: ProductFormProps) => {
       value: c.id,
       label: c.name
     })) ?? [];
+
+  const productTypeOptions = [
+    { value: 'item', label: 'Item' },
+    { value: 'quantity', label: 'Quantity' }
+  ];
+
   return (
     <div>
       <div className="my-4 p-4 max-w-md bg-white rounded shadow">
@@ -92,6 +116,32 @@ const ProductForm = ({ handleClose, initialValues }: ProductFormProps) => {
                   />
                   <ErrorMessage
                     name="name"
+                    component="div"
+                    className="text-red-500 text-sm mt-1"
+                  />
+                </div>
+
+                {/* Product Type */}
+                <div>
+                  <label className="block mb-1 font-medium">Product Type</label>
+                  <Select
+                    id="type"
+                    name="type"
+                    options={productTypeOptions}
+                    placeholder="Select type"
+                    onChange={(option) =>
+                      formik.setFieldValue('type', option ? option.value : '')
+                    }
+                    value={
+                      productTypeOptions.find(
+                        (opt) => opt.value === formik.values.type
+                      ) || null
+                    }
+                    className="mt-2"
+                    classNamePrefix="react-select"
+                  />
+                  <ErrorMessage
+                    name="type"
                     component="div"
                     className="text-red-500 text-sm mt-1"
                   />
@@ -131,10 +181,7 @@ const ProductForm = ({ handleClose, initialValues }: ProductFormProps) => {
                           : 'none',
                         '&:hover': { borderColor: '#073c56' }
                       }),
-                      placeholder: (base) => ({
-                        ...base,
-                        color: '#6b7280'
-                      }),
+                      placeholder: (base) => ({ ...base, color: '#6b7280' }),
                       menu: (base) => ({
                         ...base,
                         borderRadius: '0.75rem',
@@ -160,9 +207,25 @@ const ProductForm = ({ handleClose, initialValues }: ProductFormProps) => {
                     className="text-red-500 text-sm mt-1"
                   />
                 </div>
+
+                {/* Entry Date */}
+                <div>
+                  <label className="block mb-1 font-medium">Entry Date</label>
+                  <Field
+                    type="date"
+                    name="entryDate"
+                    className="mt-2 block w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40 focus:border-[#073c56] focus:outline-none"
+                  />
+                  <ErrorMessage
+                    name="entryDate"
+                    component="div"
+                    className="text-red-500 text-sm mt-1"
+                  />
+                </div>
+
               </div>
 
-              {/* Description (full width) */}
+              {/* Description */}
               <div className="mt-4">
                 <label className="block mb-1 font-medium">Description</label>
                 <Field
@@ -198,7 +261,7 @@ const ProductForm = ({ handleClose, initialValues }: ProductFormProps) => {
                 </div>
               </div>
 
-              {/* Group 3: Pricing */}
+              {/* Pricing */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 {/* Cost Price */}
                 <div>

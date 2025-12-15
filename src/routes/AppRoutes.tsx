@@ -38,13 +38,13 @@ export default function AppRoutes() {
             </ProtectedRoute>
           }
         >
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Analytics />} />
           <Route path="/users" element={<Users />} />
           <Route path="/products" element={<Products />} />
-          <Route path="/stockOut" element={<StockOut />} />
-          <Route path="/stockIn" element={<StockIn />} />
+          <Route path="/stock" element={<StockOut />} />
+          {/* <Route path="/stock" element={<StockIn />} /> */}
           <Route path="/clients" element={<Clients />} />
-          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/analytics" element={<Dashboard />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
       </Routes>
