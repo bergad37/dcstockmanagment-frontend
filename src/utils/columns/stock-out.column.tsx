@@ -22,10 +22,9 @@ const ReturnButton = ({ row }: { row: StockTransaction }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { markAsReturned } = useStockStore();
 
-  const handleReturn = async (returnDate: string) => {
+  const handleReturn = async (_returnDate: string) => {
     try {
-      await markAsReturned(row.id, returnDate);
-      // Note: The store will update the status and return date
+      await markAsReturned(row.id);
     } catch (error) {
       console.error('Failed to return item:', error);
     }
@@ -65,11 +64,10 @@ export const stockOutColumns: StockOutColumnDef[] = [
     sortable: true,
     cell: (row: StockTransaction) => (
       <span
-        className={`px-3 py-1 rounded-full text-xs font-semibold ${
-          row.type === 'SOLD'
-            ? 'bg-blue-100 text-blue-800'
-            : 'bg-amber-100 text-amber-800'
-        }`}
+        className={`px-3 py-1 rounded-full text-xs font-semibold ${row.type === 'SOLD'
+          ? 'bg-blue-100 text-blue-800'
+          : 'bg-amber-100 text-amber-800'
+          }`}
       >
         {row.type}
       </span>
@@ -130,13 +128,12 @@ export const stockOutColumns: StockOutColumnDef[] = [
       const status = row.status || 'COMPLETED';
       return (
         <span
-          className={`px-3 py-1 rounded-full text-xs font-semibold ${
-            status === 'ACTIVE'
-              ? 'bg-green-100 text-green-800'
-              : status === 'RETURNED'
+          className={`px-3 py-1 rounded-full text-xs font-semibold ${status === 'ACTIVE'
+            ? 'bg-green-100 text-green-800'
+            : status === 'RETURNED'
               ? 'bg-gray-100 text-gray-800'
               : 'bg-blue-100 text-blue-800'
-          }`}
+            }`}
         >
           {status}
         </span>

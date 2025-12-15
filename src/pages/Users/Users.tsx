@@ -9,7 +9,8 @@ import { useUserStore } from '../../store/userStore';
 import Modal from '../../components/ui/Modal';
 
 const Users = () => {
-  const { listUsers, users } = useUserStore();
+
+  const { listUsers, users, deleteUser, loading, pagination } = useUserStore();
   const [initialValues, setInitialValues] = useState<UserInitialValues>({
     id: null,
     name: '',
@@ -18,79 +19,23 @@ const Users = () => {
   });
 
   useEffect(() => {
-    listUsers();
+    // load first page with store defaults
+    listUsers(pagination.page, pagination.limit);
   }, [listUsers]);
 
   const [showForm, setShowForm] = useState(false);
   const [deleteItem, setDeleteItem] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  //   const userList = [
-  //     {
-  //       id: '1',
-  //       name: 'John Doe',
-  //       email: 'john.doe@example.com',
-  //       role: 'admin'
-  //     },
-  //     {
-  //       id: '2',
-  //       name: 'Sarah Williams',
-  //       email: 'sarah.williams@example.com',
-  //       role: 'manager'
-  //     },
-  //     {
-  //       id: '3',
-  //       name: 'Michael Brown',
-  //       email: 'michael.brown@example.com',
-  //       role: 'staff'
-  //     },
-  //     {
-  //       id: '4',
-
-  //       name: 'Emma Johnson',
-  //       email: 'emma.johnson@example.com',
-  //       role: 'supervisor'
-  //     },
-  //     {
-  //       id: '5',
-  //       name: 'David Lee',
-  //       email: 'david.lee@example.com',
-  //       role: 'staff'
-  //     },
-  //     {
-  //       id: '6',
-  //       name: 'Olivia Martinez',
-  //       email: 'olivia.martinez@example.com',
-  //       role: 'admin'
-  //     },
-  //     {
-  //       id: '7',
-  //       name: 'James Anderson',
-  //       email: 'james.anderson@example.com',
-  //       role: 'staff'
-  //     },
-  //     {
-  //       id: '8',
-  //       name: 'Sophia Clark',
-  //       email: 'sophia.clark@example.com',
-  //       role: 'manager'
-  //     },
-  //     {
-  //       id: '9',
-  //       name: 'William Turner',
-  //       email: 'william.turner@example.com',
-  //       role: 'staff'
-  //     },
-  //     {
-  //       id: '10',
-  //       name: 'Ava Thompson',
-  //       email: 'ava.thompson@example.com',
-  //       role: 'admin'
-  //     }
-  //   ];
 
   const handleClose = () => {
     setShowForm(false);
     setShowDeleteModal(false);
+    setInitialValues({
+      id: null,
+      name: '',
+      email: '',
+      role: ''
+    });
   };
 
   const deleteAction = (data: any) => {
@@ -126,10 +71,14 @@ const Users = () => {
     <div>
       <DeleteModal
         isOpen={showDeleteModal}
-        description="Are you sure you want to delete this department?"
-        onConfirm={() => console.log('Delete item')}
+        description="Are you sure you want to delete this user?"
+        onConfirm={async () => {
+          if (!deleteItem) return;
+          await deleteUser(deleteItem);
+          handleClose();
+        }}
         onCancel={handleClose}
-        loading={false}
+        loading={loading}
       />
 
       <div className="flex items-center justify-between py-6">
@@ -163,7 +112,12 @@ const Users = () => {
               columns={userColumns(actions)}
               data={users || []}
               pagination
-              paginationPerPage={5}
+              paginationServer
+              paginationPerPage={pagination.limit}
+              paginationTotalRows={pagination.total}
+              onChangePage={(page) => listUsers(page, pagination.limit)}
+              onChangeRowsPerPage={(newPerPage, page) => listUsers(page, newPerPage)}
+              progressPending={loading}
               fixedHeader
             />
           </div>

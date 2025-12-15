@@ -2,17 +2,22 @@ import axiosClient from './axiosClient';
 
 export interface CustomerPayload {
   id?: string | null;
-  names: string;
+  name: string;
   email: string;
   address: string;
-  phoneNumber: string;
+  phone: string;
 }
 
 const customerApi = {
   createCustomer: (payload: CustomerPayload) =>
     axiosClient.post('/customers', payload),
 
-  fetchCustomer: () => axiosClient.get('/customers')
+  fetchCustomer: (params?: Record<string, any>) => axiosClient.get('/customers', { params }),
+
+  updateCustomer: (id: string, payload: CustomerPayload) =>
+    axiosClient.put(`/customers/${id}`, payload),
+
+  deleteCustomer: (id: string) => axiosClient.delete(`/customers/${id}`)
 };
 
 export default customerApi;

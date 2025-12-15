@@ -9,8 +9,9 @@ export interface UserPayload {
 
 const userApi = {
   createUser: (payload: UserPayload) => axiosClient.post('/users', payload),
-
-  listUsers: () => axiosClient.get('/users')
+  listUsers: (params?: Record<string, any>) => axiosClient.get('/users', { params }),
+  deleteUser: (userId: string) => axiosClient.delete(`/users/${userId}`),
+  updateUser: (userId: string, payload: UserPayload) => axiosClient.put(`/users/${userId}`, payload)
 };
 
 export default userApi;

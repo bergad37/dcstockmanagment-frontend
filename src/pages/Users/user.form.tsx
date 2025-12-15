@@ -1,10 +1,7 @@
 import { ErrorMessage, Field, Form, Formik } from 'formik';
 import * as Yup from 'yup';
-// import { toast } from 'sonner';
-// import { useEffect } from 'react';
-// import userApi from '../../api/userApi';
-// import { useUserStore } from '../../store/userStore';
-// import { useRoleStore } from '../../store/roleStore';
+import { useUserStore } from '../../store/userStore';
+import { toast } from 'sonner';
 
 export interface UserInitialValues {
   id: string | null;
@@ -25,35 +22,26 @@ interface UserFormProps {
 }
 
 const UserForm = ({ handleClose, initialValues }: UserFormProps) => {
-  //   const { listUsers } = useUserStore();
-  //   const { roles, fetchRoles } = useRoleStore();
+  const { createUser, updateUser } = useUserStore();
 
-  //   useEffect(() => {
-  //     fetchRoles();
-  //   }, [fetchRoles]);
-
-  const roleOptions =
-    [
-      { name: 'Admin', id: 'admin' },
-      { name: 'Manager', id: 'manager' }
-    ]?.map((r) => ({
-      value: r.id,
-      label: r.name
-    })) ?? [];
+  const roleOptions = [
+    { value: 'ADMIN', label: 'Admin' },
+    { value: 'MANAGER', label: 'Manager' },
+    { value: 'STAFF', label: 'Staff' }
+  ];
 
   const handleSubmit = async (values: UserInitialValues) => {
-    console.log(values);
-    // try {
-    //   const response = await userApi.create(values);
+    const payload = values as any;
+    const result = values.id
+      ? await updateUser(values.id, { ...payload, id: undefined })
+      : await createUser(payload);
 
-    //   if (response.data.success) {
-    //     toast.success('User added successfully!');
-    //     handleClose();
-    //     listUsers();
-    //   }
-    // } catch (error: any) {
-    //   toast.warning(error.response?.data?.message || 'Failed to add user');
-    // }
+    if (result?.success) {
+      toast.success(result.message || (values.id ? 'User updated' : 'User created'));
+      handleClose();
+    } else {
+      toast.error(result?.message || 'Failed to save user');
+    }
   };
 
   return (
@@ -63,11 +51,12 @@ const UserForm = ({ handleClose, initialValues }: UserFormProps) => {
       </h2>
 
       <Formik
+        enableReinitialize
         initialValues={initialValues}
         validationSchema={UserSchema}
         onSubmit={handleSubmit}
       >
-        {({ isSubmitting, ...formik }) => (
+        {({ isSubmitting }) => (
           <Form>
             {/* Name */}
             <div className="mb-3">
@@ -107,11 +96,17 @@ const UserForm = ({ handleClose, initialValues }: UserFormProps) => {
               </label>
 
               <Field
+                as="select"
                 name="role"
-                placeholder="Enter role"
-                className="mt-2 block w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40 
-               focus:border-[#073c56] focus:outline-none"
-              />
+                className="mt-2 block w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40 focus:border-[#073c56] focus:outline-none"
+              >
+                <option value="">Select role</option>
+                {roleOptions.map((r) => (
+                  <option key={r.value} value={r.value}>
+                    {r.label}
+                  </option>
+                ))}
+              </Field>
 
               <ErrorMessage
                 name="role"

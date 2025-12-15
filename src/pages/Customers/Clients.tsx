@@ -11,20 +11,20 @@ import Modal from '../../components/ui/Modal';
 import SearchBar from '../../components/ui/SearchBar';
 
 const Clients = () => {
-  const { fetchCustomer } = useCustomerStore();
+  const { fetchCustomer, deleteCustomer, customers, loading, pagination } = useCustomerStore();
   const [showForm, setShowForm] = useState(false);
   const [initialValues, setInitialValues] = useState<CustomerInitialValues>({
     id: null,
-    names: '',
+    name: '',
     email: '',
     address: '',
-    phoneNumber: ''
+    phone: ''
   });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteItem, setDeleteItem] = useState(null);
 
   useEffect(() => {
-    fetchCustomer();
+    fetchCustomer(pagination.page, pagination.limit);
   }, [fetchCustomer]);
 
   const deleteAction = (data: any) => {
@@ -36,15 +36,20 @@ const Clients = () => {
     setShowForm(true);
     setInitialValues({
       id: data.id,
-      names: data.names,
+      name: data.name,
       email: data.email,
       address: data.address,
-      phoneNumber: data.phoneNumber
+      phone: data.phone
     });
   };
 
-  const handleDelete = () => {
-    console.log('Client deleted sucessfully');
+  const handleDelete = async () => {
+    if (!deleteItem) return;
+    const res = await deleteCustomer(deleteItem);
+    if (res.success) {
+      setShowDeleteModal(false);
+      setDeleteItem(null);
+    }
   };
 
   const actions = [
@@ -66,88 +71,7 @@ const Clients = () => {
     setInitialValues(initialValues);
   };
 
-  const clientsList = [
-    {
-      id: '1',
-      names: 'John Doe',
-      email: 'john.doe@example.com',
-      phoneNumber: '+1 202 555 0147',
-      address: '123 Maple Street, Boston, MA',
-      role: 'admin'
-    },
-    {
-      id: '2',
-      names: 'Sarah Williams',
-      email: 'sarah.williams@example.com',
-      phoneNumber: '+1 202 555 0173',
-      address: '45 Sunset Blvd, Los Angeles, CA',
-      role: 'manager'
-    },
-    {
-      id: '3',
-      names: 'Michael Brown',
-      email: 'michael.brown@example.com',
-      phoneNumber: '+1 202 555 0134',
-      address: '89 Eastwood Road, Chicago, IL',
-      role: 'staff'
-    },
-    {
-      id: '4',
-      names: 'Emma Johnson',
-      email: 'emma.johnson@example.com',
-      phoneNumber: '+1 202 555 0198',
-      address: '17 Pine Avenue, Seattle, WA',
-      role: 'supervisor'
-    },
-    {
-      id: '5',
-      names: 'David Lee',
-      email: 'david.lee@example.com',
-      phoneNumber: '+1 202 555 0187',
-      address: '64 King Street, Houston, TX',
-      role: 'staff'
-    },
-    {
-      id: '6',
-      names: 'Olivia Martinez',
-      email: 'olivia.martinez@example.com',
-      phoneNumber: '+1 202 555 0159',
-      address: '201 Riverside Lane, Miami, FL',
-      role: 'admin'
-    },
-    {
-      id: '7',
-      names: 'James Anderson',
-      email: 'james.anderson@example.com',
-      phoneNumber: '+1 202 555 0126',
-      address: '3201 Oak Street, Denver, CO',
-      role: 'staff'
-    },
-    {
-      id: '8',
-      names: 'Sophia Clark',
-      email: 'sophia.clark@example.com',
-      phoneNumber: '+1 202 555 0112',
-      address: '77 Parkway Drive, Atlanta, GA',
-      role: 'manager'
-    },
-    {
-      id: '9',
-      names: 'William Turner',
-      email: 'william.turner@example.com',
-      phoneNumber: '+1 202 555 0144',
-      address: '55 Belmont Road, Phoenix, AZ',
-      role: 'staff'
-    },
-    {
-      id: '10',
-      names: 'Ava Thompson',
-      email: 'ava.thompson@example.com',
-      phoneNumber: '+1 202 555 0192',
-      address: '400 Spring Street, New York, NY',
-      role: 'admin'
-    }
-  ];
+  // customers are loaded from the store (server-side)
 
   console.log('###########', deleteItem);
   return (
@@ -180,12 +104,17 @@ const Clients = () => {
             </div>
 
             <div className="m-2 py-4 rounded-[10px] border border-[#EAECF0]">
-              <SearchBar onSubmit={() => console.log('search items needed')} />
+              <SearchBar onSubmit={(value: string) => fetchCustomer(1, pagination.limit, value)} />
               <DataTable
                 columns={customerColumns(actions)}
-                data={clientsList}
+                data={customers}
                 pagination
-                paginationPerPage={5}
+                paginationServer
+                paginationPerPage={pagination.limit}
+                paginationTotalRows={pagination.total}
+                onChangePage={(page) => fetchCustomer(page, pagination.limit)}
+                onChangeRowsPerPage={(newPerPage, page) => fetchCustomer(page, newPerPage)}
+                progressPending={loading}
                 fixedHeader
               />
             </div>
@@ -197,11 +126,7 @@ const Clients = () => {
           title={'Add New Customer'}
         >
           {' '}
-          <CustomerForm
-            handleClose={handleClose}
-            initialValues={initialValues}
-            listCustomers={fetchCustomer}
-          />
+          <CustomerForm handleClose={handleClose} initialValues={initialValues} />
         </Modal>
       </div>
     </>

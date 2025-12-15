@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import DataTable from 'react-data-table-component';
 import StockOutForm from './stock-out.form';
 // import { useStockStore } from '../../store/stockStore';
@@ -53,11 +53,10 @@ const Stock = () => {
       selector: (row: any) => row.status || 'AVAILABLE',
       cell: (row: any) => (
         <span
-          className={`px-3 py-1 rounded-full text-xs font-semibold ${
-            row.status === 'AVAILABLE'
+          className={`px-3 py-1 rounded-full text-xs font-semibold ${row.status === 'AVAILABLE'
               ? 'bg-green-100 text-green-800'
               : 'bg-gray-100 text-gray-800'
-          }`}
+            }`}
         >
           {row.status || 'AVAILABLE'}
         </span>
@@ -77,11 +76,10 @@ const Stock = () => {
       sortable: true,
       cell: (row: any) => (
         <span
-          className={`px-3 py-1 rounded-full text-xs font-semibold ${
-            row.type === 'SOLD'
+          className={`px-3 py-1 rounded-full text-xs font-semibold ${row.type === 'SOLD'
               ? 'bg-blue-100 text-blue-800'
               : 'bg-amber-100 text-amber-800'
-          }`}
+            }`}
         >
           {row.type}
         </span>
@@ -123,11 +121,10 @@ const Stock = () => {
         const status = row.status || 'COMPLETED';
         return (
           <span
-            className={`px-3 py-1 rounded-full text-xs font-semibold ${
-              status === 'ACTIVE'
+            className={`px-3 py-1 rounded-full text-xs font-semibold ${status === 'ACTIVE'
                 ? 'bg-green-100 text-green-800'
                 : 'bg-gray-100 text-gray-800'
-            }`}
+              }`}
           >
             {status}
           </span>
@@ -179,11 +176,10 @@ const Stock = () => {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-full font-medium transition ${
-              activeTab === tab
+            className={`px-4 py-2 rounded-full font-medium transition ${activeTab === tab
                 ? 'bg-[#073c56] text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
+              }`}
           >
             {tab === 'STOCK' ? 'Stock' : 'Stock Out'}
           </button>
