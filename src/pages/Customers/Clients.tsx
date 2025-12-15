@@ -8,6 +8,7 @@ import CustomerForm from './clients.form';
 import { useCustomerStore } from '../../store/CustomerStore';
 import DeleteModal from '../../components/ui/ConfirmModal';
 import Modal from '../../components/ui/Modal';
+import SearchBar from '../../components/ui/SearchBar';
 
 const Clients = () => {
   const { fetchCustomer } = useCustomerStore();
@@ -172,14 +173,14 @@ const Clients = () => {
                   Manage and view all the clients in the system.
                 </p>
               </div>
-
               <Button
                 label="Register a client"
                 onClick={() => setShowForm(true)}
               />
             </div>
 
-            <div className="m-2 rounded-[10px] border border-[#EAECF0]">
+            <div className="m-2 py-4 rounded-[10px] border border-[#EAECF0]">
+              <SearchBar onSubmit={() => console.log('search items needed')} />
               <DataTable
                 columns={customerColumns(actions)}
                 data={clientsList}

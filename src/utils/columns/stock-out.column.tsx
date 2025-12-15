@@ -1,4 +1,8 @@
 import type { StockTransaction } from '../../api/stockApi';
+import Button from '../../components/ui/Button';
+import ReturnItemModal from '../../components/ReturnItemModal';
+import { useState } from 'react';
+import { useStockStore } from '../../store/stockStore';
 
 interface StockOutColumnDef {
   name: string;
@@ -13,6 +17,41 @@ interface InventoryColumnDef {
   sortable?: boolean;
   cell?: (row: StockTransaction) => React.ReactNode;
 }
+
+const ReturnButton = ({ row }: { row: StockTransaction }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { markAsReturned } = useStockStore();
+
+  const handleReturn = async (returnDate: string) => {
+    try {
+      await markAsReturned(row.id, returnDate);
+      // Note: The store will update the status and return date
+    } catch (error) {
+      console.error('Failed to return item:', error);
+    }
+  };
+
+  if (row.type !== 'RENTED' || row.status === 'RETURNED') {
+    return <span className="text-gray-400">-</span>;
+  }
+
+  return (
+    <>
+      <Button
+        label="Return Item"
+        onClick={() => setIsModalOpen(true)}
+        bg="bg-green-600"
+        className="py-1 px-3 text-xs hover:bg-green-700"
+      />
+      <ReturnItemModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleReturn}
+        productName={row.productName}
+      />
+    </>
+  );
+};
 
 export const stockOutColumns: StockOutColumnDef[] = [
   {
@@ -75,7 +114,7 @@ export const stockOutColumns: StockOutColumnDef[] = [
     name: 'Return Date',
     selector: (row: StockTransaction) => row.returnDate || '',
     cell: (row: StockTransaction) => {
-      if (!row.returnDate) return <span>-</span>;
+      if (!row.returnDate) return <span className="text-gray-400">-</span>;
       const date = new Date(row.returnDate);
       return date.toLocaleDateString('en-US', {
         month: 'short',
@@ -94,13 +133,20 @@ export const stockOutColumns: StockOutColumnDef[] = [
           className={`px-3 py-1 rounded-full text-xs font-semibold ${
             status === 'ACTIVE'
               ? 'bg-green-100 text-green-800'
-              : 'bg-gray-100 text-gray-800'
+              : status === 'RETURNED'
+              ? 'bg-gray-100 text-gray-800'
+              : 'bg-blue-100 text-blue-800'
           }`}
         >
           {status}
         </span>
       );
     }
+  },
+  {
+    name: 'Action',
+    selector: (row: StockTransaction) => row.id,
+    cell: (row: StockTransaction) => <ReturnButton row={row} />
   }
 ];
 

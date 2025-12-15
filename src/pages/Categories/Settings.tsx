@@ -7,6 +7,7 @@ import { useCategoryStore } from '../../store/categoriesStore';
 import { Edit2, TrashIcon } from 'lucide-react';
 import DeleteModal from '../../components/ui/ConfirmModal';
 import Modal from '../../components/ui/Modal';
+import SearchBar from '../../components/ui/SearchBar';
 
 const Settings = () => {
   const { categories, fetchCategories, deleteCategory } = useCategoryStore();
@@ -71,7 +72,7 @@ const Settings = () => {
         {/* Top header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="py-1 text-xl sm:text-2xl font-bold tracking-tight text-[#073c56]">
+            <h2 className="px-4 py-1 text-xl sm:text-2xl font-bold tracking-tight text-[#073c56]">
               Settings
             </h2>
           </div>
@@ -95,6 +96,11 @@ const Settings = () => {
 
             {/* Table wrapper for horizontal scrolling on mobile */}
             <div className="overflow-x-auto">
+              {(categories ?? []).length > 0 && (
+                <SearchBar
+                  onSubmit={() => console.log('search items needed')}
+                />
+              )}
               <DataTable
                 columns={productCategoriesColumns(actions)}
                 data={categories ?? []}
