@@ -38,7 +38,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   return (
-    <div className="tablet-width m-2 flex h-[42px] w-full items-center justify-between overflow-hidden rounded-full border-[1px] border-slate-300 px-4 py-3 font-[sans-serif] shadow-xl shadow-slate-100 sm:w-72">
+    <div className="tablet-width mx-2 flex h-[42px] w-full items-center justify-between overflow-hidden rounded-xl border-[1px] border-slate-300 px-4 py-3 font-[sans-serif] shadow-xl shadow-slate-100 sm:w-72">
       <input
         type="text"
         placeholder={placeholder}

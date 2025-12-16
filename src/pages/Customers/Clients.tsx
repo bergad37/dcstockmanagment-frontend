@@ -27,6 +27,8 @@ const Clients = () => {
     fetchCustomer(pagination.page, pagination.limit);
   }, [fetchCustomer]);
 
+
+
   const deleteAction = (data: any) => {
     setDeleteItem(data.id);
     setShowDeleteModal(true);
@@ -103,8 +105,11 @@ const Clients = () => {
               />
             </div>
 
+            <div className="flex justify-between">
+              <SearchBar onSubmit={() => console.log('search items needed')} />
+            </div>
+
             <div className="m-2 py-4 rounded-[10px] border border-[#EAECF0]">
-              <SearchBar onSubmit={(value: string) => fetchCustomer(1, pagination.limit, value)} />
               <DataTable
                 columns={customerColumns(actions)}
                 data={customers}

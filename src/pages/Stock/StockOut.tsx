@@ -6,12 +6,23 @@ import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import { stockInDummyData, stockOutDummyData } from '../../data/dummyData';
 import SearchBar from '../../components/ui/SearchBar';
+import Filters, {
+  type Filter,
+  type FilterOption
+} from '../../components/ui/Filters';
 
 type TabType = 'STOCK' | 'STOCK_OUT';
 
 const Stock = () => {
   const [activeTab, setActiveTab] = useState<TabType>('STOCK');
   const [showForm, setShowForm] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState<FilterOption | null>(
+    null
+  );
+  const [statusFilter, setStatusFilter] = useState<FilterOption | null>(null);
+  const [transactionType, setTransactionType] = useState<FilterOption | null>(
+    null
+  );
 
   //   const {
   //     stockIn, // Available items
@@ -159,6 +170,44 @@ const Stock = () => {
     }
   };
 
+  const filters = (tab: TabType): Filter[] => {
+    return tab === 'STOCK'
+      ? [
+          {
+            key: 'status',
+            label: 'Status',
+            options: [
+              { value: 'available', label: 'Available' },
+              { value: 'out', label: 'Out Of Stock' }
+            ],
+            value: statusFilter,
+            onChange: setStatusFilter
+          }
+        ]
+      : [
+          {
+            key: 'category',
+            label: 'Category',
+            options: [
+              { value: 'furniture', label: 'furniture' },
+              { value: 'electronics', label: 'Electronics' }
+            ],
+            value: categoryFilter,
+            onChange: setCategoryFilter
+          },
+          {
+            key: 'type',
+            label: 'Transaction type',
+            options: [
+              { value: 'SOLD', label: 'SOLD' },
+              { value: 'RENT', label: 'RENTED' }
+            ],
+            value: transactionType,
+            onChange: setTransactionType
+          }
+        ];
+  };
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="mb-8">
@@ -186,15 +235,18 @@ const Stock = () => {
         ))}
       </div>
       <div className="border rounded-xl p-4">
-        {/* Add Stock / Stock Out Button */}
-
         <div className="mb-4 flex justify-between">
-          <SearchBar onSubmit={() => console.log('search items needed')} />
+          <div className="flex justify-between">
+            <SearchBar onSubmit={() => console.log('search items needed')} />
+            <Filters filters={filters(activeTab)} />
+          </div>{' '}
           {activeTab === 'STOCK' && (
             <button
               onClick={() => setShowForm(true)}
               className="px-4 py-0 rounded-full transition bg-[#073c56] text-white"
-            ><p className='font-sm py-1'>Record stock out</p></button>
+            >
+              <p className="font-sm py-1">Record stock out</p>
+            </button>
           )}
         </div>
 
