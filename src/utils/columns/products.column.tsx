@@ -10,12 +10,19 @@ export const productColumns = (actions: any) => [
     name: 'Serial Number',
     selector: (row: any) => row?.serialNumber
   },
-  { name: 'Category', selector: (row: any) => row?.category },
-  { name: 'Supplier', selector: (row: any) => row?.address },
+  {
+    name: 'Category',
+    selector: (row: any) => row?.category?.name ?? row?.category ?? ''
+  },
+  { name: 'Supplier', selector: (row: any) => row?.supplier?.name ?? '' },
 
   {
     name: 'Price',
-    selector: (row: any) => row?.costPrice
+    selector: (row: any) => {
+      const p = row?.costPrice;
+      if (p == null) return '';
+      return typeof p === 'number' ? p : String(p);
+    }
   },
   //  if available it should be available in stock if not it should not be in stok
   {
@@ -23,10 +30,14 @@ export const productColumns = (actions: any) => [
     selector: (row: any) => row?.warranty ?? ''
   },
   {
+    name: 'Stock',
+    selector: (row: any) => row?.stock?.quantity ?? 0
+  },
+  {
     name: 'Actions',
     type: 'actions',
-    cell: (row: any) => [
+    cell: (row: any) => (
       <ActionButtons row={row} key={row?.id} actions={actions} />
-    ]
+    )
   }
 ];

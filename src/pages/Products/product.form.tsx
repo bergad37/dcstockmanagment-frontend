@@ -1,79 +1,84 @@
 import { useProductStore } from '../../store/productStore';
 import { ErrorMessage, Field, Form, Formik } from 'formik';
-import * as Yup from 'yup';
-import type { ProductPayload } from '../../api/productApi';
 import { toast } from 'sonner';
-import productApi from '../../api/productApi';
 import { useCategoryStore } from '../../store/categoriesStore';
+import { useSupplierStore } from '../../store/supplierStore';
 import { useEffect } from 'react';
 import Select from 'react-select';
-
-export interface InitialValuesType {
-  id: string | null;
-  name: string;
-  type: 'item' | 'quantity';
-  description: string | null;
-  warranty: string | null;
-  category: string;
-  serialNumber: string | null;
-  costPrice: number | null;
-  entryDate: string;
-}
-
-// FULL validation schema with ALL fields
-const ProductSchema = Yup.object().shape({
-  id: Yup.string().nullable(),
-
-  name: Yup.string()
-    .min(2, 'Product name too short')
-    .max(50, 'Product name too long')
-    .required('Product name is required'),
-
-  type: Yup.string()
-    .oneOf(['item', 'quantity'], 'Invalid product type')
-    .required('Product type is required'),
-
-  description: Yup.string().nullable(),
-
-  warranty: Yup.string().nullable(),
-
-  category: Yup.string().required('Category is required'),
-
-  serialNumber: Yup.string().nullable(),
-
-  costPrice: Yup.number()
-    .typeError('Cost price must be a number')
-    .nullable()
-    .min(0, 'Cost price must be positive'),
-
-  entryDate: Yup.string().required('Entry date is required')
-});
+import type { ProductFormValues, ProductPayload } from '../../types/product';
+import { ProductSchema } from '../../schemas/productSchema';
 
 interface ProductFormProps {
   handleClose: () => void;
-  initialValues: InitialValuesType;
+  initialValues: ProductFormValues;
 }
 
 const ProductForm = ({ handleClose, initialValues }: ProductFormProps) => {
-  const { listProducts } = useProductStore();
+  const { listProducts, createProduct, updateProduct } = useProductStore();
   const { fetchCategories, categories } = useCategoryStore();
+  const { fetchSuppliers, suppliers } = useSupplierStore();
 
   useEffect(() => {
     fetchCategories();
-  }, [fetchCategories]);
+    fetchSuppliers();
+  }, [fetchCategories, fetchSuppliers]);
 
-  const handleSubmit = async (values: ProductPayload) => {
+  const handleSubmit = async (values: any) => {
     try {
-      const response = await productApi.create(values);
-      if (response.data.success) {
-        toast.success('Product added successfully!');
-        handleClose();
-        listProducts();
+      // Normalize payload to backend expectations
+      const payload: ProductPayload = {
+        name: values.name,
+        categoryId: values.categoryId,
+        supplierId: values.supplierId || null,
+        type: values.type === 'item' ? 'ITEM' : 'QUANTITY',
+        serialNumber: values.serialNumber || null,
+        warranty: values.warranty || null,
+        description: values.description || null,
+        costPrice: values.costPrice ?? null,
+        entryDate: values.entryDate
+      };
+
+      // include quantity for QUANTITY type only when provided and valid
+      if (values.type === 'quantity') {
+        const q = values.quantity;
+        // avoid sending 0 when the input is empty ('') or null/undefined
+        if (q !== '' && q != null) {
+          const qi = Number(q);
+          if (Number.isInteger(qi) && qi > 0) {
+            payload.quantity = qi;
+          }
+        }
       }
+
+      // for 'item' products, quantity is implicitly 1
+      if (values.type === 'item') {
+        payload.quantity = 1;
+      }
+
+      if (values.id) {
+        await updateProduct(values.id, payload);
+        toast.success('Product updated successfully!');
+      } else {
+        await createProduct(payload);
+        toast.success('Product added successfully!');
+      }
+
+      handleClose();
+      await listProducts();
     } catch (error: any) {
-      toast.warning(
-        error.response?.data?.data?.message || 'Failed to add product'
-      );
+      const backendMsg = error?.response?.data?.error || error?.response?.data?.message;
+      // backend may return validation JSON string
+      if (typeof backendMsg === 'string') {
+        try {
+          const parsed = JSON.parse(backendMsg);
+          const first = Array.isArray(parsed) ? parsed[0] : parsed;
+          toast.warning(first?.msg || 'Validation failed');
+        } catch {
+          toast.warning(backendMsg || 'Failed to save product');
+        }
+      } else {
+        toast.warning('Failed to save product');
+      }
     }
   };
 
@@ -81,6 +86,12 @@ const ProductForm = ({ handleClose, initialValues }: ProductFormProps) => {
     categories?.map((c) => ({
       value: c.id,
       label: c.name
+    })) ?? [];
+
+  const supplierOptions =
+    suppliers?.map((s) => ({
+      value: s.id,
+      label: s.name
     })) ?? [];
 
   const productTypeOptions = [
@@ -92,7 +103,7 @@ const ProductForm = ({ handleClose, initialValues }: ProductFormProps) => {
     <div>
       <div className="my-4 p-4 max-w-md bg-white rounded shadow">
         <h2 className="text-xl font-bold mb-4" style={{ color: '#073c56' }}>
-          Add Product
+          {initialValues.id ? 'Edit Product' : 'Add Product'}
         </h2>
 
         <Formik
@@ -152,20 +163,20 @@ const ProductForm = ({ handleClose, initialValues }: ProductFormProps) => {
                   <label className="block mb-1 font-medium">Category</label>
 
                   <Select
-                    id="category"
-                    name="category"
+                    id="categoryId"
+                    name="categoryId"
                     options={categoryOptions}
                     placeholder="Select category"
                     isClearable
                     onChange={(option) =>
                       formik.setFieldValue(
-                        'category',
+                        'categoryId',
                         option ? option.value : ''
                       )
                     }
                     value={
                       categoryOptions.find(
-                        (opt) => opt.value === formik.values.category
+                        (opt) => opt.value === formik.values.categoryId
                       ) || null
                     }
                     className="mt-2"
@@ -192,8 +203,8 @@ const ProductForm = ({ handleClose, initialValues }: ProductFormProps) => {
                         backgroundColor: state.isSelected
                           ? '#073c56'
                           : state.isFocused
-                          ? '#073c5620'
-                          : 'white',
+                            ? '#073c5620'
+                            : 'white',
                         color: state.isSelected ? 'white' : '#111827',
                         padding: '10px 12px',
                         cursor: 'pointer'
@@ -202,10 +213,32 @@ const ProductForm = ({ handleClose, initialValues }: ProductFormProps) => {
                   />
 
                   <ErrorMessage
-                    name="category"
+                    name="categoryId"
                     component="div"
                     className="text-red-500 text-sm mt-1"
                   />
+
+                  {/* Supplier select (optional) */}
+                  <div className="mt-3">
+                    <label className="block mb-1 font-medium">Supplier</label>
+                    <Select
+                      id="supplierId"
+                      name="supplierId"
+                      options={supplierOptions}
+                      placeholder="Select supplier (optional)"
+                      isClearable
+                      onChange={(option) =>
+                        formik.setFieldValue('supplierId', option ? option.value : '')
+                      }
+                      value={
+                        supplierOptions.find(
+                          (opt) => opt.value === formik.values.supplierId
+                        ) || null
+                      }
+                      className="mt-2"
+                      classNamePrefix="react-select"
+                    />
+                  </div>
                 </div>
 
                 {/* Entry Date */}
@@ -278,6 +311,31 @@ const ProductForm = ({ handleClose, initialValues }: ProductFormProps) => {
                     className="text-red-500 text-sm mt-1"
                   />
                 </div>
+                {/* Quantity (editable for 'quantity' type, read-only =1 for 'item') */}
+                <div>
+                  <label className="block mb-1 font-medium">Quantity</label>
+                  {formik.values.type === 'quantity' ? (
+                    <>
+                      <Field
+                        name="quantity"
+                        type="number"
+                        placeholder="Enter quantity"
+                        className="mt-2 block w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40 focus:border-[#073c56] focus:outline-none"
+                      />
+                      <ErrorMessage
+                        name="quantity"
+                        component="div"
+                        className="text-red-500 text-sm mt-1"
+                      />
+                    </>
+                  ) : (
+                    <input
+                      readOnly
+                      value={1}
+                      className="mt-2 block w-full rounded-xl px-3 py-2 text-gray-500 bg-gray-100 border border-[#e5e7eb]"
+                    />
+                  )}
+                </div>
               </div>
 
               {/* Buttons */}
@@ -295,7 +353,13 @@ const ProductForm = ({ handleClose, initialValues }: ProductFormProps) => {
                   disabled={isSubmitting}
                   className="bg-[#073c56] rounded-full text-white px-4 py-1 hover:bg-[#055082]"
                 >
-                  {isSubmitting ? 'Adding...' : 'Save'}
+                  {isSubmitting
+                    ? initialValues.id
+                      ? 'Updating...'
+                      : 'Adding...'
+                    : initialValues.id
+                      ? 'Update'
+                      : 'Save'}
                 </button>
               </div>
             </Form>

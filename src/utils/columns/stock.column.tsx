@@ -56,14 +56,14 @@ export const stockColumns = (actions?: any) => [
   },
   ...(actions
     ? [
-        {
-          name: 'Actions',
-          type: 'actions',
-          cell: (row: any) => [
-            <ActionButtons row={row} key={row?.id} actions={actions} />
-          ]
-        }
-      ]
+      {
+        name: 'Actions',
+        type: 'actions',
+        cell: (row: any) => (
+          <ActionButtons row={row} key={row?.id} actions={actions} />
+        )
+      }
+    ]
     : [])
 ];
 

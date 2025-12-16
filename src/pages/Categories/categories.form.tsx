@@ -28,7 +28,8 @@ const CategoryForm = ({ handleClose, initialValues }: CategoryFormProps) => {
 
   const handleSubmit = async (values: CategoryPayload) => {
     try {
-      const response = await categoryApi.create(values);
+      const payload: CategoryPayload = { name: values.name };
+      const response = await categoryApi.create(payload);
       if (response.data.success) {
         toast.success('Category added successfully!');
         handleClose();

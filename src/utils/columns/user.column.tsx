@@ -16,8 +16,8 @@ export const userColumns = (actions: any) => [
   {
     name: 'Actions',
     type: 'actions',
-    cell: (row: any) => [
+    cell: (row: any) => (
       <ActionButtons row={row} key={row?.id} actions={actions} />
-    ]
+    )
   }
 ];

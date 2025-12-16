@@ -1,81 +1,67 @@
 import { useEffect, useState } from 'react';
 import { useProductStore } from '../../store/productStore';
-import ProductForm, { type InitialValuesType } from './product.form';
+import ProductForm from './product.form';
+import type { ProductFormValues as InitialValuesType } from '../../types/product';
+import { productInitialValues } from '../../schemas/productSchema';
 import DataTable from 'react-data-table-component';
 import Button from '../../components/ui/Button';
+import SearchBar from '../../components/ui/SearchBar';
+import CustomSelect from '../../components/ui/SelectField';
 import { Edit2, TrashIcon } from 'lucide-react';
 import DeleteModal from '../../components/ui/ConfirmModal';
 import { productColumns } from '../../utils/columns/products.column';
 import Modal from '../../components/ui/Modal';
+import { useCategoryStore } from '../../store/categoriesStore';
 const Products = () => {
-  const { listProducts } = useProductStore();
+  const { listProducts, products, deleteProduct } = useProductStore();
+  const { fetchCategories, categories } = useCategoryStore();
   const [showForm, setShowForm] = useState(false);
-  const [initialValues, setInitialValues] = useState<InitialValuesType>({
-    id: null,
-    name: '',
-    description: '',
-    warranty: '',
-    category: '',
-    serialNumber: '',
-    costPrice: null,
-    entryDate: '',
-    type: 'item'
-  });
+  const [initialValues, setInitialValues] = useState<InitialValuesType>(productInitialValues);
 
-  const products = [
-    {
-      id: 'a3f9c2d4-6e71-4bf7-9c4d-1b4f92a0f7e1',
-      name: 'HP EliteBook 840 G5',
-      description: 'High-performance business laptop with Intel i7 processor.',
-      warranty: '12 months',
-      category: 'Electronics',
-      serialNumber: 'HP-840G5-2025-001',
-      costPrice: 850
-    },
-    {
-      id: 'c9b7f61a-3394-4dc2-92a8-6d5e0795adbd',
-      name: 'Office Desk – Walnut',
-      description: 'Sturdy executive desk made from walnut wood.',
-      warranty: '6 months',
-      category: 'Furniture',
-      serialNumber: 'DESK-WAL-88421',
-      costPrice: 130
-    },
-    {
-      id: 'f219d7ac-1d1d-4a1f-bd5e-34f9b4d2b0f8',
-      name: 'TP-Link Archer C6 Router',
-      description: 'Dual-band Wi-Fi router with strong signal coverage.',
-      warranty: '12 months',
-      category: 'Networking',
-      serialNumber: 'TPL-C6-99872',
-      costPrice: 45
-    },
-    {
-      id: '8c41b18c-6d19-4a6a-9673-f7e33c61e9d0',
-      name: "Dell 24'' Monitor",
-      description: 'Full HD LED monitor ideal for office use.',
-      warranty: '12 months',
-      category: 'Electronics',
-      serialNumber: 'DELL-24FHD-75629',
-      costPrice: 160
-    },
-    {
-      id: '5e7d3b6c-8e2a-4c70-bdc3-3ad4d0fe2d33',
-      name: 'Ergonomic Office Chair',
-      description: 'Adjustable height chair with lumbar support.',
-      warranty: '6 months',
-      category: 'Furniture',
-      serialNumber: 'CHAIR-ERG-42119',
-      costPrice: 75
-    }
-  ];
+  // products are loaded from the product store
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteItem, setDeleteItem] = useState(null);
 
   useEffect(() => {
     listProducts();
+    fetchCategories();
   }, [listProducts]);
+
+  // filters state
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<{ value: string; label: string } | null>(null);
+
+  const categoryOptions =
+    categories?.map((c: any) => ({ value: c.id, label: c.name })) ?? [];
+
+  // debounce timer
+  let searchTimer: number | undefined;
+
+  const runSearch = (q: string) => {
+    const trimmed = q.trim();
+    setSearchQuery(trimmed);
+
+    // debounce: wait 300ms after typing stops
+    if (searchTimer) window.clearTimeout(searchTimer);
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    searchTimer = window.setTimeout(async () => {
+      const params: Record<string, any> = {};
+      if (trimmed) params.searchKey = trimmed;
+      if (selectedCategory?.value) params.categoryId = selectedCategory.value;
+      console.log('Fetching products with params', params);
+      await listProducts(Object.keys(params).length ? params : undefined);
+    }, 300);
+  };
+
+  const onCategoryChange = async (opt: { value: string; label: string } | null) => {
+    setSelectedCategory(opt);
+    const params: Record<string, any> = {};
+    if (searchQuery) params.searchKey = searchQuery;
+    if (opt?.value) params.categoryId = opt.value;
+    console.log('Fetching products with params', params);
+    await listProducts(Object.keys(params).length ? params : undefined);
+  };
 
   const deleteAction = (data: any) => {
     setDeleteItem(data.id);
@@ -89,11 +75,13 @@ const Products = () => {
       name: data.name,
       description: data.description || '',
       warranty: data.warranty || '',
-      category: data.category || '',
+      categoryId: data.categoryId ?? data.category?.id ?? data.category ?? '',
+      supplierId: data.supplierId ?? data.supplier?.id ?? '',
+      quantity: data.quantity ?? null,
       serialNumber: data.serialNumber || '',
       costPrice: data.costPrice || null,
       entryDate: data.entryDate || '',
-      type: data.type || 'item'
+      type: data.type ? (String(data.type).toLowerCase() === 'quantity' ? 'quantity' : 'item') : 'item'
     });
   };
 
@@ -125,8 +113,14 @@ const Products = () => {
     <div>
       <DeleteModal
         isOpen={showDeleteModal}
-        description="Are you sure you want to delete this department?"
-        onConfirm={() => console.log('Delete item')}
+        description="Are you sure you want to delete this product?"
+        onConfirm={async () => {
+          if (deleteItem) {
+            await deleteProduct(deleteItem);
+            await listProducts();
+          }
+          handleClose();
+        }}
         onCancel={handleClose}
         loading={false}
       />
@@ -147,18 +141,35 @@ const Products = () => {
               Registered products
             </h2>
 
-            <Button
-              label="Add New product"
-              onClick={() => setShowForm(true)}
-              className="self-start sm:self-auto"
-            />
+            <div className="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto">
+              <div className="mr-2 w-full sm:w-72">
+                <SearchBar onSubmit={runSearch} placeholder="Search products..." />
+              </div>
+
+              <div className="mr-2 w-full sm:w-56">
+                <CustomSelect
+                  id="filter-category"
+                  options={categoryOptions}
+                  value={selectedCategory}
+                  onChange={onCategoryChange}
+                  placeholder="Filter by category"
+                  isClearable
+                />
+              </div>
+
+              <Button
+                label="Add New product"
+                onClick={() => setShowForm(true)}
+                className="self-start sm:self-auto"
+              />
+            </div>
           </div>
 
           {/* Table wrapper for horizontal scrolling on mobile */}
           <div className="overflow-x-auto">
             <DataTable
               columns={productColumns(actions)}
-              data={products}
+              data={Array.isArray(products) ? products : []}
               pagination
               paginationPerPage={5}
               fixedHeader
