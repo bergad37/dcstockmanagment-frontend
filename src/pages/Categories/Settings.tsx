@@ -11,6 +11,7 @@ import { ActionButtons } from '../../components/ui/ActionButtons';
 import DeleteModal from '../../components/ui/ConfirmModal';
 import Modal from '../../components/ui/Modal';
 import SearchBar from '../../components/ui/SearchBar';
+import { customStyles } from '../../utils/ui.helper.styles';
 
 const Settings = () => {
   const { categories, fetchCategories, deleteCategory } = useCategoryStore();
@@ -21,7 +22,12 @@ const Settings = () => {
     name: ''
   });
   const [showSupplierForm, setShowSupplierForm] = useState(false);
-  const [supplierInitial, setSupplierInitial] = useState<any>({ id: null, name: '', phone: '', email: '' });
+  const [supplierInitial, setSupplierInitial] = useState<any>({
+    id: null,
+    name: '',
+    phone: '',
+    email: ''
+  });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteItem, setDeleteItem] = useState(null);
   const [deleteSupplierId, setDeleteSupplierId] = useState<string | null>(null);
@@ -48,7 +54,12 @@ const Settings = () => {
 
   const editSupplierAction = (data: any) => {
     setShowSupplierForm(true);
-    setSupplierInitial({ id: data.id, name: data.name, phone: data.phone, email: data.email });
+    setSupplierInitial({
+      id: data.id,
+      name: data.name,
+      phone: data.phone,
+      email: data.email
+    });
   };
 
   const handleDelete = () => {
@@ -124,13 +135,30 @@ const Settings = () => {
           {!showForm && (
             <div className="m-2 rounded-xl border border-[#EAECF0] bg-white">
               <div className="flex items-center justify-between px-4 py-4">
-                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-[#073c56]">Configured Categories</h2>
-                <Button label="Add category" onClick={() => setShowForm(true)} />
+                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-[#073c56]">
+                  Configured Categories
+                </h2>
+                <Button
+                  label="Add category"
+                  onClick={() => setShowForm(true)}
+                />
               </div>
 
               <div className="overflow-x-auto px-4 pb-4">
-                {(categories ?? []).length > 0 && <SearchBar onSubmit={() => { }} />}
-                <DataTable columns={productCategoriesColumns(actions)} data={categories ?? []} pagination paginationPerPage={5} fixedHeader responsive />
+                {(categories ?? []).length > 0 && (
+                  <SearchBar onSubmit={() => {}} />
+                )}
+                <div className="my-8">
+                  <DataTable
+                    columns={productCategoriesColumns(actions)}
+                    data={categories ?? []}
+                    pagination
+                    customStyles={customStyles}
+                    paginationPerPage={5}
+                    fixedHeader
+                    responsive
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -138,11 +166,18 @@ const Settings = () => {
           {/* Suppliers */}
           <div className="m-2 rounded-xl border border-[#EAECF0] bg-white">
             <div className="flex items-center justify-between px-4 py-4">
-              <h2 className="text-lg sm:text-xl font-bold tracking-tight text-[#073c56]">Suppliers</h2>
+              <h2 className="text-lg sm:text-xl font-bold tracking-tight text-[#073c56]">
+                Suppliers
+              </h2>
               <button
                 className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#073c56] text-white"
                 onClick={() => {
-                  setSupplierInitial({ id: null, name: '', phone: '', email: '' });
+                  setSupplierInitial({
+                    id: null,
+                    name: '',
+                    phone: '',
+                    email: ''
+                  });
                   setShowSupplierForm(true);
                 }}
               >
@@ -158,22 +193,33 @@ const Settings = () => {
                 }}
               />
 
-              <DataTable
-                columns={[
-                  { name: 'Name', selector: (row: any) => row.name, sortable: true },
-                  { name: 'Email', selector: (row: any) => row.email },
-                  { name: 'Phone', selector: (row: any) => row.phone },
-                  {
-                    name: 'Actions',
-                    cell: (row: any) => <div className="flex gap-2"><ActionButtons row={row} actions={supplierActions} /></div>
-                  }
-                ]}
-                data={suppliers ?? []}
-                pagination
-                paginationPerPage={5}
-                fixedHeader
-                responsive
-              />
+              <div className="my-8">
+                <DataTable
+                  columns={[
+                    {
+                      name: 'Name',
+                      selector: (row: any) => row.name,
+                      sortable: true
+                    },
+                    { name: 'Email', selector: (row: any) => row.email },
+                    { name: 'Phone', selector: (row: any) => row.phone },
+                    {
+                      name: 'Actions',
+                      cell: (row: any) => (
+                        <div className="flex gap-2">
+                          <ActionButtons row={row} actions={supplierActions} />
+                        </div>
+                      )
+                    }
+                  ]}
+                  data={suppliers ?? []}
+                  pagination
+                  paginationPerPage={5}
+                  customStyles={customStyles}
+                  fixedHeader
+                  responsive
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -190,8 +236,15 @@ const Settings = () => {
           />
         </Modal>
 
-        <Modal isOpen={showSupplierForm} onClose={handleClose} title={supplierInitial?.id ? 'Edit Supplier' : 'Add Supplier'}>
-          <SupplierForm handleClose={handleClose} initialValues={supplierInitial} />
+        <Modal
+          isOpen={showSupplierForm}
+          onClose={handleClose}
+          title={supplierInitial?.id ? 'Edit Supplier' : 'Add Supplier'}
+        >
+          <SupplierForm
+            handleClose={handleClose}
+            initialValues={supplierInitial}
+          />
         </Modal>
       </div>
     </>

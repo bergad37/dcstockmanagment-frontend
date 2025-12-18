@@ -10,6 +10,8 @@ import Filters, {
   type Filter,
   type FilterOption
 } from '../../components/ui/Filters';
+import DateRangeFilter from '../../components/ui/DatePicker';
+import { customStyles } from '../../utils/ui.helper.styles';
 
 type TabType = 'STOCK' | 'STOCK_OUT';
 
@@ -23,6 +25,24 @@ const Stock = () => {
   const [transactionType, setTransactionType] = useState<FilterOption | null>(
     null
   );
+  const [dateFrom, setDateFrom] = useState<string | null>(null);
+  const [dateTo, setDateTo] = useState<string | null>(null);
+
+  const filteredStockOutData = stockOutDummyData.filter((item) => {
+    if (dateFrom && new Date(item.transactionDate) < new Date(dateFrom)) {
+      return false;
+    }
+
+    if (dateTo && new Date(item.transactionDate) > new Date(dateTo)) {
+      return false;
+    }
+
+    if (transactionType && item.type !== transactionType.value) {
+      return false;
+    }
+
+    return true;
+  });
 
   //   const {
   //     stockIn, // Available items
@@ -64,10 +84,11 @@ const Stock = () => {
       selector: (row: any) => row.status || 'AVAILABLE',
       cell: (row: any) => (
         <span
-          className={`px-3 py-1 rounded-full text-xs font-semibold ${row.status === 'AVAILABLE'
+          className={`px-3 py-1 rounded-full text-xs font-semibold ${
+            row.status === 'AVAILABLE'
               ? 'bg-green-100 text-green-800'
               : 'bg-gray-100 text-gray-800'
-            }`}
+          }`}
         >
           {row.status || 'AVAILABLE'}
         </span>
@@ -87,10 +108,11 @@ const Stock = () => {
       sortable: true,
       cell: (row: any) => (
         <span
-          className={`px-3 py-1 rounded-full text-xs font-semibold ${row.type === 'SOLD'
+          className={`px-3 py-1 rounded-full text-xs font-semibold ${
+            row.type === 'SOLD'
               ? 'bg-blue-100 text-blue-800'
               : 'bg-amber-100 text-amber-800'
-            }`}
+          }`}
         >
           {row.type}
         </span>
@@ -132,10 +154,11 @@ const Stock = () => {
         const status = row.status || 'COMPLETED';
         return (
           <span
-            className={`px-3 py-1 rounded-full text-xs font-semibold ${status === 'ACTIVE'
+            className={`px-3 py-1 rounded-full text-xs font-semibold ${
+              status === 'ACTIVE'
                 ? 'bg-green-100 text-green-800'
                 : 'bg-gray-100 text-gray-800'
-              }`}
+            }`}
           >
             {status}
           </span>
@@ -144,31 +167,7 @@ const Stock = () => {
     }
   ];
 
-  const customStyles = {
-    headCells: {
-      style: {
-        backgroundColor: '#073c56',
-        color: '#fff',
-        fontSize: '0.95rem',
-        fontWeight: 'bold',
-        paddingLeft: '16px'
-      }
-    },
-    cells: {
-      style: {
-        paddingLeft: '16px',
-        paddingRight: '16px'
-      }
-    },
-    rows: {
-      style: {
-        minHeight: '56px',
-        '&:hover': {
-          backgroundColor: '#f0f5f8'
-        }
-      }
-    }
-  };
+
 
   const filters = (tab: TabType): Filter[] => {
     return tab === 'STOCK'
@@ -225,21 +224,32 @@ const Stock = () => {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-full font-medium transition ${activeTab === tab
+            className={`px-4 py-2 rounded-full font-medium transition ${
+              activeTab === tab
                 ? 'bg-[#073c56] text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
+            }`}
           >
             {tab === 'STOCK' ? 'Stock' : 'Stock Out'}
           </button>
         ))}
       </div>
-      <div className="border rounded-xl p-4">
+      <div className="border rounded-xl py-12">
         <div className="mb-4 flex justify-between">
-          <div className="flex justify-between">
+          <div className="flex gap-4 items-end">
             <SearchBar onSubmit={() => console.log('search items needed')} />
+
             <Filters filters={filters(activeTab)} />
-          </div>{' '}
+
+            {activeTab === 'STOCK_OUT' && (
+              <DateRangeFilter
+                from={dateFrom}
+                to={dateTo}
+                onFromChange={setDateFrom}
+                onToChange={setDateTo}
+              />
+            )}
+          </div>
           {activeTab === 'STOCK' && (
             <button
               onClick={() => setShowForm(true)}
@@ -259,7 +269,7 @@ const Stock = () => {
         </Modal>
 
         {/* DataTable */}
-        <div className="bg-white  shadow overflow-hidden">
+        <div className="bg-white my-12 shadow overflow-hidden">
           {false ? (
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
@@ -283,7 +293,7 @@ const Stock = () => {
           ) : (
             <DataTable
               columns={stockOutColumns}
-              data={stockOutDummyData}
+              data={filteredStockOutData}
               highlightOnHover
               pointerOnHover
               customStyles={customStyles}

@@ -12,11 +12,13 @@ import DeleteModal from '../../components/ui/ConfirmModal';
 import { productColumns } from '../../utils/columns/products.column';
 import Modal from '../../components/ui/Modal';
 import { useCategoryStore } from '../../store/categoriesStore';
+import { customStyles } from '../../utils/ui.helper.styles';
 const Products = () => {
   const { listProducts, products, deleteProduct } = useProductStore();
   const { fetchCategories, categories } = useCategoryStore();
   const [showForm, setShowForm] = useState(false);
-  const [initialValues, setInitialValues] = useState<InitialValuesType>(productInitialValues);
+  const [initialValues, setInitialValues] =
+    useState<InitialValuesType>(productInitialValues);
 
   // products are loaded from the product store
 
@@ -30,7 +32,10 @@ const Products = () => {
 
   // filters state
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedCategory, setSelectedCategory] = useState<{ value: string; label: string } | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<{
+    value: string;
+    label: string;
+  } | null>(null);
 
   const categoryOptions =
     categories?.map((c: any) => ({ value: c.id, label: c.name })) ?? [];
@@ -54,7 +59,9 @@ const Products = () => {
     }, 300);
   };
 
-  const onCategoryChange = async (opt: { value: string; label: string } | null) => {
+  const onCategoryChange = async (
+    opt: { value: string; label: string } | null
+  ) => {
     setSelectedCategory(opt);
     const params: Record<string, any> = {};
     if (searchQuery) params.searchKey = searchQuery;
@@ -81,7 +88,11 @@ const Products = () => {
       serialNumber: data.serialNumber || '',
       costPrice: data.costPrice || null,
       entryDate: data.entryDate || '',
-      type: data.type ? (String(data.type).toLowerCase() === 'quantity' ? 'quantity' : 'item') : 'item'
+      type: data.type
+        ? String(data.type).toLowerCase() === 'quantity'
+          ? 'quantity'
+          : 'item'
+        : 'item'
     });
   };
 
@@ -143,7 +154,10 @@ const Products = () => {
 
             <div className="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto">
               <div className="mr-2 w-full sm:w-72">
-                <SearchBar onSubmit={runSearch} placeholder="Search products..." />
+                <SearchBar
+                  onSubmit={runSearch}
+                  placeholder="Search products..."
+                />
               </div>
 
               <div className="mr-2 w-full sm:w-56">
@@ -166,10 +180,11 @@ const Products = () => {
           </div>
 
           {/* Table wrapper for horizontal scrolling on mobile */}
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto my-12">
             <DataTable
               columns={productColumns(actions)}
               data={Array.isArray(products) ? products : []}
+              customStyles={customStyles}
               pagination
               paginationPerPage={5}
               fixedHeader
@@ -182,7 +197,7 @@ const Products = () => {
       <Modal
         isOpen={showForm}
         onClose={handleClose}
-        title={'Add new product in stock'}
+        title={initialValues.id ? 'Edit Product' : 'Add new product in stock'}
       >
         <ProductForm handleClose={handleClose} initialValues={initialValues} />
       </Modal>

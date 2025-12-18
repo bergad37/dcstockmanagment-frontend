@@ -7,6 +7,7 @@ import DeleteModal from '../../components/ui/ConfirmModal';
 import { userColumns } from '../../utils/columns/user.column';
 import { useUserStore } from '../../store/userStore';
 import Modal from '../../components/ui/Modal';
+import { customStyles } from '../../utils/ui.helper.styles';
 
 const Users = () => {
 
@@ -111,12 +112,15 @@ const Users = () => {
             <DataTable
               columns={userColumns(actions)}
               data={users || []}
+              customStyles={customStyles}
               pagination
               paginationServer
               paginationPerPage={pagination.limit}
               paginationTotalRows={pagination.total}
               onChangePage={(page) => listUsers(page, pagination.limit)}
-              onChangeRowsPerPage={(newPerPage, page) => listUsers(page, newPerPage)}
+              onChangeRowsPerPage={(newPerPage, page) =>
+                listUsers(page, newPerPage)
+              }
               progressPending={loading}
               fixedHeader
             />

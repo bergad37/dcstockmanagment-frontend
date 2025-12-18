@@ -9,6 +9,7 @@ import { useCustomerStore } from '../../store/CustomerStore';
 import DeleteModal from '../../components/ui/ConfirmModal';
 import Modal from '../../components/ui/Modal';
 import SearchBar from '../../components/ui/SearchBar';
+import { customStyles } from '../../utils/ui.helper.styles';
 
 const Clients = () => {
   const { fetchCustomer, deleteCustomer, customers, loading, pagination } = useCustomerStore();
@@ -114,11 +115,14 @@ const Clients = () => {
                 columns={customerColumns(actions)}
                 data={customers}
                 pagination
+                customStyles={customStyles}
                 paginationServer
                 paginationPerPage={pagination.limit}
                 paginationTotalRows={pagination.total}
                 onChangePage={(page) => fetchCustomer(page, pagination.limit)}
-                onChangeRowsPerPage={(newPerPage, page) => fetchCustomer(page, newPerPage)}
+                onChangeRowsPerPage={(newPerPage, page) =>
+                  fetchCustomer(page, newPerPage)
+                }
                 progressPending={loading}
                 fixedHeader
               />
@@ -131,7 +135,10 @@ const Clients = () => {
           title={'Add New Customer'}
         >
           {' '}
-          <CustomerForm handleClose={handleClose} initialValues={initialValues} />
+          <CustomerForm
+            handleClose={handleClose}
+            initialValues={initialValues}
+          />
         </Modal>
       </div>
     </>
