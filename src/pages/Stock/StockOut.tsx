@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import DataTable from 'react-data-table-component';
 import StockOutForm from './stock-out.form';
 // import { useStockStore } from '../../store/stockStore';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
-import { stockInDummyData, stockOutDummyData } from '../../data/dummyData';
+import {  stockOutDummyData } from '../../data/dummyData';
 import SearchBar from '../../components/ui/SearchBar';
 import Filters, {
   type Filter,
@@ -12,12 +12,21 @@ import Filters, {
 } from '../../components/ui/Filters';
 import DateRangeFilter from '../../components/ui/DatePicker';
 import { customStyles } from '../../utils/ui.helper.styles';
+import { useStockStore } from '../../store/stockStore';
+import { LogOut } from 'lucide-react';
 
 type TabType = 'STOCK' | 'STOCK_OUT';
 
 const Stock = () => {
+  const { fetchStock, stock } = useStockStore();
+
   const [activeTab, setActiveTab] = useState<TabType>('STOCK');
   const [showForm, setShowForm] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<{
+    label: string;
+    value: string;
+    type: 'ITEM' | 'QUANTITY';
+  } | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<FilterOption | null>(
     null
   );
@@ -44,18 +53,9 @@ const Stock = () => {
     return true;
   });
 
-  //   const {
-  //     stockIn, // Available items
-  //     stockOut, // Sold and rented items
-  //     stockLoading,
-  //     fetchStockIn,
-  //     fetchStockOut
-  //   } = useStockStore();
-
-  //   useEffect(() => {
-  //     fetchStockIn();
-  //     fetchStockOut();
-  //   }, [fetchStockIn, fetchStockOut]);
+  useEffect(() => {
+    fetchStock();
+  }, [fetchStock]);
 
   const handleReturn = (itemId: string) => {
     // implement return logic in store
@@ -65,7 +65,7 @@ const Stock = () => {
   const stockInColumns = [
     {
       name: 'Product',
-      selector: (row: any) => row.productName,
+      selector: (row: any) => row?.product?.name,
       sortable: true
     },
     {
@@ -75,9 +75,9 @@ const Stock = () => {
     },
     {
       name: 'Date Added',
-      selector: (row: any) => row.dateAdded,
+      //   selector: (row: any) => row.dateAdded,
       sortable: true,
-      cell: (row: any) => new Date(row.dateAdded).toLocaleDateString()
+      cell: (row: any) => new Date(row.product.entryDate).toLocaleDateString()
     },
     {
       name: 'Status',
@@ -92,6 +92,27 @@ const Stock = () => {
         >
           {row.status || 'AVAILABLE'}
         </span>
+      )
+    },
+    {
+      name: 'Action',
+      cell: (row: any) => (
+        <button
+          title={`Record stock out for ${row.product?.name}`}
+          onClick={() => {
+            setSelectedProduct({
+              label: row.product?.name,
+              value: row.product?.id,
+              type: row.product?.type
+            });
+            setShowForm(true);
+          }}
+          disabled={row.quantity === 0}
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-red-50 text-red-700  hover:bg-red-600 hover:text-white transition text-xs font-semibold  border border-red-200 disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <LogOut size={14} />
+          Stock Out
+        </button>
       )
     }
   ];
@@ -167,8 +188,6 @@ const Stock = () => {
     }
   ];
 
-
-
   const filters = (tab: TabType): Filter[] => {
     return tab === 'STOCK'
       ? [
@@ -239,15 +258,16 @@ const Stock = () => {
           <div className="flex gap-4 items-end">
             <SearchBar onSubmit={() => console.log('search items needed')} />
 
-            <Filters filters={filters(activeTab)} />
-
             {activeTab === 'STOCK_OUT' && (
-              <DateRangeFilter
-                from={dateFrom}
-                to={dateTo}
-                onFromChange={setDateFrom}
-                onToChange={setDateTo}
-              />
+              <>
+                <Filters filters={filters(activeTab)} />
+                <DateRangeFilter
+                  from={dateFrom}
+                  to={dateTo}
+                  onFromChange={setDateFrom}
+                  onToChange={setDateTo}
+                />
+              </>
             )}
           </div>
           {activeTab === 'STOCK' && (
@@ -262,10 +282,19 @@ const Stock = () => {
 
         <Modal
           isOpen={showForm}
-          onClose={() => setShowForm(false)}
+          onClose={() => {
+            setShowForm(false);
+            setSelectedProduct(null);
+          }}
           title={'Register Stock Out'}
         >
-          <StockOutForm handleClose={() => setShowForm(false)} />
+          <StockOutForm
+            handleClose={() => {
+              setShowForm(false);
+              setSelectedProduct(null);
+            }}
+            product={selectedProduct}
+          />
         </Modal>
 
         {/* DataTable */}
@@ -280,7 +309,7 @@ const Stock = () => {
           ) : activeTab === 'STOCK' ? (
             <DataTable
               columns={stockInColumns}
-              data={stockInDummyData}
+              data={stock?.stocks}
               highlightOnHover
               pointerOnHover
               customStyles={customStyles}

@@ -9,8 +9,12 @@ import { dummyStockOut, dummyInventory } from '../data/dummyData';
 interface StockState {
   // Stock Out data
   stockOut: StockTransaction[];
+  stock: [];
   stockOutLoading: boolean;
   stockOutError: string | null;
+
+  stockLoading: boolean;
+  stockError: string | null;
 
   // Inventory data
   inventory: StockTransaction[];
@@ -24,16 +28,36 @@ interface StockState {
   markAsReturned: (transactionId: string) => Promise<void>;
   recordStockOut: (payload: StockOutPayload) => Promise<void>;
   recordStockIn: (payload: StockInPayload) => Promise<void>;
+  fetchStock: () => Promise<void>;
 }
 
 export const useStockStore = create<StockState>((set) => ({
   // Initial states - use dummy data for now
   stockOut: dummyStockOut,
+  stock: [],
   stockOutLoading: false,
+  stockLoading: false,
+  stockError: null,
   stockOutError: null,
   inventory: dummyInventory,
   inventoryLoading: false,
   inventoryError: null,
+
+  // Fetch all items in stock
+  fetchStock: async () => {
+    set({ stockLoading: true, stockError: null });
+    try {
+      const res = await stockApi.fetchStock();
+      set({ stock: res.data.data, stockLoading: false });
+    } catch (e: unknown) {
+      console.error('Error fetching items in stock:', e);
+      set({
+        stock: [],
+        stockLoading: false,
+        stockError: null
+      });
+    }
+  },
 
   // Fetch all stock out transactions
   fetchStockOut: async () => {
@@ -61,7 +85,7 @@ export const useStockStore = create<StockState>((set) => ({
     } catch (e: unknown) {
       console.error('Error fetching stock out by type, using dummy data:', e);
       // Use filtered dummy data as fallback
-      const filtered = dummyStockOut.filter(item => item.type === type);
+      const filtered = dummyStockOut.filter((item) => item.type === type);
       set({
         stockOut: filtered,
         stockOutLoading: false,

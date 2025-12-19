@@ -2,11 +2,14 @@ import type { FormikHelpers } from 'formik';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { toast } from 'sonner';
-import { useProductStore } from '../../store/productStore';
+// import { useProductStore } from '../../store/productStore';
 import { useStockStore } from '../../store/stockStore';
+import { useCustomerStore } from '../../store/CustomerStore';
+import { useEffect } from 'react';
 
 interface StockOutFormProps {
   handleClose: () => void;
+  product: { label: string; value: string; type: 'ITEM' | 'QUANTITY' } | null;
 }
 
 interface FormValues {
@@ -15,6 +18,7 @@ interface FormValues {
   clientName: string;
   clientEmail: string;
   quantity: string;
+  transactionDate: string;
   returnDate: string;
 }
 
@@ -32,6 +36,7 @@ const validationSchema = Yup.object().shape({
   quantity: Yup.number()
     .min(1, 'Quantity must be at least 1')
     .required('Quantity is required'),
+  transactionDate: Yup.string().required('Transaction date is required'),
   returnDate: Yup.string().when('type', {
     is: 'RENTED',
     then: (schema) =>
@@ -40,21 +45,27 @@ const validationSchema = Yup.object().shape({
   })
 });
 
-const StockOutForm = ({ handleClose }: StockOutFormProps) => {
-  let { products } = useProductStore();
+const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
+  const { stock, fetchStock } = useStockStore();
+  const { customers, fetchCustomer } = useCustomerStore();
 
-  console.log('use real products from backend', products);
+  //   console.log('use real products from backend', products);
   const { recordStockOut } = useStockStore();
 
+  useEffect(() => {
+    fetchStock();
+    fetchCustomer();
+  }, [fetchStock, fetchCustomer]);
+
   const initialValues: FormValues = {
-    productId: '',
+    productId: product?.value || '',
     type: 'SOLD',
     clientName: '',
     clientEmail: '',
-    quantity: '',
+    quantity: product?.type === 'ITEM' ? '1' : '',
+    transactionDate: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
     returnDate: ''
   };
-  const dummyProducts = [{ name: 'Laptop', id: '123456' }];
 
   const handleSubmit = async (
     values: FormValues,
@@ -67,6 +78,7 @@ const StockOutForm = ({ handleClose }: StockOutFormProps) => {
         clientName: values.clientName,
         clientEmail: values.clientEmail,
         quantity: parseInt(values.quantity),
+        transactionDate: values.transactionDate,
         ...(values.type === 'RENTED' && { returnDate: values.returnDate })
       };
 
@@ -90,17 +102,13 @@ const StockOutForm = ({ handleClose }: StockOutFormProps) => {
   };
 
   return (
-    <div className="my-4 p-6 max-w-md bg-white rounded-lg shadow-lg">
-      <h2 className="text-xl font-bold mb-4" style={{ color: '#073c56' }}>
-        Record Stock Out
-      </h2>
-
+    <div>
       <Formik
         initialValues={initialValues}
         validationSchema={validationSchema}
         onSubmit={handleSubmit}
       >
-        {({ isSubmitting, values }) => (
+        {({ isSubmitting, values, setFieldValue }) => (
           <Form className="space-y-4">
             {/* Product Selection */}
             <div>
@@ -110,12 +118,13 @@ const StockOutForm = ({ handleClose }: StockOutFormProps) => {
               <Field
                 name="productId"
                 as="select"
-                className="w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40 focus:border-[#073c56] focus:outline-none"
+                disabled={!!product}
+                className="w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40 focus:border-[#073c56] focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
                 <option value="">Select a product...</option>
-                {dummyProducts.map((product) => (
-                  <option key={product.id} value={product.id}>
-                    {product.name}
+                {stock?.stocks.map((item) => (
+                  <option key={item.product.id} value={item.product.id}>
+                    {item.product.name}
                   </option>
                 ))}
               </Field>
@@ -124,39 +133,57 @@ const StockOutForm = ({ handleClose }: StockOutFormProps) => {
                 component="div"
                 className="text-red-500 text-sm mt-1"
               />
-            </div>
-
-            {/* Transaction Type */}
-            <div>
-              <label className="block mb-2 font-medium text-gray-700">
-                Transaction Type <span className="text-red-500">*</span>
-              </label>
-              <Field
-                name="type"
-                as="select"
-                className="w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40 focus:border-[#073c56] focus:outline-none"
-              >
-                <option value="">Select transaction type...</option>
-                <option value="SOLD">Sold</option>
-                <option value="RENTED">Rented</option>
-              </Field>
-              <ErrorMessage
-                name="type"
-                component="div"
-                className="text-red-500 text-sm mt-1"
-              />
+              {/* Transaction Type */}
+              <div>
+                <label className="block mb-2 font-medium text-gray-700">
+                  Transaction Type <span className="text-red-500">*</span>
+                </label>
+                <Field
+                  name="type"
+                  as="select"
+                  className="w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40 focus:border-[#073c56] focus:outline-none"
+                >
+                  <option value="">Select transaction type...</option>
+                  <option value="SOLD">Sold</option>
+                  <option value="RENTED">Rented</option>
+                </Field>
+                <ErrorMessage
+                  name="type"
+                  component="div"
+                  className="text-red-500 text-sm mt-1"
+                />
+              </div>{' '}
             </div>
 
             {/* Client Name */}
             <div>
               <label className="block mb-2 font-medium text-gray-700">
-                Client Name <span className="text-red-500">*</span>
+                Client <span className="text-red-500">*</span>
               </label>
               <Field
                 name="clientName"
-                placeholder="Enter client name"
+                as="select"
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                  const selectedName = e.target.value;
+                  setFieldValue('clientName', selectedName);
+                  const selectedClient = customers.find(
+                    (c) => c.name === selectedName
+                  );
+                  if (selectedClient) {
+                    setFieldValue('clientEmail', selectedClient.email);
+                  } else {
+                    setFieldValue('clientEmail', '');
+                  }
+                }}
                 className="w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40 focus:border-[#073c56] focus:outline-none"
-              />
+              >
+                <option value="">Select a client...</option>
+                {customers.map((client) => (
+                  <option key={client.id} value={client.name}>
+                    {client.name}
+                  </option>
+                ))}
+              </Field>
               <ErrorMessage
                 name="clientName"
                 component="div"
@@ -173,7 +200,8 @@ const StockOutForm = ({ handleClose }: StockOutFormProps) => {
                 name="clientEmail"
                 type="email"
                 placeholder="client@example.com"
-                className="w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40 focus:border-[#073c56] focus:outline-none"
+                disabled
+                className="w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40 focus:border-[#073c56] focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
               <ErrorMessage
                 name="clientEmail"
@@ -192,10 +220,28 @@ const StockOutForm = ({ handleClose }: StockOutFormProps) => {
                 type="number"
                 min="1"
                 placeholder="Enter quantity"
-                className="w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40 focus:border-[#073c56] focus:outline-none"
+                disabled={product?.type === 'ITEM'}
+                className="w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40 focus:border-[#073c56] focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
               <ErrorMessage
                 name="quantity"
+                component="div"
+                className="text-red-500 text-sm mt-1"
+              />
+            </div>
+
+            {/* Transaction Date */}
+            <div>
+              <label className="block mb-2 font-medium text-gray-700">
+                Transaction Date <span className="text-red-500">*</span>
+              </label>
+              <Field
+                name="transactionDate"
+                type="date"
+                className="w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40 focus:border-[#073c56] focus:outline-none"
+              />
+              <ErrorMessage
+                name="transactionDate"
                 component="div"
                 className="text-red-500 text-sm mt-1"
               />

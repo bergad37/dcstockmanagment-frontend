@@ -30,6 +30,8 @@ export interface StockTransaction {
 }
 
 const stockApi = {
+  fetchStock: () => axiosClient.get('/stock'),
+
   // Stock Out - Record sold or rented items
   recordStockOut: (payload: StockOutPayload) =>
     axiosClient.post('/stock/out', payload),
