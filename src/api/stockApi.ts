@@ -30,7 +30,8 @@ export interface StockTransaction {
 }
 
 const stockApi = {
-  fetchStock: () => axiosClient.get('/stock'),
+  fetchStock: (params?: Record<string, any>) =>
+    axiosClient.get('/stock', { params }),
 
   // Stock Out - Record sold or rented items
   recordStockOut: (payload: StockOutPayload) =>

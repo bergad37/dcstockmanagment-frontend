@@ -28,7 +28,7 @@ interface StockState {
   markAsReturned: (transactionId: string) => Promise<void>;
   recordStockOut: (payload: StockOutPayload) => Promise<void>;
   recordStockIn: (payload: StockInPayload) => Promise<void>;
-  fetchStock: () => Promise<void>;
+  fetchStock: (params?: Record<string, any>) => Promise<void>;
 }
 
 export const useStockStore = create<StockState>((set) => ({
@@ -44,10 +44,10 @@ export const useStockStore = create<StockState>((set) => ({
   inventoryError: null,
 
   // Fetch all items in stock
-  fetchStock: async () => {
+  fetchStock: async (params?: Record<string, any>) => {
     set({ stockLoading: true, stockError: null });
     try {
-      const res = await stockApi.fetchStock();
+      const res = await stockApi.fetchStock(params);
       set({ stock: res.data.data, stockLoading: false });
     } catch (e: unknown) {
       console.error('Error fetching items in stock:', e);

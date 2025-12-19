@@ -4,7 +4,7 @@ import StockOutForm from './stock-out.form';
 // import { useStockStore } from '../../store/stockStore';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
-import {  stockOutDummyData } from '../../data/dummyData';
+import { stockOutDummyData } from '../../data/dummyData';
 import SearchBar from '../../components/ui/SearchBar';
 import Filters, {
   type Filter,
@@ -18,7 +18,7 @@ import { LogOut } from 'lucide-react';
 type TabType = 'STOCK' | 'STOCK_OUT';
 
 const Stock = () => {
-  const { fetchStock, stock } = useStockStore();
+  const { fetchStock, stock, stockLoading } = useStockStore();
 
   const [activeTab, setActiveTab] = useState<TabType>('STOCK');
   const [showForm, setShowForm] = useState(false);
@@ -52,6 +52,8 @@ const Stock = () => {
 
     return true;
   });
+
+  // const [searchStockProduct, setSearchStockProduct] = useState(undefined);
 
   useEffect(() => {
     fetchStock();
@@ -224,6 +226,10 @@ const Stock = () => {
         ];
   };
 
+  const handleSearchProductInStock = (data) => {
+    fetchStock({ searchKey: data });
+  };
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="mb-8">
@@ -254,7 +260,7 @@ const Stock = () => {
       <div className="border rounded-xl py-12">
         <div className="mb-4 flex justify-between">
           <div className="flex gap-4 items-end">
-            <SearchBar onSubmit={() => console.log('search items needed')} />
+            <SearchBar onSubmit={handleSearchProductInStock} />
 
             {activeTab === 'STOCK_OUT' && (
               <>
@@ -297,7 +303,7 @@ const Stock = () => {
 
         {/* DataTable */}
         <div className="bg-white my-12 shadow overflow-hidden">
-          {false ? (
+          {stockLoading ? (
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#073c56]"></div>
