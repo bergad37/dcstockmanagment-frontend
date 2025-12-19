@@ -58,7 +58,6 @@ const Stock = () => {
   }, [fetchStock]);
 
   const handleReturn = (itemId: string) => {
-    // implement return logic in store
     console.log('Return item:', itemId);
   };
 
@@ -75,7 +74,6 @@ const Stock = () => {
     },
     {
       name: 'Date Added',
-      //   selector: (row: any) => row.dateAdded,
       sortable: true,
       cell: (row: any) => new Date(row.product.entryDate).toLocaleDateString()
     },

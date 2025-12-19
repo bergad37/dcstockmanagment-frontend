@@ -49,7 +49,6 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
   const { stock, fetchStock } = useStockStore();
   const { customers, fetchCustomer } = useCustomerStore();
 
-  //   console.log('use real products from backend', products);
   const { recordStockOut } = useStockStore();
 
   useEffect(() => {
