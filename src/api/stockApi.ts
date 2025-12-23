@@ -33,6 +33,10 @@ const stockApi = {
   fetchStock: (params?: Record<string, any>) =>
     axiosClient.get('/stock', { params }),
 
+  // Fetch all stock out transactions
+  fetchAllTransactions: (params?: Record<string, any>) =>
+    axiosClient.get('/transactions', { params }),
+
   // Stock Out - Record sold or rented items
   recordStockOut: (payload: StockOutPayload) =>
     axiosClient.post('/stock/out', payload),
@@ -40,9 +44,6 @@ const stockApi = {
   // Stock In - Add items back to inventory
   recordStockIn: (payload: StockInPayload) =>
     axiosClient.post('/stock/in', payload),
-
-  // Fetch all stock out transactions
-  fetchStockOut: () => axiosClient.get('/stock/out'),
 
   // Fetch stock out by type (SOLD or RENTED)
   fetchStockOutByType: (type: 'SOLD' | 'RENTED') =>

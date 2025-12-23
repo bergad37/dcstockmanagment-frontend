@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import DataTable from 'react-data-table-component';
 import StockOutForm from './stock-out.form';
-// import { useStockStore } from '../../store/stockStore';
-import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import { stockOutDummyData } from '../../data/dummyData';
 import SearchBar from '../../components/ui/SearchBar';
@@ -13,12 +11,14 @@ import Filters, {
 import DateRangeFilter from '../../components/ui/DatePicker';
 import { customStyles } from '../../utils/ui.helper.styles';
 import { useStockStore } from '../../store/stockStore';
-import { LogOut } from 'lucide-react';
+import { LogOut, RotateCcw } from 'lucide-react';
+import ReturnStockForm from './Return.item';
 
 type TabType = 'STOCK' | 'STOCK_OUT';
 
 const Stock = () => {
-  const { fetchStock, stock, stockLoading } = useStockStore();
+  const { fetchStock, stock, transactions, stockLoading, fetchAllTransaction } =
+    useStockStore();
 
   const [activeTab, setActiveTab] = useState<TabType>('STOCK');
   const [showForm, setShowForm] = useState(false);
@@ -36,6 +36,15 @@ const Stock = () => {
   );
   const [dateFrom, setDateFrom] = useState<string | null>(null);
   const [dateTo, setDateTo] = useState<string | null>(null);
+
+  //Handle Return Item
+  const [showReturnModal, setShowReturnModal] = useState(false);
+  const [transaction, setTransaction] = useState<{
+    id: string;
+    productName: string;
+    productType: 'ITEM' | 'QUANTITY';
+    quantity: number;
+  }>({ id: '', productName: '', productType: 'ITEM', quantity: 0 });
 
   const filteredStockOutData = stockOutDummyData.filter((item) => {
     if (dateFrom && new Date(item.transactionDate) < new Date(dateFrom)) {
@@ -57,11 +66,14 @@ const Stock = () => {
 
   useEffect(() => {
     fetchStock();
-  }, [fetchStock]);
+    fetchAllTransaction();
+  }, [fetchStock, fetchAllTransaction]);
 
   const handleReturn = (itemId: string) => {
     console.log('Return item:', itemId);
   };
+
+  console.log('$$$$$%', handleReturn);
 
   const stockInColumns = [
     {
@@ -77,7 +89,10 @@ const Stock = () => {
     {
       name: 'Date Added',
       sortable: true,
-      cell: (row: any) => new Date(row.product.entryDate).toLocaleDateString()
+      cell: (row: any) =>
+        row?.product?.entryDate
+          ? new Date(row.product.entryDate).toLocaleDateString()
+          : '-'
     },
     {
       name: 'Status',
@@ -117,7 +132,7 @@ const Stock = () => {
     }
   ];
 
-  const stockOutColumns = [
+  const stockOutColumns = (returnAction: (param: any) => void) => [
     {
       name: 'Product',
       selector: (row: any) => row.productName,
@@ -142,10 +157,10 @@ const Stock = () => {
     {
       name: 'Quantity',
       selector: (row: any) => row.quantity,
-      sortable: true
+      sortable: true,flex:0.5
     },
     {
-      name: 'Date',
+      name: 'Transaction date',
       selector: (row: any) => row.transactionDate,
       sortable: true,
       cell: (row: any) =>
@@ -159,14 +174,37 @@ const Stock = () => {
       name: 'Return',
       cell: (row: any) =>
         row.type === 'RENTED' && row.status === 'ACTIVE' ? (
-          <Button
-            label="Return"
-            onClick={() => handleReturn(row.id)}
-            bg="bg-green-600"
-          />
+          <button
+            title={`Return ${row.product?.name}`}
+            onClick={() => returnAction(row)}
+            disabled={row.quantity === 0}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full cursor:pointer
+             bg-green-600 text-white
+             hover:bg-green-700
+             transition text-xs font-semibold
+             disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <RotateCcw size={14} />
+            Return
+          </button>
         ) : (
           <span>-</span>
         )
+    },
+    {
+      name: 'Client Name',
+      selector: (row: any) => row.clientName,
+      sortable: true
+    },
+    {
+      name: 'Client Email',
+      flex: 2,
+      selector: (row: any) => row.clientEmail,
+      cell: (row: any) => (
+        <p className="text-blue-600 hover:underline text-sm">
+          {row.clientEmail}
+        </p>
+      )
     },
     {
       name: 'Status',
@@ -218,7 +256,7 @@ const Stock = () => {
             label: 'Transaction type',
             options: [
               { value: 'SOLD', label: 'SOLD' },
-              { value: 'RENT', label: 'RENTED' }
+              { value: 'RENTED', label: 'RENTED' }
             ],
             value: transactionType,
             onChange: setTransactionType
@@ -228,6 +266,15 @@ const Stock = () => {
 
   const handleSearchProductInStock = (data) => {
     fetchStock({ searchKey: data });
+  };
+
+  const handleClose = () => {
+    setShowReturnModal(false);
+  };
+
+  const returnAction = (data: any) => {
+    setTransaction(data);
+    setShowReturnModal(true);
   };
 
   return (
@@ -324,21 +371,28 @@ const Stock = () => {
               striped
             />
           ) : (
-            <DataTable
-              columns={stockOutColumns}
-              data={filteredStockOutData}
-              highlightOnHover
-              pointerOnHover
-              customStyles={customStyles}
-              pagination
-              paginationPerPage={10}
-              paginationRowsPerPageOptions={[5, 10, 20, 50]}
-              responsive
-              striped
-            />
+            activeTab === 'STOCK_OUT' && (
+              <DataTable
+                columns={stockOutColumns(returnAction)}
+                data={filteredStockOutData}
+                highlightOnHover
+                pointerOnHover
+                customStyles={customStyles}
+                pagination
+                paginationPerPage={10}
+                paginationRowsPerPageOptions={[5, 10, 20, 50]}
+                responsive
+                striped
+              />
+            )
           )}
         </div>
       </div>
+      <ReturnStockForm
+        handleClose={handleClose}
+        transaction={transaction}
+        isOpen={showReturnModal}
+      />
     </div>
   );
 };

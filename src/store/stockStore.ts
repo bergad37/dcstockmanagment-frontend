@@ -10,7 +10,10 @@ interface StockState {
   // Stock Out data
   stockOut: StockTransaction[];
   stock: [];
+  transactions: [];
   stockOutLoading: boolean;
+  allTransactionsLoading: boolean;
+  allTransactionError: string | null;
   stockOutError: string | null;
 
   stockLoading: boolean;
@@ -22,7 +25,8 @@ interface StockState {
   inventoryError: string | null;
 
   // Actions
-  fetchStockOut: () => Promise<void>;
+//   fetchStockOut: () => Promise<void>;
+  fetchAllTransaction: (params?: Record<string, any>) => Promise<void>;
   fetchStockOutByType: (type: 'SOLD' | 'RENTED') => Promise<void>;
   fetchInventory: () => Promise<void>;
   markAsReturned: (transactionId: string) => Promise<void>;
@@ -35,6 +39,7 @@ export const useStockStore = create<StockState>((set) => ({
   // Initial states - use dummy data for now
   stockOut: dummyStockOut,
   stock: [],
+  transactions: [],
   stockOutLoading: false,
   stockLoading: false,
   stockError: null,
@@ -42,6 +47,8 @@ export const useStockStore = create<StockState>((set) => ({
   inventory: dummyInventory,
   inventoryLoading: false,
   inventoryError: null,
+  allTransactionError: null,
+  allTransactionsLoading: false,
 
   // Fetch all items in stock
   fetchStock: async (params?: Record<string, any>) => {
@@ -59,22 +66,38 @@ export const useStockStore = create<StockState>((set) => ({
     }
   },
 
-  // Fetch all stock out transactions
-  fetchStockOut: async () => {
-    set({ stockOutLoading: true, stockOutError: null });
+  // Fetch all transactions
+  fetchAllTransaction: async (params?: Record<string, any>) => {
+    set({ allTransactionsLoading: true, allTransactionError: null });
     try {
-      const res = await stockApi.fetchStockOut();
-      set({ stockOut: res.data.data, stockOutLoading: false });
+      const res = await stockApi.fetchAllTransactions(params);
+      set({ transactions: res.data.data, allTransactionsLoading: false });
     } catch (e: unknown) {
-      console.error('Error fetching stock out, using dummy data:', e);
-      // Use dummy data as fallback
+      console.error('Error fetching transactions in stock:', e);
       set({
-        stockOut: dummyStockOut,
-        stockOutLoading: false,
-        stockOutError: null
+        transactions: [],
+        allTransactionsLoading: false,
+        allTransactionError: null
       });
     }
   },
+
+  // Fetch all stock out transactions
+//   fetchStockOut: async () => {
+//     set({ stockOutLoading: true, stockOutError: null });
+//     try {
+//       const res = await stockApi.fetchStockOut();
+//       set({ stockOut: res.data.data, stockOutLoading: false });
+//     } catch (e: unknown) {
+//       console.error('Error fetching stock out, using dummy data:', e);
+//       // Use dummy data as fallback
+//       set({
+//         stockOut: dummyStockOut,
+//         stockOutLoading: false,
+//         stockOutError: null
+//       });
+//     }
+//   },
 
   // Fetch stock out by type
   fetchStockOutByType: async (type: 'SOLD' | 'RENTED') => {

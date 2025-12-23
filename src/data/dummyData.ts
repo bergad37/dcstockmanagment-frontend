@@ -358,6 +358,9 @@ export const stockOutDummyData = [
     productName: 'Canon EOS R5 Camera',
     type: 'SOLD',
     quantity: 1,
+    productType: 'ITEM',
+    clientName: 'Lisa Anderson',
+    clientEmail: 'l.andn@freelance.com',
     transactionDate: '2025-01-05T10:30:00Z',
     status: 'COMPLETED'
   },
@@ -366,6 +369,9 @@ export const stockOutDummyData = [
     productName: 'DJI Mavic Air 2 Drone',
     type: 'RENTED',
     quantity: 1,
+    productType: 'QUANTITY',
+    clientName: 'Lisa Anderson',
+    clientEmail: 'l.and@freelance.com',
     transactionDate: '2025-01-10T14:15:00Z',
     status: 'ACTIVE'
   },
@@ -374,6 +380,9 @@ export const stockOutDummyData = [
     productName: 'MacBook Pro 16-inch',
     type: 'RENTED',
     quantity: 2,
+    productType: 'ITEM',
+    clientName: 'Lisa Anderson',
+    clientEmail: 'l.andn@freelance.com',
     transactionDate: '2025-01-02T09:00:00Z',
     status: 'COMPLETED'
   },
@@ -382,6 +391,9 @@ export const stockOutDummyData = [
     productName: 'Epson Projector X200',
     type: 'SOLD',
     quantity: 1,
+    productType: 'ITEM',
+    clientName: 'Lisa Anderson',
+    clientEmail: 'l.andn@freelance.com',
     transactionDate: '2024-12-22T16:45:00Z'
     // status intentionally missing → defaults to COMPLETED
   },
@@ -390,6 +402,9 @@ export const stockOutDummyData = [
     productName: 'HP LaserJet Pro Printer',
     type: 'RENTED',
     quantity: 1,
+    productType: 'ITEM',
+    clientName: 'Lisa Anderson',
+    clientEmail: 'l.andn@freelance.com',
     transactionDate: '2025-01-12T11:20:00Z',
     status: 'ACTIVE'
   },
@@ -398,6 +413,9 @@ export const stockOutDummyData = [
     productName: 'Samsung 55" Smart TV',
     type: 'SOLD',
     quantity: 3,
+    productType: 'ITEM',
+    clientName: 'Lisa Anderson',
+    clientEmail: 'l.andn@freelance.com',
     transactionDate: '2025-01-08T13:00:00Z',
     status: 'COMPLETED'
   }
