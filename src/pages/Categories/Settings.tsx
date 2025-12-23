@@ -109,6 +109,8 @@ const Settings = () => {
     setSupplierInitial({ id: null, name: '', phone: '', email: '' });
   };
 
+  console.log('##############');
+
   return (
     <>
       <DeleteModal
@@ -170,7 +172,7 @@ const Settings = () => {
                 Suppliers
               </h2>
               <button
-                className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#073c56] text-white"
+                className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#073c56] text-white font-semibold"
                 onClick={() => {
                   setSupplierInitial({
                     id: null,
@@ -181,46 +183,51 @@ const Settings = () => {
                   setShowSupplierForm(true);
                 }}
               >
-                <Plus className="h-4 w-4" /> <span>Add</span>
+                <Plus className="h-4 w-4" /> <span>Add supplier</span>
               </button>
             </div>
 
-            <div className="overflow-x-auto px-4 pb-4">
-              <SearchBar
-                onSubmit={(value) => {
-                  // call server-side search (query param 'q')
-                  fetchSuppliers(value);
-                }}
-              />
-
-              <div className="my-8">
-                <DataTable
-                  columns={[
-                    {
-                      name: 'Name',
-                      selector: (row: any) => row.name,
-                      sortable: true
-                    },
-                    { name: 'Email', selector: (row: any) => row.email },
-                    { name: 'Phone', selector: (row: any) => row.phone },
-                    {
-                      name: 'Actions',
-                      cell: (row: any) => (
-                        <div className="flex gap-2">
-                          <ActionButtons row={row} actions={supplierActions} />
-                        </div>
-                      )
-                    }
-                  ]}
-                  data={suppliers ?? []}
-                  pagination
-                  paginationPerPage={5}
-                  customStyles={customStyles}
-                  fixedHeader
-                  responsive
+            {suppliers?.length > 0 && (
+              <div className="overflow-x-auto px-4 pb-4">
+                <SearchBar
+                  onSubmit={(value) => {
+                    // call server-side search (query param 'q')
+                    fetchSuppliers(value);
+                  }}
                 />
+
+                <div className="my-8">
+                  <DataTable
+                    columns={[
+                      {
+                        name: 'Name',
+                        selector: (row: any) => row.name,
+                        sortable: true
+                      },
+                      { name: 'Email', selector: (row: any) => row.email },
+                      { name: 'Phone', selector: (row: any) => row.phone },
+                      {
+                        name: 'Actions',
+                        cell: (row: any) => (
+                          <div className="flex gap-2">
+                            <ActionButtons
+                              row={row}
+                              actions={supplierActions}
+                            />
+                          </div>
+                        )
+                      }
+                    ]}
+                    data={suppliers ?? []}
+                    pagination
+                    paginationPerPage={5}
+                    customStyles={customStyles}
+                    fixedHeader
+                    responsive
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 

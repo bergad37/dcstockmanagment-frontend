@@ -40,7 +40,17 @@ const validationSchema = Yup.object().shape({
   returnDate: Yup.string().when('type', {
     is: 'RENTED',
     then: (schema) =>
-      schema.required('Return date is required for rented items'),
+      schema
+        .required('Return date is required for rented items')
+        .test(
+          'return-after-transaction',
+          'Return date cannot be before transaction date',
+          function (value) {
+            const { transactionDate } = this.parent;
+            if (!value || !transactionDate) return true;
+            return new Date(value) >= new Date(transactionDate);
+          }
+        ),
     otherwise: (schema) => schema.notRequired()
   })
 });
