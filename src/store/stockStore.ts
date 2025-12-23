@@ -25,7 +25,6 @@ interface StockState {
   inventoryError: string | null;
 
   // Actions
-//   fetchStockOut: () => Promise<void>;
   fetchAllTransaction: (params?: Record<string, any>) => Promise<void>;
   fetchStockOutByType: (type: 'SOLD' | 'RENTED') => Promise<void>;
   fetchInventory: () => Promise<void>;
@@ -82,22 +81,7 @@ export const useStockStore = create<StockState>((set) => ({
     }
   },
 
-  // Fetch all stock out transactions
-//   fetchStockOut: async () => {
-//     set({ stockOutLoading: true, stockOutError: null });
-//     try {
-//       const res = await stockApi.fetchStockOut();
-//       set({ stockOut: res.data.data, stockOutLoading: false });
-//     } catch (e: unknown) {
-//       console.error('Error fetching stock out, using dummy data:', e);
-//       // Use dummy data as fallback
-//       set({
-//         stockOut: dummyStockOut,
-//         stockOutLoading: false,
-//         stockOutError: null
-//       });
-//     }
-//   },
+
 
   // Fetch stock out by type
   fetchStockOutByType: async (type: 'SOLD' | 'RENTED') => {

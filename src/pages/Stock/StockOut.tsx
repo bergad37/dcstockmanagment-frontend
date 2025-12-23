@@ -123,7 +123,7 @@ const Stock = () => {
             setShowForm(true);
           }}
           disabled={row.quantity === 0}
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-red-50 text-red-700  hover:bg-red-600 hover:text-white transition text-xs font-semibold  border border-red-200 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-50 text-red-700  hover:bg-red-600 hover:text-white transition text-xs font-semibold  border border-red-200 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <LogOut size={14} />
           Stock Out
