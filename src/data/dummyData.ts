@@ -350,8 +350,6 @@ export const stockInDummyData = [
   }
 ];
 
-
-
 export const stockOutDummyData = [
   {
     id: 1,
@@ -373,6 +371,7 @@ export const stockOutDummyData = [
     clientName: 'Lisa Anderson',
     clientEmail: 'l.and@freelance.com',
     transactionDate: '2025-01-10T14:15:00Z',
+    returnDate: new Date().toISOString(),
     status: 'ACTIVE'
   },
   {
@@ -384,6 +383,7 @@ export const stockOutDummyData = [
     clientName: 'Lisa Anderson',
     clientEmail: 'l.andn@freelance.com',
     transactionDate: '2025-01-02T09:00:00Z',
+    returnDate: new Date().toISOString(),
     status: 'COMPLETED'
   },
   {
@@ -405,6 +405,7 @@ export const stockOutDummyData = [
     productType: 'ITEM',
     clientName: 'Lisa Anderson',
     clientEmail: 'l.andn@freelance.com',
+    returnDate: new Date().toISOString(),
     transactionDate: '2025-01-12T11:20:00Z',
     status: 'ACTIVE'
   },
@@ -420,7 +421,6 @@ export const stockOutDummyData = [
     status: 'COMPLETED'
   }
 ];
-
 
 export const stockOut = [
   {

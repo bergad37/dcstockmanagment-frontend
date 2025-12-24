@@ -155,13 +155,13 @@ const Stock = () => {
       )
     },
     {
-      name: 'Quantity',
+      name: 'Prod.Qty',
       selector: (row: any) => row.quantity,
       sortable: true,
       flex: 0.5
     },
     {
-      name: 'Transaction date',
+      name: 'Transaction Date',
       selector: (row: any) => row.transactionDate,
       sortable: true,
       cell: (row: any) =>
@@ -171,47 +171,26 @@ const Stock = () => {
           year: 'numeric'
         })
     },
-    {
-      name: 'Return',
-      cell: (row: any) =>
-        row.type === 'RENTED' && row.status === 'ACTIVE' ? (
-          <button
-            title={`Return ${row.product?.name}`}
-            onClick={() => returnAction(row)}
-            disabled={row.quantity === 0}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full cursor:pointer
-             bg-green-600 text-white
-             hover:bg-green-700
-             transition text-xs font-semibold
-             disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <RotateCcw size={14} />
-            Return
-          </button>
-        ) : (
-          <span>-</span>
-        )
-    },
+
     {
       name: 'Client Name',
       selector: (row: any) => row.clientName,
       sortable: true
     },
+    // {
+    //   name: 'Client Email',
+    //   flex: 2,
+    //   selector: (row: any) => row.clientEmail,
+    //   cell: (row: any) => (
+    //     <p className="text-blue-600 hover:underline text-sm">
+    //       {row.clientEmail}
+    //     </p>
+    //   )
+    // },
     {
-      name: 'Client Email',
-      flex: 2,
-      selector: (row: any) => row.clientEmail,
-      cell: (row: any) => (
-        <p className="text-blue-600 hover:underline text-sm">
-          {row.clientEmail}
-        </p>
-      )
-    },
-    {
-      name: 'Status',
-      selector: (row: any) => row.status || 'COMPLETED',
+      name: 'Return Date',
+      selector: (row: any) => row.returnDate,
       cell: (row: any) => {
-        const status = row.status || 'COMPLETED';
         return (
           <span
             className={`px-3 py-1 rounded-full text-xs font-semibold ${
@@ -220,10 +199,36 @@ const Stock = () => {
                 : 'bg-gray-100 text-gray-800'
             }`}
           >
-            {status}
+            {row.type === 'RENTED'
+              ? new Date(row.returnDate).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric'
+                })
+              : '-'}
           </span>
         );
       }
+    },
+    {
+      name: 'Actions',
+      cell: (row: any) =>
+        row.type === 'RENTED' && row.status === 'ACTIVE' ? (
+          <button
+            title={`Return ${row.productName}`}
+            onClick={() => returnAction(row)}
+            disabled={row.quantity === 0}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500 text-white hover:bg-amber-600 transition text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+          >
+            <RotateCcw
+              size={14}
+              className="animate-[spin_0.6s_ease-in-out_1]"
+            />
+            Return
+          </button>
+        ) : (
+          <span>-</span>
+        )
     }
   ];
 
@@ -381,7 +386,7 @@ const Stock = () => {
               customStyles={customStyles}
               pagination
               paginationPerPage={10}
-              paginationRowsPerPageOptions={[5, 10, 20, 50]}
+              paginationRowsPerPageOptions={[10, 20, 50]}
               responsive
               striped
             />
@@ -395,7 +400,7 @@ const Stock = () => {
                 customStyles={customStyles}
                 pagination
                 paginationPerPage={10}
-                paginationRowsPerPageOptions={[5, 10, 20, 50]}
+                paginationRowsPerPageOptions={[10, 20, 50]}
                 responsive
                 striped
               />
