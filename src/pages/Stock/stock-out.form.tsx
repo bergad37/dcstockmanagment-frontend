@@ -15,33 +15,31 @@ interface StockOutFormProps {
 interface FormValues {
   productId: string;
   type: 'SOLD' | 'RENTED';
-  clientName: string;
-  clientEmail: string;
+  clientId: string;
   quantity: string;
   transactionDate: string;
   returnDate: string;
 }
 
-const validationSchema = Yup.object().shape({
+const validationSchema = Yup.object({
   productId: Yup.string().required('Product is required'),
   type: Yup.string()
     .oneOf(['SOLD', 'RENTED'])
     .required('Transaction type is required'),
-  clientName: Yup.string()
-    .min(2, 'Client name must be at least 2 characters')
-    .required('Client name is required'),
-  clientEmail: Yup.string()
-    .email('Invalid email address')
-    .required('Client email is required'),
+
+  clientId: Yup.string().required('Client is required'),
+
   quantity: Yup.number()
     .min(1, 'Quantity must be at least 1')
     .required('Quantity is required'),
+
   transactionDate: Yup.string().required('Transaction date is required'),
+
   returnDate: Yup.string().when('type', {
     is: 'RENTED',
     then: (schema) =>
       schema
-        .required('Return date is required for rented items')
+        .required('Return date is required')
         .test(
           'return-after-transaction',
           'Return date cannot be before transaction date',
@@ -69,10 +67,9 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
   const initialValues: FormValues = {
     productId: product?.value || '',
     type: 'SOLD',
-    clientName: '',
-    clientEmail: '',
+    clientId: '',
     quantity: product?.type === 'ITEM' ? '1' : '',
-    transactionDate: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
+    transactionDate: new Date().toISOString().split('T')[0],
     returnDate: ''
   };
 
@@ -82,15 +79,20 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
   ) => {
     try {
       const payload = {
+        items: [
+          {
+            productId: values.productId,
+            quantity: parseInt(values.quantity)
+          }
+        ],
+        customerId: values.clientId,
         productId: values.productId,
         type: values.type,
-        clientName: values.clientName,
-        clientEmail: values.clientEmail,
-        quantity: parseInt(values.quantity),
         transactionDate: values.transactionDate,
         ...(values.type === 'RENTED' && { returnDate: values.returnDate })
       };
 
+      debugger;
       await recordStockOut(payload);
       toast.success(
         values.type === 'SOLD'
@@ -164,56 +166,27 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
               </div>{' '}
             </div>
 
-            {/* Client Name */}
+            {/* Client */}
             <div>
               <label className="block mb-2 font-medium text-gray-700">
                 Client <span className="text-red-500">*</span>
               </label>
+
               <Field
-                name="clientName"
+                name="clientId"
                 as="select"
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                  const selectedName = e.target.value;
-                  setFieldValue('clientName', selectedName);
-                  const selectedClient = customers.find(
-                    (c) => c.name === selectedName
-                  );
-                  if (selectedClient) {
-                    setFieldValue('clientEmail', selectedClient.email);
-                  } else {
-                    setFieldValue('clientEmail', '');
-                  }
-                }}
                 className="w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40 focus:border-[#073c56] focus:outline-none"
               >
                 <option value="">Select a client...</option>
                 {customers.map((client) => (
-                  <option key={client.id} value={client.name}>
+                  <option key={client.id} value={client.id}>
                     {client.name}
                   </option>
                 ))}
               </Field>
-              <ErrorMessage
-                name="clientName"
-                component="div"
-                className="text-red-500 text-sm mt-1"
-              />
-            </div>
 
-            {/* Client Email */}
-            <div>
-              <label className="block mb-2 font-medium text-gray-700">
-                Client Email <span className="text-red-500">*</span>
-              </label>
-              <Field
-                name="clientEmail"
-                type="email"
-                placeholder="client@example.com"
-                disabled
-                className="w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40 focus:border-[#073c56] focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
-              />
               <ErrorMessage
-                name="clientEmail"
+                name="clientId"
                 component="div"
                 className="text-red-500 text-sm mt-1"
               />

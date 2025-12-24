@@ -39,7 +39,7 @@ const stockApi = {
 
   // Stock Out - Record sold or rented items
   recordStockOut: (payload: StockOutPayload) =>
-    axiosClient.post('/stock/out', payload),
+    axiosClient.post('/transactions/stock/out', payload),
 
   // Stock In - Add items back to inventory
   recordStockIn: (payload: StockInPayload) =>
