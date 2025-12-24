@@ -157,7 +157,8 @@ const Stock = () => {
     {
       name: 'Quantity',
       selector: (row: any) => row.quantity,
-      sortable: true,flex:0.5
+      sortable: true,
+      flex: 0.5
     },
     {
       name: 'Transaction date',
@@ -289,20 +290,32 @@ const Stock = () => {
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex gap-2 mb-6">
-        {(['STOCK', 'STOCK_OUT'] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-full font-medium transition ${
-              activeTab === tab
-                ? 'bg-[#073c56] text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
-          >
-            {tab === 'STOCK' ? 'Stock' : 'Stock Out'}
-          </button>
-        ))}
+      <div className="flex justify-between gap-2 mb-6">
+        <div className="inline-flex rounded-full border border-[#073c56]/30 bg-gray-100 p-1 gap-2">
+          {(['STOCK', 'STOCK_OUT'] as const).map((tab) => {
+            const isActive = activeTab === tab;
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                  isActive
+                    ? 'bg-[#073c56] text-white shadow-sm'
+                    : 'bg-transparent text-[#073c56] hover:text-white'
+                }`}
+              >
+                {tab === 'STOCK' ? 'Stock' : 'Transactions'}
+              </button>
+            );
+          })}
+        </div>
+
+        <button
+          onClick={() => setShowForm(true)}
+          className="px-4 py-1 rounded-full border border-[#073c56] text-[#073c56] bg-transparent transition-all duration-200 ease-in-out hover:bg-[#073c56] hover:text-white"
+        >
+          <p className="text-sm font-medium">+ Add item in stock</p>
+        </button>
       </div>
       <div className="border rounded-xl py-12">
         <div className="mb-4 flex justify-between">
@@ -322,12 +335,14 @@ const Stock = () => {
             )}
           </div>
           {activeTab === 'STOCK' && (
-            <button
-              onClick={() => setShowForm(true)}
-              className="px-4 py-0 rounded-full transition bg-[#073c56] text-white"
-            >
-              <p className="font-sm py-1">Record stock out</p>
-            </button>
+            <>
+              <button
+                onClick={() => setShowForm(true)}
+                className="px-4 py-0 rounded-full transition bg-[#073c56] text-white"
+              >
+                <p className="font-sm py-1">Record stock out</p>
+              </button>
+            </>
           )}
         </div>
 
