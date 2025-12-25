@@ -91,8 +91,6 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
         transactionDate: values.transactionDate,
         ...(values.type === 'RENTED' && { returnDate: values.returnDate })
       };
-
-      debugger;
       await recordStockOut(payload);
       toast.success(
         values.type === 'SOLD'

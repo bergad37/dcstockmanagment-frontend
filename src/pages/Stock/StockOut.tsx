@@ -13,12 +13,15 @@ import { customStyles } from '../../utils/ui.helper.styles';
 import { useStockStore } from '../../store/stockStore';
 import { LogOut, RotateCcw } from 'lucide-react';
 import ReturnStockForm from './Return.item';
+import { useCategoryStore } from '../../store/categoriesStore';
 
 type TabType = 'STOCK' | 'STOCK_OUT';
 
 const Stock = () => {
   const { fetchStock, stock, transactions, stockLoading, fetchAllTransaction } =
     useStockStore();
+
+  const { fetchCategories, categories } = useCategoryStore();
 
   const [activeTab, setActiveTab] = useState<TabType>('STOCK');
   const [showForm, setShowForm] = useState(false);
@@ -30,7 +33,6 @@ const Stock = () => {
   const [categoryFilter, setCategoryFilter] = useState<FilterOption | null>(
     null
   );
-  const [statusFilter, setStatusFilter] = useState<FilterOption | null>(null);
   const [transactionType, setTransactionType] = useState<FilterOption | null>(
     null
   );
@@ -62,12 +64,14 @@ const Stock = () => {
     return true;
   });
 
-  // const [searchStockProduct, setSearchStockProduct] = useState(undefined);
-
   useEffect(() => {
     fetchStock();
     fetchAllTransaction();
-  }, [fetchStock, fetchAllTransaction]);
+    fetchCategories();
+  }, [fetchStock, fetchAllTransaction, fetchCategories]);
+
+  const categoryOptions =
+    categories?.map((c: any) => ({ value: c.id, label: c.name })) ?? [];
 
   const handleReturn = (itemId: string) => {
     console.log('Return item:', itemId);
@@ -79,6 +83,12 @@ const Stock = () => {
     {
       name: 'Product',
       selector: (row: any) => row?.product?.name,
+      sortable: true
+    },
+    {
+      name: 'Category',
+      selector: (row: any) =>
+        row?.product?.category ? row?.product?.category?.name : '-',
       sortable: true
     },
     {
@@ -177,16 +187,6 @@ const Stock = () => {
       selector: (row: any) => row.clientName,
       sortable: true
     },
-    // {
-    //   name: 'Client Email',
-    //   flex: 2,
-    //   selector: (row: any) => row.clientEmail,
-    //   cell: (row: any) => (
-    //     <p className="text-blue-600 hover:underline text-sm">
-    //       {row.clientEmail}
-    //     </p>
-    //   )
-    // },
     {
       name: 'Return Date',
       selector: (row: any) => row.returnDate,
@@ -234,26 +234,12 @@ const Stock = () => {
 
   const filters = (tab: TabType): Filter[] => {
     return tab === 'STOCK'
-      ? [
-          {
-            key: 'status',
-            label: 'Status',
-            options: [
-              { value: 'available', label: 'Available' },
-              { value: 'out', label: 'Out Of Stock' }
-            ],
-            value: statusFilter,
-            onChange: setStatusFilter
-          }
-        ]
+      ? []
       : [
           {
             key: 'category',
             label: 'Category',
-            options: [
-              { value: 'furniture', label: 'furniture' },
-              { value: 'electronics', label: 'Electronics' }
-            ],
+            options: categoryOptions.length > 0 ? categoryOptions : [],
             value: categoryFilter,
             onChange: setCategoryFilter
           },

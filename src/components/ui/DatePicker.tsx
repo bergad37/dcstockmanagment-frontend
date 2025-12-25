@@ -12,14 +12,14 @@ const DateRangeFilter = ({
   onToChange
 }: DateRangeFilterProps) => {
   return (
-    <div className="flex gap-2 items-end">
+    <div className="flex gap-1 items-end">
       <div className="flex flex-col">
         <label className="text-xs text-gray-600 mb-1">From</label>
         <input
           type="date"
           value={from ?? ''}
           onChange={(e) => onFromChange(e.target.value || null)}
-          className="border rounded-xl px-3 py-2 text-sm"
+          className="border rounded-xl px-2 py-2 text-sm"
         />
       </div>
 

@@ -29,7 +29,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   const handleSearchClick = () => {
-    onSubmit(inputValue); // Call onSubmit when the search icon is clicked
+    onSubmit(inputValue); 
   };
 
   const handleClearClick = () => {

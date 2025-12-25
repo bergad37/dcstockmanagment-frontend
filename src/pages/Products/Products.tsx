@@ -28,7 +28,7 @@ const Products = () => {
   useEffect(() => {
     listProducts();
     fetchCategories();
-  }, [listProducts]);
+  }, [listProducts,fetchCategories]);
 
   // filters state
   const [searchQuery, setSearchQuery] = useState<string>('');
