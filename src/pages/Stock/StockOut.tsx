@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import DataTable from 'react-data-table-component';
 import StockOutForm from './stock-out.form';
 import Modal from '../../components/ui/Modal';
-import { stockOutDummyData } from '../../data/dummyData';
+// import { stockOutDummyData } from '../../data/dummyData';
 import SearchBar from '../../components/ui/SearchBar';
 import Filters, {
   type Filter,
@@ -14,6 +14,7 @@ import { useStockStore } from '../../store/stockStore';
 import { LogOut, RotateCcw } from 'lucide-react';
 import ReturnStockForm from './Return.item';
 import { useCategoryStore } from '../../store/categoriesStore';
+import { formatStockTransactions } from '../../utils/auth';
 
 type TabType = 'STOCK' | 'STOCK_OUT';
 
@@ -56,7 +57,7 @@ const Stock = () => {
     quantity: number;
   }>({ id: '', productName: '', productType: 'ITEM', quantity: 0 });
 
-  const filteredStockOutData = stockOutDummyData.filter((item) => {
+  const filteredStockOutData = formatStockTransactions(transactions?.transactions)?.filter((item) => {
     if (dateFrom && new Date(item.transactionDate) < new Date(dateFrom)) {
       return false;
     }
@@ -221,7 +222,7 @@ const Stock = () => {
     {
       name: 'Actions',
       cell: (row: any) =>
-        row.type === 'RENTED' && row.status === 'ACTIVE' ? (
+        row.type === 'RENT' ? (
           <button
             title={`Return ${row.productName}`}
             onClick={() => returnAction(row)}
@@ -256,7 +257,7 @@ const Stock = () => {
             label: 'Transaction type',
             options: [
               { value: 'SOLD', label: 'SOLD' },
-              { value: 'RENTED', label: 'RENTED' }
+              { value: 'RENT', label: 'RENTED' }
             ],
             value: transactionType,
             onChange: setTransactionType
