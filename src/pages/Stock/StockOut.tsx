@@ -18,8 +18,16 @@ import { useCategoryStore } from '../../store/categoriesStore';
 type TabType = 'STOCK' | 'STOCK_OUT';
 
 const Stock = () => {
-  const { fetchStock, stock, transactions, stockLoading, fetchAllTransaction } =
-    useStockStore();
+  const {
+    fetchStock,
+    stockOutSucess,
+    stock,
+    transactions,
+    stockLoading,
+    fetchAllTransaction
+  } = useStockStore();
+
+  const { resetStockOutSuccess } = useStockStore();
 
   const { fetchCategories, categories } = useCategoryStore();
 
@@ -268,6 +276,16 @@ const Stock = () => {
     setTransaction(data);
     setShowReturnModal(true);
   };
+
+  useEffect(() => {
+    if (stockOutSucess) {
+      // refresh stock list and transactions when an out-stock is recorded
+      fetchStock();
+      fetchAllTransaction();
+      // reset the success flag so this effect doesn't re-run unnecessarily
+      resetStockOutSuccess();
+    }
+  }, [stockOutSucess, fetchStock, fetchAllTransaction, resetStockOutSuccess]);
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">

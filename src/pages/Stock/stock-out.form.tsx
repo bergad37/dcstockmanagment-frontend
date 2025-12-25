@@ -54,7 +54,7 @@ const validationSchema = Yup.object({
 });
 
 const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
-  const { stock, fetchStock } = useStockStore();
+  const { stock, fetchStock, stockOutSucess } = useStockStore();
   const { customers, fetchCustomer } = useCustomerStore();
 
   const { recordStockOut } = useStockStore();
@@ -92,11 +92,13 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
         ...(values.type === 'RENTED' && { returnDate: values.returnDate })
       };
       await recordStockOut(payload);
-      toast.success(
-        values.type === 'SOLD'
-          ? 'Item sold successfully!'
-          : 'Item rented successfully!'
-      );
+      if (stockOutSucess) {
+        toast.success(
+          values.type === 'SOLD'
+            ? 'Item sold successfully!'
+            : 'Item rented successfully!'
+        );
+      }
       handleClose();
     } catch (error: unknown) {
       const err = error as Record<string, unknown>;

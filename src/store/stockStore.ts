@@ -15,6 +15,7 @@ interface StockState {
   allTransactionsLoading: boolean;
   allTransactionError: string | null;
   stockOutError: string | null;
+  stockOutSucess: boolean;
 
   stockLoading: boolean;
   stockError: string | null;
@@ -32,6 +33,8 @@ interface StockState {
   recordStockOut: (payload: StockOutPayload) => Promise<void>;
   recordStockIn: (payload: StockInPayload) => Promise<void>;
   fetchStock: (params?: Record<string, any>) => Promise<void>;
+  // Utility actions
+  resetStockOutSuccess: (value?: boolean) => void;
 }
 
 export const useStockStore = create<StockState>((set) => ({
@@ -43,6 +46,7 @@ export const useStockStore = create<StockState>((set) => ({
   stockLoading: false,
   stockError: null,
   stockOutError: null,
+  stockOutSucess: false,
   inventory: dummyInventory,
   inventoryLoading: false,
   inventoryError: null,
@@ -65,6 +69,11 @@ export const useStockStore = create<StockState>((set) => ({
     }
   },
 
+  // Reset stock out success flag
+  resetStockOutSuccess: (value = false) => {
+    set({ stockOutSucess: value });
+  },
+
   // Fetch all transactions
   fetchAllTransaction: async (params?: Record<string, any>) => {
     set({ allTransactionsLoading: true, allTransactionError: null });
@@ -80,8 +89,6 @@ export const useStockStore = create<StockState>((set) => ({
       });
     }
   },
-
-
 
   // Fetch stock out by type
   fetchStockOutByType: async (type: 'SOLD' | 'RENTED') => {
@@ -122,30 +129,20 @@ export const useStockStore = create<StockState>((set) => ({
   recordStockOut: async (payload: StockOutPayload) => {
     set({ stockOutLoading: true, stockOutError: null });
     try {
-      await stockApi.recordStockOut(payload);
       // Refresh stock out list after recording
-      const res = await stockApi.fetchStockOut();
-      set({ stockOut: res.data.data, stockOutLoading: false });
+      const res = await stockApi.recordStockOut(payload);
+      set({
+        stockOut: res.data.data,
+        stockOutSucess: true,
+        stockOutLoading: false
+      });
     } catch (e: unknown) {
       console.error('Error recording stock out:', e);
       // Add to dummy data for now
-      const newTransaction: StockTransaction = {
-        id: Date.now().toString(),
-        productId: payload.productId,
-        productName: 'Unknown Product',
-        type: payload.type,
-        clientName: payload.clientName,
-        clientEmail: payload.clientEmail,
-        quantity: payload.quantity,
-        transactionDate: new Date().toISOString(),
-        returnDate: payload.returnDate,
-        status: 'ACTIVE',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      set((state) => ({
-        stockOut: [newTransaction, ...state.stockOut],
-        stockOutLoading: false
+      set(() => ({
+        stockOut: [],
+        stockOutLoading: false,
+        stockOutSucess: false
       }));
       throw e;
     }
