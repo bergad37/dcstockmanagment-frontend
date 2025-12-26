@@ -5,17 +5,20 @@ import React, { useState } from 'react';
 interface SearchBarProps {
   placeholder?: string;
   onSubmit: (value: string) => void;
+  onChange?: (value: string) => void;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
   placeholder = 'Search...',
-  onSubmit
+  onSubmit,
+  onChange
 }) => {
   const [inputValue, setInputValue] = useState<string>('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setInputValue(value);
+    onChange?.(value);
 
     if (value.trim() === '') {
       onSubmit('');
@@ -29,7 +32,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   const handleSearchClick = () => {
-    onSubmit(inputValue); 
+    onSubmit(inputValue);
   };
 
   const handleClearClick = () => {

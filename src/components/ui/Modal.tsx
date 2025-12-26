@@ -8,9 +8,11 @@ interface ModalProps {
   onClose: () => void;
   title?: ReactNode;
   children?: ReactNode;
+  /** When false, hide the close button and prevent manual closing via the UI */
+  closable?: boolean;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, closable = true }) => {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -28,15 +30,17 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ duration: 0.2 }}
           >
-            {/* Title + Close button */}
+            {/* Title + Close button (optional) */}
             <div className="flex items-center justify-between mb-4 ">
               <h2 className="text-xl font-semibold">{title}</h2>
-              <button
-                onClick={onClose}
-                className="text-gray-500 hover:text-gray-800 transition bg-background hover:bg-background/60"
-              >
-                ✕
-              </button>
+              {closable && (
+                <button
+                  onClick={onClose}
+                  className="text-gray-500 hover:text-gray-800 transition bg-background hover:bg-background/60"
+                >
+                  ✕
+                </button>
+              )}
             </div>
 
             {/* Modal Body */}

@@ -10,9 +10,9 @@ interface Action<T> {
 interface ActionButtonsProps<T> {
   row: T;
   actions: Action<T>[];
+  disabled?: boolean;
 }
-
-export const ActionButtons = <T,>({ row, actions }: ActionButtonsProps<T>) => {
+export const ActionButtons = <T,>({ row, actions, disabled = false }: ActionButtonsProps<T>) => {
   return (
     <div className="flex flex-row space-x-2">
       {actions.map((action, index) => {
@@ -24,8 +24,9 @@ export const ActionButtons = <T,>({ row, actions }: ActionButtonsProps<T>) => {
           <button
             key={index}
             onClick={() => action.handler(row)}
-            className={`${base} ${action.plain ? plainClass : fancyClass}`}
+            className={`${base} ${action.plain ? plainClass : fancyClass} ${disabled ? 'opacity-50 pointer-events-none' : ''}`}
             aria-label={action.label || 'Action'}
+            disabled={disabled}
           >
             {action.icon}
           </button>

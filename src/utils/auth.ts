@@ -1,5 +1,34 @@
 export const isAuthenticated = () => {
-  return !!localStorage.getItem('token');
+  const token = getToken();
+  return !!token && !isTokenExpired(token);
+};
+
+export const getToken = () => localStorage.getItem('token');
+
+/**
+ * Safely parse a JWT token's payload.
+ */
+export const parseJwt = (token?: string) => {
+  if (!token) return null;
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+    const payload = parts[1];
+    // atob is available in browsers
+    return JSON.parse(atob(payload));
+  } catch {
+    return null;
+  }
+};
+
+export const isTokenExpired = (token?: string) => {
+  const t = token ?? getToken();
+  if (!t) return true;
+  const payload: any = parseJwt(t);
+  if (!payload) return true;
+  // JWT exp is in seconds since epoch
+  if (!payload.exp) return true;
+  return Date.now() / 1000 > payload.exp;
 };
 
 export const formatStockTransactions = (transactions: any[] = []) => {

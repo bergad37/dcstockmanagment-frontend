@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { ActionButtons } from "../../components/ui/ActionButtons";
 
 export const productCategoriesColumns = (actions: any) => [
@@ -9,6 +9,7 @@ export const productCategoriesColumns = (actions: any) => [
   {
     name: 'Actions',
     type: 'actions',
+    width: '100px',
     cell: (row: any) => (
       <ActionButtons row={row} key={row?.id} actions={actions} />
     )

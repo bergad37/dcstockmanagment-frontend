@@ -29,7 +29,6 @@ const ProductForm = ({ handleClose, initialValues }: ProductFormProps) => {
       const payload: ProductPayload = {
         name: values.name,
         categoryId: values.categoryId,
-        supplierId: values.supplierId || null,
         type: values.type === 'item' ? 'ITEM' : 'QUANTITY',
         serialNumber: values.serialNumber || null,
         warranty: values.warranty || null,
@@ -37,11 +36,11 @@ const ProductForm = ({ handleClose, initialValues }: ProductFormProps) => {
         costPrice: values.costPrice ?? null,
         entryDate: values.entryDate
       };
-
-      // include quantity for QUANTITY type only when provided and valid
+      if (values.supplierId) {
+        (payload as any).supplierId = values.supplierId;
+      }
       if (values.type === 'quantity') {
         const q = values.quantity;
-        // avoid sending 0 when the input is empty ('') or null/undefined
         if (q !== '' && q != null) {
           const qi = Number(q);
           if (Number.isInteger(qi) && qi > 0) {
@@ -49,8 +48,6 @@ const ProductForm = ({ handleClose, initialValues }: ProductFormProps) => {
           }
         }
       }
-
-      // for 'item' products, quantity is implicitly 1
       if (values.type === 'item') {
         payload.quantity = 1;
       }
@@ -138,6 +135,35 @@ const ProductForm = ({ handleClose, initialValues }: ProductFormProps) => {
                   onChange={(option) =>
                     formik.setFieldValue('type', option ? option.value : '')
                   }
+                  styles={{
+                    control: (base, state) => ({
+                      ...base,
+                      borderRadius: '0.75rem',
+                      padding: '2px',
+                      borderColor: state.isFocused ? '#073c56' : '#073c5666',
+                      boxShadow: state.isFocused
+                        ? '0 0 0 2px rgba(7,60,86,0.2)'
+                        : 'none',
+                      '&:hover': { borderColor: '#073c56' }
+                    }),
+                    placeholder: (base) => ({ ...base, color: '#6b7280' }),
+                    menu: (base) => ({
+                      ...base,
+                      borderRadius: '0.75rem',
+                      overflow: 'hidden'
+                    }),
+                    option: (base, state) => ({
+                      ...base,
+                      backgroundColor: state.isSelected
+                        ? '#073c56'
+                        : state.isFocused
+                          ? '#073c5620'
+                          : 'white',
+                      color: state.isSelected ? 'white' : '#111827',
+                      padding: '10px 12px',
+                      cursor: 'pointer'
+                    })
+                  }}
                   value={
                     productTypeOptions.find(
                       (opt) => opt.value === formik.values.type
@@ -198,8 +224,8 @@ const ProductForm = ({ handleClose, initialValues }: ProductFormProps) => {
                       backgroundColor: state.isSelected
                         ? '#073c56'
                         : state.isFocused
-                        ? '#073c5620'
-                        : 'white',
+                          ? '#073c5620'
+                          : 'white',
                       color: state.isSelected ? 'white' : '#111827',
                       padding: '10px 12px',
                       cursor: 'pointer'
@@ -212,31 +238,6 @@ const ProductForm = ({ handleClose, initialValues }: ProductFormProps) => {
                   component="div"
                   className="text-red-500 text-sm mt-1"
                 />
-
-                {/* Supplier select (optional) */}
-                <div className="mt-3">
-                  <label className="block mb-1 font-medium">Supplier</label>
-                  <Select
-                    id="supplierId"
-                    name="supplierId"
-                    options={supplierOptions}
-                    placeholder="Select supplier (optional)"
-                    isClearable
-                    onChange={(option) =>
-                      formik.setFieldValue(
-                        'supplierId',
-                        option ? option.value : ''
-                      )
-                    }
-                    value={
-                      supplierOptions.find(
-                        (opt) => opt.value === formik.values.supplierId
-                      ) || null
-                    }
-                    className="mt-2"
-                    classNamePrefix="react-select"
-                  />
-                </div>
               </div>
 
               {/* Entry Date */}
@@ -263,6 +264,59 @@ const ProductForm = ({ handleClose, initialValues }: ProductFormProps) => {
                 name="description"
                 placeholder="Enter product description"
                 className="mt-2 block w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40 focus:border-[#073c56] focus:outline-none"
+              />
+            </div>
+
+            <div className="mt-3 w-full">
+              <label className="block mb-1 font-medium">Supplier</label>
+              <Select
+                id="supplierId"
+                name="supplierId"
+                options={supplierOptions}
+                placeholder="Select supplier (optional)"
+                isClearable
+                styles={{
+                  control: (base, state) => ({
+                    ...base,
+                    borderRadius: '0.75rem',
+                    padding: '2px',
+                    borderColor: state.isFocused ? '#073c56' : '#073c5666',
+                    boxShadow: state.isFocused
+                      ? '0 0 0 2px rgba(7,60,86,0.2)'
+                      : 'none',
+                    '&:hover': { borderColor: '#073c56' }
+                  }),
+                  placeholder: (base) => ({ ...base, color: '#6b7280' }),
+                  menu: (base) => ({
+                    ...base,
+                    borderRadius: '0.75rem',
+                    overflow: 'hidden'
+                  }),
+                  option: (base, state) => ({
+                    ...base,
+                    backgroundColor: state.isSelected
+                      ? '#073c56'
+                      : state.isFocused
+                        ? '#073c5620'
+                        : 'white',
+                    color: state.isSelected ? 'white' : '#111827',
+                    padding: '10px 12px',
+                    cursor: 'pointer'
+                  })
+                }}
+                onChange={(option) =>
+                  formik.setFieldValue(
+                    'supplierId',
+                    option ? option.value : ''
+                  )
+                }
+                value={
+                  supplierOptions.find(
+                    (opt) => opt.value === formik.values.supplierId
+                  ) || null
+                }
+                className="mt-2 w-full"
+                classNamePrefix="react-select"
               />
             </div>
 
@@ -353,8 +407,8 @@ const ProductForm = ({ handleClose, initialValues }: ProductFormProps) => {
                     ? 'Updating...'
                     : 'Adding...'
                   : initialValues.id
-                  ? 'Update'
-                  : 'Save'}
+                    ? 'Update'
+                    : 'Save'}
               </button>
             </div>
           </Form>

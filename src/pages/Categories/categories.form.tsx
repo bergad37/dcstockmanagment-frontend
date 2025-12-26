@@ -1,6 +1,5 @@
-// import { useState } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
+import { z } from 'zod';
 import categoryApi, { type CategoryPayload } from '../../api/categoryApi';
 import { toast } from 'sonner';
 import { useCategoryStore } from '../../store/categoriesStore';
@@ -9,14 +8,21 @@ export interface InitialValuesType {
   id: string | null;
   name: string;
 }
-
-// Validation schema
-const CategorySchema = Yup.object().shape({
-  name: Yup.string()
-    .min(2, 'Category name too short')
-    .max(50, 'Category name too long')
-    .required('Category name is required')
+const CategorySchemaZ = z.object({
+  name: z.string().min(2, 'Category name too short').max(50, 'Category name too long')
 });
+
+const validateWithZod = (schema: z.ZodSchema<any>) => (values: any) => {
+  const result = schema.safeParse(values);
+  if (result.success) return {};
+  const errors: Record<string, string> = {};
+  const zodErr = result.error;
+  zodErr.issues.forEach((issue: any) => {
+    const path = issue.path?.[0] as string | undefined;
+    if (path) errors[path] = issue.message;
+  });
+  return errors;
+};
 
 interface CategoryFormProps {
   handleClose: () => void;
@@ -26,31 +32,65 @@ interface CategoryFormProps {
 const CategoryForm = ({ handleClose, initialValues }: CategoryFormProps) => {
   const { fetchCategories } = useCategoryStore();
 
-  const handleSubmit = async (values: CategoryPayload) => {
+  // Use Formik's setErrors to display backend validation errors per field
+  const handleSubmit = async (values: CategoryPayload, helpers: { setErrors: (e: Record<string, string>) => void; setSubmitting: (b: boolean) => void; }) => {
+    const { setErrors, setSubmitting } = helpers;
     try {
       const payload: CategoryPayload = { name: values.name };
-      const response = await categoryApi.create(payload);
-      if (response.data.success) {
-        toast.success('Category added successfully!');
-        handleClose();
-        fetchCategories();
+      let response;
+      if (initialValues?.id) {
+        response = await categoryApi.update(initialValues.id, payload);
+        const message = response?.data?.message || 'Category updated successfully!';
+        if (response.data?.success) {
+          toast.success(message);
+          handleClose();
+          fetchCategories();
+        }
+      } else {
+        response = await categoryApi.create(payload);
+        const message = response?.data?.message || 'Category added successfully!';
+        if (response.data?.success) {
+          toast.success(message);
+          handleClose();
+          fetchCategories();
+        }
       }
     } catch (error: any) {
-      toast.warning(
-        error.response?.data?.data?.message || 'Failed to add category'
-      );
+      const resp = error?.response?.data;
+      // backend may return validation details in `error` field as JSON string
+      if (resp?.error) {
+        try {
+          const parsed = typeof resp.error === 'string' ? JSON.parse(resp.error) : resp.error;
+          const fieldErrors: Record<string, string> = {};
+          if (Array.isArray(parsed)) {
+            parsed.forEach((it: any) => {
+              if (it.path && it.msg) fieldErrors[it.path] = it.msg;
+            });
+          }
+          if (Object.keys(fieldErrors).length) {
+            setErrors(fieldErrors);
+            return;
+          }
+        } catch (e) {
+          // fallthrough to generic message
+        }
+      }
+
+      toast.warning(resp?.message || resp?.data?.message || 'Failed to save category');
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
     <div className="my-4 p-4 max-w-md bg-white rounded shadow">
       <h2 className="text-xl font-bold mb-4" style={{ color: '#073c56' }}>
-        Add Category
+        {initialValues?.id ? 'Edit Category' : 'Add Category'}
       </h2>
 
       <Formik
         initialValues={initialValues}
-        validationSchema={CategorySchema}
+        validate={validateWithZod(CategorySchemaZ)}
         onSubmit={handleSubmit}
       >
         {({ isSubmitting }) => (
@@ -72,7 +112,7 @@ const CategoryForm = ({ handleClose, initialValues }: CategoryFormProps) => {
             </div>
             <div className="flex item-center gap-2 justify-end">
               <button
-                type="submit"
+                type="button"
                 onClick={handleClose}
                 className="bg-background rounded-full border border-secondary text-primary px-4 py-1 hover:bg-secondary"
               >
@@ -83,7 +123,7 @@ const CategoryForm = ({ handleClose, initialValues }: CategoryFormProps) => {
                 disabled={isSubmitting}
                 className="bg-[#073c56] rounded-full text-white px-4 py-1 hover:bg-[ #055082]"
               >
-                {isSubmitting ? 'Adding...' : 'Save'}
+                {isSubmitting ? (initialValues?.id ? 'Saving...' : 'Adding...') : 'Save'}
               </button>
             </div>
           </Form>

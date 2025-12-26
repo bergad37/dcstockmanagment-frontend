@@ -56,7 +56,34 @@ const SupplierForm = ({ handleClose, initialValues }: Props) => {
       <Formik
         initialValues={initialValues}
         validationSchema={SupplierSchema}
-        onSubmit={handleSubmit}
+        onSubmit={async (values, helpers) => {
+          const { setErrors, setSubmitting } = helpers as any;
+          try {
+            await handleSubmit(values);
+          } catch (error: any) {
+            const resp = error?.response?.data;
+            if (resp?.error) {
+              try {
+                const parsed = typeof resp.error === 'string' ? JSON.parse(resp.error) : resp.error;
+                const fieldErrors: Record<string, string> = {};
+                if (Array.isArray(parsed)) {
+                  parsed.forEach((it: any) => {
+                    if (it.path && it.msg) fieldErrors[it.path] = it.msg;
+                  });
+                }
+                if (Object.keys(fieldErrors).length) {
+                  setErrors(fieldErrors);
+                  return;
+                }
+              } catch (e) {
+                // fallthrough
+              }
+            }
+            toast.error(resp?.message || 'Failed to save supplier');
+          } finally {
+            setSubmitting(false);
+          }
+        }}
       >
         {({ isSubmitting }) => (
           <Form>
@@ -69,6 +96,7 @@ const SupplierForm = ({ handleClose, initialValues }: Props) => {
             <div className="mb-3">
               <label className="block mb-1">Phone</label>
               <Field name="phone" className="w-full rounded-xl px-3 py-2 border" />
+              <p className="text-sm text-gray-500 mt-1">Format: +[country code][number] — e.g. +250788123456</p>
             </div>
 
             <div className="mb-3">

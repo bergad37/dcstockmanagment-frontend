@@ -17,14 +17,12 @@ const ConfirmModal: React.FC<DeleteModalProps> = ({
 }) => {
   return (
     <div
-      className={`fixed left-0 right-0 top-0 z-50 flex h-full w-full items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300 ${
-        isOpen ? 'visible opacity-100' : 'invisible opacity-0'
-      }`}
+      className={`fixed left-0 right-0 top-0 z-50 flex h-full w-full items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300 ${isOpen ? 'visible opacity-100' : 'invisible opacity-0'
+        }`}
     >
       <div
-        className={`relative h-auto w-full max-w-md transform p-4 transition-transform duration-300 ${
-          isOpen ? 'scale-100' : 'scale-90'
-        }`}
+        className={`relative h-auto w-full max-w-md transform p-4 transition-transform duration-300 ${isOpen ? 'scale-100' : 'scale-90'
+          }`}
       >
         <div className=' relative rounded-2xl bg-white p-4 text-center shadow sm:p-5'>
           <button
