@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import DataTable from 'react-data-table-component';
 import StockOutForm from './stock-out.form';
 import Modal from '../../components/ui/Modal';
-// import { stockOutDummyData } from '../../data/dummyData';
 import SearchBar from '../../components/ui/SearchBar';
 import Filters, {
   type Filter,
@@ -11,7 +10,7 @@ import Filters, {
 import DateRangeFilter from '../../components/ui/DatePicker';
 import { customStyles } from '../../utils/ui.helper.styles';
 import { useStockStore } from '../../store/stockStore';
-import { LogOut, RotateCcw } from 'lucide-react';
+import { LogOut, Plus, RotateCcw } from 'lucide-react';
 import ReturnStockForm from './Return.item';
 import { useCategoryStore } from '../../store/categoriesStore';
 import { formatStockTransactions } from '../../utils/auth';
@@ -25,7 +24,8 @@ const Stock = () => {
     stock,
     transactions,
     stockLoading,
-    fetchAllTransaction
+    fetchAllTransaction,
+    updateStock
   } = useStockStore();
 
   const { resetStockOutSuccess } = useStockStore();
@@ -57,7 +57,9 @@ const Stock = () => {
     quantity: number;
   }>({ id: '', productName: '', productType: 'ITEM', quantity: 0 });
 
-  const filteredStockOutData = formatStockTransactions(transactions?.transactions)?.filter((item) => {
+  const filteredStockOutData = formatStockTransactions(
+    transactions?.transactions
+  )?.filter((item) => {
     if (dateFrom && new Date(item.transactionDate) < new Date(dateFrom)) {
       return false;
     }
@@ -88,7 +90,7 @@ const Stock = () => {
 
   console.log('$$$$$%', handleReturn);
 
-  const stockInColumns = [
+  const stockInColumns = (handleUpdateStock) => [
     {
       name: 'Product',
       selector: (row: any) => row?.product?.name,
@@ -113,40 +115,49 @@ const Stock = () => {
           ? new Date(row.product.entryDate).toLocaleDateString()
           : '-'
     },
-    {
-      name: 'Status',
-      selector: (row: any) => row.status || 'AVAILABLE',
-      cell: (row: any) => (
-        <span
-          className={`px-3 py-1 rounded-full text-xs font-semibold ${
-            row.status === 'AVAILABLE'
-              ? 'bg-green-100 text-green-800'
-              : 'bg-gray-100 text-gray-800'
-          }`}
-        >
-          {row.status || 'AVAILABLE'}
-        </span>
-      )
-    },
+    // {
+    //   name: 'Status',
+    //   selector: (row: any) => row.status || 'AVAILABLE',
+    //   cell: (row: any) => (
+    //     <span
+    //       className={`px-3 py-1 rounded-full text-xs font-semibold ${
+    //         row.status === 'AVAILABLE'
+    //           ? 'bg-green-100 text-green-800'
+    //           : 'bg-gray-100 text-gray-800'
+    //       }`}
+    //     >
+    //       {row.status || 'AVAILABLE'}
+    //     </span>
+    //   )
+    // },
     {
       name: 'Action',
       cell: (row: any) => (
-        <button
-          title={`Record stock out for ${row.product?.name}`}
-          onClick={() => {
-            setSelectedProduct({
-              label: row.product?.name,
-              value: row.product?.id,
-              type: row.product?.type
-            });
-            setShowForm(true);
-          }}
-          disabled={row.quantity === 0}
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-50 text-red-700  hover:bg-red-600 hover:text-white transition text-xs font-semibold  border border-red-200 disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          <LogOut size={14} />
-          Stock Out
-        </button>
+        <div className="inline-flex items-center gap-1">
+          <button
+            title={`Record stock out for ${row.product?.name}`}
+            onClick={() => {
+              setSelectedProduct({
+                label: row.product?.name,
+                value: row.product?.id,
+                type: row.product?.type
+              });
+              setShowForm(true);
+            }}
+            disabled={row.quantity === 0}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-50 text-red-700  hover:bg-red-600 hover:text-white transition text-xs font-semibold  border border-red-200 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <LogOut size={14} />
+            Stock Out
+          </button>
+          <button
+            title="Increase stock quantity"
+            onClick={() => handleUpdateStock(row)}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-50 text-green-700  hover:bg-green-600 hover:text-white transition text-xs font-semibold  border border-green-200 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Plus size={14} />
+          </button>
+        </div>
       )
     }
   ];
@@ -278,12 +289,14 @@ const Stock = () => {
     setShowReturnModal(true);
   };
 
+  const handleUpdateStock = (data: any) => {
+    const payload = { quantity: data.quantity + 1 };
+    updateStock(payload as any, data.id);
+  };
   useEffect(() => {
     if (stockOutSucess) {
-      // refresh stock list and transactions when an out-stock is recorded
       fetchStock();
       fetchAllTransaction();
-      // reset the success flag so this effect doesn't re-run unnecessarily
       resetStockOutSuccess();
     }
   }, [stockOutSucess, fetchStock, fetchAllTransaction, resetStockOutSuccess]);
@@ -384,7 +397,7 @@ const Stock = () => {
             </div>
           ) : activeTab === 'STOCK' ? (
             <DataTable
-              columns={stockInColumns}
+              columns={stockInColumns(handleUpdateStock)}
               data={stock?.stocks}
               highlightOnHover
               pointerOnHover

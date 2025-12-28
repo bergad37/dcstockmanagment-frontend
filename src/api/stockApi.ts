@@ -54,7 +54,11 @@ const stockApi = {
 
   // Mark rented item as returned
   markAsReturned: (transactionId: string) =>
-    axiosClient.patch(`/stock/out/${transactionId}/return`)
+    axiosClient.patch(`/stock/out/${transactionId}/return`),
+
+  // Stock In - Add items quantity in stock
+  updateStockIn: (payload: StockInPayload, id:string) =>
+    axiosClient.put(`/stock/${id}`, payload)
 };
 
 export default stockApi;

@@ -7,10 +7,9 @@ import stockApi, {
 import { dummyStockOut, dummyInventory } from '../data/dummyData';
 
 interface StockState {
-  // Stock Out data
   stockOut: StockTransaction[];
-  stock: [];
-  transactions: [];
+  stock: StockTransaction[];
+  transactions: StockTransaction[];
   stockOutLoading: boolean;
   allTransactionsLoading: boolean;
   allTransactionError: string | null;
@@ -20,144 +19,134 @@ interface StockState {
   stockLoading: boolean;
   stockError: string | null;
 
-  // Inventory data
   inventory: StockTransaction[];
   inventoryLoading: boolean;
   inventoryError: string | null;
 
-  // Actions
+  updateStockLoading: boolean;
+  updateStockSucess: boolean;
+  updateStockError: string | null;
+
   fetchAllTransaction: (params?: Record<string, any>) => Promise<void>;
   fetchStockOutByType: (type: 'SOLD' | 'RENTED') => Promise<void>;
   fetchInventory: () => Promise<void>;
-  markAsReturned: (transactionId: string) => Promise<void>;
   recordStockOut: (payload: StockOutPayload) => Promise<void>;
   recordStockIn: (payload: StockInPayload) => Promise<void>;
   fetchStock: (params?: Record<string, any>) => Promise<void>;
-  // Utility actions
   resetStockOutSuccess: (value?: boolean) => void;
+  updateStock: (payload: StockInPayload, params: string) => Promise<void>;
 }
 
 export const useStockStore = create<StockState>((set) => ({
-  // Initial states - use dummy data for now
   stockOut: dummyStockOut,
   stock: [],
   transactions: [],
+
   stockOutLoading: false,
   stockLoading: false,
   stockError: null,
   stockOutError: null,
   stockOutSucess: false,
+
   inventory: dummyInventory,
   inventoryLoading: false,
   inventoryError: null,
+
   allTransactionError: null,
   allTransactionsLoading: false,
 
-  // Fetch all items in stock
-  fetchStock: async (params?: Record<string, any>) => {
+  updateStockLoading: false,
+  updateStockSucess: false,
+  updateStockError: null,
+
+  fetchStock: async (params) => {
     set({ stockLoading: true, stockError: null });
     try {
       const res = await stockApi.fetchStock(params);
       set({ stock: res.data.data, stockLoading: false });
-    } catch (e: unknown) {
-      console.error('Error fetching items in stock:', e);
-      set({
-        stock: [],
-        stockLoading: false,
-        stockError: null
-      });
+    } catch (e) {
+      console.error(e);
+      set({ stock: [], stockLoading: false, stockError: 'Failed to fetch stock' });
     }
   },
 
-  // Reset stock out success flag
   resetStockOutSuccess: (value = false) => {
     set({ stockOutSucess: value });
   },
 
-  // Fetch all transactions
-  fetchAllTransaction: async (params?: Record<string, any>) => {
+  fetchAllTransaction: async (params) => {
     set({ allTransactionsLoading: true, allTransactionError: null });
     try {
       const res = await stockApi.fetchAllTransactions(params);
       set({ transactions: res.data.data, allTransactionsLoading: false });
-    } catch (e: unknown) {
-      console.error('Error fetching transactions in stock:', e);
+    } catch (e) {
+      console.error(e);
       set({
         transactions: [],
         allTransactionsLoading: false,
-        allTransactionError: null
+        allTransactionError: 'Failed to fetch transactions'
       });
     }
   },
 
-  // Fetch stock out by type
-  fetchStockOutByType: async (type: 'SOLD' | 'RENTED') => {
+  fetchStockOutByType: async (type) => {
     set({ stockOutLoading: true, stockOutError: null });
     try {
       const res = await stockApi.fetchStockOutByType(type);
       set({ stockOut: res.data.data, stockOutLoading: false });
-    } catch (e: unknown) {
-      console.error('Error fetching stock out by type, using dummy data:', e);
-      // Use filtered dummy data as fallback
-      const filtered = dummyStockOut.filter((item) => item.type === type);
+    } catch (e) {
+      console.error(e);
       set({
-        stockOut: filtered,
+        stockOut: dummyStockOut.filter((i) => i.type === type),
         stockOutLoading: false,
-        stockOutError: null
+        stockOutError: 'Failed to fetch stock out'
       });
     }
   },
 
-  // Fetch inventory
   fetchInventory: async () => {
     set({ inventoryLoading: true, inventoryError: null });
     try {
       const res = await stockApi.fetchInventory();
       set({ inventory: res.data.data, inventoryLoading: false });
-    } catch (e: unknown) {
-      console.error('Error fetching inventory, using dummy data:', e);
-      // Use dummy data as fallback
+    } catch (e) {
+      console.error(e);
       set({
         inventory: dummyInventory,
         inventoryLoading: false,
-        inventoryError: null
+        inventoryError: 'Failed to fetch inventory'
       });
     }
   },
 
-  // Record stock out (sell or rent)
-  recordStockOut: async (payload: StockOutPayload) => {
+  recordStockOut: async (payload) => {
     set({ stockOutLoading: true, stockOutError: null });
     try {
-      // Refresh stock out list after recording
       const res = await stockApi.recordStockOut(payload);
       set({
         stockOut: res.data.data,
         stockOutSucess: true,
         stockOutLoading: false
       });
-    } catch (e: unknown) {
-      console.error('Error recording stock out:', e);
-      // Add to dummy data for now
-      set(() => ({
-        stockOut: [],
+    } catch (e) {
+      console.error(e);
+      set({
         stockOutLoading: false,
-        stockOutSucess: false
-      }));
+        stockOutSucess: false,
+        stockOutError: 'Failed to record stock out'
+      });
       throw e;
     }
   },
 
-  // Record stock in (return to inventory)
-  recordStockIn: async (payload: StockInPayload) => {
+  recordStockIn: async (payload) => {
     set({ inventoryLoading: true, inventoryError: null });
     try {
       await stockApi.recordStockIn(payload);
-      // Refresh inventory after recording
       const res = await stockApi.fetchInventory();
       set({ inventory: res.data.data, inventoryLoading: false });
-    } catch (e: unknown) {
-      console.error('Error recording stock in:', e);
+    } catch (e) {
+      console.error(e);
       set({
         inventoryLoading: false,
         inventoryError: 'Failed to record stock in'
@@ -166,23 +155,23 @@ export const useStockStore = create<StockState>((set) => ({
     }
   },
 
-  // Mark rented item as returned
-  markAsReturned: async (transactionId: string) => {
-    set({ stockOutLoading: true, stockOutError: null });
+  updateStock: async (payload, params) => {
+    set({ updateStockLoading: true, updateStockError: null });
     try {
-      await stockApi.markAsReturned(transactionId);
-      // Refresh stock out list
-      const res = await stockApi.fetchStockOut();
-      set({ stockOut: res.data.data, stockOutLoading: false });
-    } catch (e: unknown) {
-      console.error('Error marking as returned:', e);
-      // Update locally for now
-      set((state) => ({
-        stockOut: state.stockOut.map((item) =>
-          item.id === transactionId ? { ...item, status: 'RETURNED' } : item
-        ),
-        stockOutLoading: false
-      }));
+      await stockApi.updateStockIn(payload, params);
+      const res = await stockApi.fetchStock();
+      set({
+        stock: res.data.data,
+        updateStockLoading: false,
+        updateStockSucess: true
+      });
+    } catch (e) {
+      console.error(e);
+      set({
+        updateStockLoading: false,
+        updateStockSucess: false,
+        updateStockError: 'Failed to update stock'
+      });
       throw e;
     }
   }
