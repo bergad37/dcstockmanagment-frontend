@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
-import Dashboard from '../pages/Dashboard';
+// import Dashboard from '../pages/Dashboard';
 import Clients from '../pages/Customers/Clients';
 import Analytics from '../pages/Analytics/Analytics';
 import Settings from '../pages/Categories/Settings';
@@ -44,7 +44,7 @@ export default function AppRoutes() {
           <Route path="/stock" element={<Stock />} />
           {/* <Route path="/stock" element={<StockIn />} /> */}
           <Route path="/clients" element={<Clients />} />
-          <Route path="/analytics" element={<Dashboard />} />
+          {/* <Route path="/analytics" element={<Dashboard />} /> */}
           <Route path="/settings" element={<Settings />} />
         </Route>
       </Routes>

@@ -190,14 +190,46 @@ const Analytics = () => {
           : [];
 
         const rawHigh = payload?.topItems || payload?.highMoving || payload?.highMovingItems || payload?.highMovingItemsData || [];
-        const high = Array.isArray(rawHigh) ? rawHigh : [];
+        const high = Array.isArray(rawHigh)
+          ? rawHigh.map((it: any) => ({
+            // normalize to primitives expected by the UI
+            name: it.name ?? it.productName ?? it.product?.name ?? '',
+            category:
+              typeof it.category === 'string'
+                ? it.category
+                : it.category?.name ?? it.categoryName ?? it.product?.category?.name ?? '',
+            units: Number(it.units ?? it.unitsSold ?? it.count ?? it.stock?.quantity ?? 0),
+            percentage: Number(it.percentage ?? it.percent ?? 0),
+            raw: it
+          }))
+          : [];
 
         const rawLow = payload?.lowItems || payload?.lowMoving || payload?.lowMovingItems || payload?.lowMovingItemsData || [];
-        const low = Array.isArray(rawLow) ? rawLow : [];
+        const low = Array.isArray(rawLow)
+          ? rawLow.map((it: any) => ({
+            name: it.name ?? it.productName ?? it.product?.name ?? '',
+            category:
+              typeof it.category === 'string'
+                ? it.category
+                : it.category?.name ?? it.categoryName ?? it.product?.category?.name ?? '',
+            units: Number(it.units ?? it.count ?? it.stock?.quantity ?? 0),
+            percentage: Number(it.percentage ?? it.percent ?? 0),
+            raw: it
+          }))
+          : [];
 
-        const rawCategory = payload?.categoryPerformance || payload?.categoryPerformanceData || payload?.categories || payload?.revenueByCategory || [];
-        // ensure each category item has { category, sold, rented, revenue }
-        const category = Array.isArray(rawCategory) ? rawCategory : [];
+        const rawCategory =
+          payload?.categoryPerformance || payload?.categoryPerformanceData || payload?.categories || payload?.revenueByCategory || [];
+        // normalize category performance items to { category, sold, rented, revenue }
+        const category = Array.isArray(rawCategory)
+          ? rawCategory.map((c: any) => ({
+            category: c.name ?? c.category ?? c.category?.name ?? c.categoryName ?? '',
+            sold: Number(c.sold ?? c.soldCount ?? 0),
+            rented: Number(c.rented ?? c.rentedCount ?? 0),
+            revenue: Number(c.revenue ?? c.amount ?? 0),
+            raw: c
+          }))
+          : [];
 
         const turnover = payload?.inventoryTurnover || payload?.inventoryTurnoverData || payload?.turnover || [];
 
@@ -508,9 +540,9 @@ const Analytics = () => {
                     <td className="py-3 px-4 text-gray-800">{item.name}</td>
                     <td className="py-3 px-4 text-gray-600">{item.category}</td>
                     <td className="text-right py-3 px-4 font-semibold text-green-600">
-                      {item.units.toLocaleString()}
+                      {(Number(item.units) ?? 0).toLocaleString()}
                     </td>
-                    <td className="text-right py-3 px-4 text-gray-600">{item.percentage}%</td>
+                    <td className="text-right py-3 px-4 text-gray-600">{item.percentage ?? 0}%</td>
                   </tr>
                 ))}
               </tbody>
@@ -537,9 +569,9 @@ const Analytics = () => {
                     <td className="py-3 px-4 text-gray-800">{item.name}</td>
                     <td className="py-3 px-4 text-gray-600">{item.category}</td>
                     <td className="text-right py-3 px-4 font-semibold text-orange-600">
-                      {item.units.toLocaleString()}
+                      {(Number(item.units) ?? 0).toLocaleString()}
                     </td>
-                    <td className="text-right py-3 px-4 text-gray-600">{item.percentage}%</td>
+                    <td className="text-right py-3 px-4 text-gray-600">{item.percentage ?? 0}%</td>
                   </tr>
                 ))}
               </tbody>
@@ -566,10 +598,10 @@ const Analytics = () => {
               {categoryPerformanceData.map((item, idx) => (
                 <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="py-3 px-4 font-medium text-gray-800">{item.category}</td>
-                  <td className="text-right py-3 px-4 text-gray-600">{item.sold.toLocaleString()}</td>
-                  <td className="text-right py-3 px-4 text-gray-600">{item.rented.toLocaleString()}</td>
+                  <td className="text-right py-3 px-4 text-gray-600">{(Number(item.sold) ?? 0).toLocaleString()}</td>
+                  <td className="text-right py-3 px-4 text-gray-600">{(Number(item.rented) ?? 0).toLocaleString()}</td>
                   <td className="text-right py-3 px-4 text-gray-600">
-                    {(item.sold + item.rented).toLocaleString()}
+                    {(Number(item.sold ?? 0) + Number(item.rented ?? 0)).toLocaleString()}
                   </td>
                   {/* <td className="text-right py-3 px-4 font-semibold text-blue-600">
                     ${item.revenue.toLocaleString()}
