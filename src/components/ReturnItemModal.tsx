@@ -2,10 +2,15 @@ import { useState } from 'react';
 import Button from './ui/Button';
 import Modal from './ui/Modal';
 
+interface ReturnItemPayload {
+  returnDate: string;
+  returnCondition: string;
+}
+
 interface ReturnItemModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (returnDate: string) => void;
+  onSubmit: (payload: ReturnItemPayload) => Promise<void>;
   productName: string;
 }
 
@@ -16,17 +21,22 @@ const ReturnItemModal = ({
   productName
 }: ReturnItemModalProps) => {
   const [returnDate, setReturnDate] = useState('');
+  const [returnCondition, setReturnCondition] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!returnDate) return;
+
+    if (!returnDate || !returnCondition.trim()) return;
 
     setIsSubmitting(true);
     try {
-      await onSubmit(returnDate);
-      onClose();
-      setReturnDate('');
+      await onSubmit({
+        returnDate,
+        returnCondition
+      });
+
+      handleClose();
     } catch (error) {
       console.error('Error returning item:', error);
     } finally {
@@ -36,12 +46,14 @@ const ReturnItemModal = ({
 
   const handleClose = () => {
     setReturnDate('');
+    setReturnCondition('');
     onClose();
   };
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Return Item">
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Product */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Product
@@ -49,6 +61,7 @@ const ReturnItemModal = ({
           <p className="text-gray-900 font-medium">{productName}</p>
         </div>
 
+        {/* Return Date */}
         <div>
           <label
             htmlFor="returnDate"
@@ -61,12 +74,34 @@ const ReturnItemModal = ({
             id="returnDate"
             value={returnDate}
             onChange={(e) => setReturnDate(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#073c56] focus:border-transparent"
-            required
             min={new Date().toISOString().split('T')[0]}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md
+              focus:outline-none focus:ring-2 focus:ring-[#073c56]"
+            required
           />
         </div>
 
+        {/* Return Condition */}
+        <div>
+          <label
+            htmlFor="returnCondition"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Return Condition *
+          </label>
+          <textarea
+            id="returnCondition"
+            value={returnCondition}
+            onChange={(e) => setReturnCondition(e.target.value)}
+            placeholder="Describe the condition of the item..."
+            rows={3}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md
+              focus:outline-none focus:ring-2 focus:ring-[#073c56]"
+            required
+          />
+        </div>
+
+        {/* Actions */}
         <div className="flex justify-end space-x-3 pt-4">
           <Button
             label="Cancel"
@@ -78,7 +113,7 @@ const ReturnItemModal = ({
             label={isSubmitting ? 'Processing...' : 'Return Item'}
             bg="bg-[#073c56]"
             className="px-6"
-            disabled={isSubmitting || !returnDate}
+            disabled={isSubmitting || !returnDate || !returnCondition.trim()}
           />
         </div>
       </form>

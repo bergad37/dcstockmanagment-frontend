@@ -53,9 +53,16 @@ const Stock = () => {
   const [transaction, setTransaction] = useState<{
     id: string;
     productName: string;
+    productId: string;
     productType: 'ITEM' | 'QUANTITY';
     quantity: number;
-  }>({ id: '', productName: '', productType: 'ITEM', quantity: 0 });
+  }>({
+    id: '',
+    productName: '',
+    productType: 'ITEM',
+    quantity: 0,
+    productId: ''
+  });
 
   const filteredStockOutData = formatStockTransactions(
     transactions?.transactions
@@ -79,16 +86,14 @@ const Stock = () => {
     fetchStock();
     fetchAllTransaction();
     fetchCategories();
-  }, [fetchStock, fetchAllTransaction, fetchCategories]);
+  }, [fetchStock, fetchAllTransaction, fetchCategories, activeTab]);
 
   const categoryOptions =
     categories?.map((c: any) => ({ value: c.id, label: c.name })) ?? [];
 
-  const handleReturn = (itemId: string) => {
-    console.log('Return item:', itemId);
-  };
-
-  console.log('$$$$$%', handleReturn);
+  //   const handleReturn = (itemId: string) => {
+  //     console.log('Return item:', itemId);
+  //   };
 
   const stockInColumns = (handleUpdateStock) => [
     {
@@ -210,7 +215,7 @@ const Stock = () => {
       sortable: true
     },
     {
-      name: 'Return Date',
+      name: 'Returned Date',
       selector: (row: any) => row.returnDate,
       cell: (row: any) => {
         return (
@@ -221,7 +226,7 @@ const Stock = () => {
                 : 'bg-gray-100 text-gray-800'
             }`}
           >
-            {row.type === 'RENTED'
+            {row.type === 'RETURNED'
               ? new Date(row.returnDate).toLocaleDateString('en-US', {
                   month: 'short',
                   day: 'numeric',
@@ -302,7 +307,6 @@ const Stock = () => {
       resetStockOutSuccess();
     }
   }, [stockOutSucess, fetchStock, fetchAllTransaction, resetStockOutSuccess]);
-
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="mb-8">

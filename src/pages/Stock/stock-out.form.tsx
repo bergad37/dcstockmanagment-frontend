@@ -89,7 +89,9 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
         productId: values.productId,
         type: values.type,
         transactionDate: values.transactionDate,
-        ...(values.type === 'RENTED' && { returnDate: values.returnDate })
+        ...(values.type === 'RENTED' && {
+          expectedReturnDate: values?.returnDate
+        })
       };
       await recordStockOut(payload);
       if (stockOutSucess) {

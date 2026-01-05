@@ -7,6 +7,7 @@ export interface StockOutPayload {
   clientEmail: string;
   quantity: number;
   returnDate?: string; // Only for RENTED type
+  expectedReturnDate?: string;
 }
 
 export interface StockInPayload {
@@ -53,11 +54,11 @@ const stockApi = {
   fetchInventory: () => axiosClient.get('/stock/inventory'),
 
   // Mark rented item as returned
-  markAsReturned: (transactionId: string) =>
-    axiosClient.patch(`/stock/out/${transactionId}/return`),
+  markAsReturned: (payload: any, transactionId: string) =>
+    axiosClient.patch(`/stock/out/${transactionId}/return`, payload),
 
   // Stock In - Add items quantity in stock
-  updateStockIn: (payload: StockInPayload, id:string) =>
+  updateStockIn: (payload: StockInPayload, id: string) =>
     axiosClient.put(`/stock/${id}`, payload)
 };
 

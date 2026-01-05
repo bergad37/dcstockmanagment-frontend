@@ -3,6 +3,7 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { toast } from 'sonner';
 import Modal from '../../components/ui/Modal';
+import { useStockStore } from '../../store/stockStore';
 
 export interface ReturnStockFormProps {
   handleClose: () => void;
@@ -12,12 +13,14 @@ export interface ReturnStockFormProps {
     productName: string;
     productType: 'ITEM' | 'QUANTITY';
     quantity: number;
+    productId: string;
   };
 }
 
 interface FormValues {
   returnQuantity: number;
   returnDate: string;
+  returnCondition: string;
 }
 
 const validationSchema = Yup.object({
@@ -32,7 +35,13 @@ const validationSchema = Yup.object({
         ),
       otherwise: (schema) => schema.oneOf([1])
     }),
-  returnDate: Yup.string().required('Return date is required')
+
+  returnDate: Yup.string().required('Return date is required'),
+
+  returnCondition: Yup.string()
+    .trim()
+    .min(5, 'Please provide more details')
+    .required('Return condition is required')
 });
 
 const ReturnStockForm = ({
@@ -43,19 +52,23 @@ const ReturnStockForm = ({
   const initialValues: FormValues = {
     returnQuantity:
       transaction.productType === 'ITEM' ? 1 : transaction.quantity,
-    returnDate: new Date().toISOString().split('T')[0]
+    returnDate: new Date().toISOString().split('T')[0],
+    returnCondition: ''
   };
 
+  const { markAsReturned } = useStockStore();
   const handleSubmit = async (
     values: FormValues,
     { setSubmitting }: FormikHelpers<FormValues>
   ) => {
     try {
       // 🔁 Call your return API here
-      console.log('RETURN PAYLOAD', {
-        transactionId: transaction.id,
-        ...values
-      });
+
+      await markAsReturned(
+        { quantity: values.returnQuantity, productId: transaction?.productId },
+        transaction?.id
+      );
+
 
       toast.success('Item returned successfully');
       handleClose();
@@ -127,12 +140,32 @@ const ReturnStockForm = ({
               />
             </div>
 
+            {/* Return Condition */}
+            <div>
+              <label className="block mb-2 font-medium text-gray-700">
+                Return Condition
+              </label>
+              <Field
+                as="textarea"
+                name="returnCondition"
+                rows={3}
+                placeholder="Describe the condition of the returned item..."
+                className="w-full rounded-xl px-3 py-2 border border-[#073c56]/40
+      focus:border-[#073c56] focus:outline-none resize-none"
+              />
+              <ErrorMessage
+                name="returnCondition"
+                component="div"
+                className="text-red-500 text-sm mt-1"
+              />
+            </div>
+
             {/* Buttons */}
             <div className="flex justify-end gap-2 pt-6">
               <button
                 type="button"
                 onClick={handleClose}
-                className="bg-gray-200 rounded-full border border-gray-300 px-4 py-2 hover:bg-gray-300 transition"
+                className="bg-gray rounded-full border border-gray-300 px-4 py-2 hover:bg-gray-300 transition"
               >
                 Cancel
               </button>

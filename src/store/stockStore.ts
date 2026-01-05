@@ -27,6 +27,10 @@ interface StockState {
   updateStockSucess: boolean;
   updateStockError: string | null;
 
+  markAsReturnedSuccess: boolean;
+  markAsReturnedError: string | null;
+  markAsReturnedLoading: boolean;
+
   fetchAllTransaction: (params?: Record<string, any>) => Promise<void>;
   fetchStockOutByType: (type: 'SOLD' | 'RENTED') => Promise<void>;
   fetchInventory: () => Promise<void>;
@@ -35,6 +39,10 @@ interface StockState {
   fetchStock: (params?: Record<string, any>) => Promise<void>;
   resetStockOutSuccess: (value?: boolean) => void;
   updateStock: (payload: StockInPayload, params: string) => Promise<void>;
+  markAsReturned: (
+    payload: Partial<StockInPayload>,
+    params: string
+  ) => Promise<void>;
 }
 
 export const useStockStore = create<StockState>((set) => ({
@@ -59,6 +67,10 @@ export const useStockStore = create<StockState>((set) => ({
   updateStockSucess: false,
   updateStockError: null,
 
+  markAsReturnedSuccess: false,
+  markAsReturnedError: null,
+  markAsReturnedLoading: false,
+
   fetchStock: async (params) => {
     set({ stockLoading: true, stockError: null });
     try {
@@ -66,7 +78,11 @@ export const useStockStore = create<StockState>((set) => ({
       set({ stock: res.data.data, stockLoading: false });
     } catch (e) {
       console.error(e);
-      set({ stock: [], stockLoading: false, stockError: 'Failed to fetch stock' });
+      set({
+        stock: [],
+        stockLoading: false,
+        stockError: 'Failed to fetch stock'
+      });
     }
   },
 
@@ -159,6 +175,27 @@ export const useStockStore = create<StockState>((set) => ({
     set({ updateStockLoading: true, updateStockError: null });
     try {
       await stockApi.updateStockIn(payload, params);
+      const res = await stockApi.fetchStock();
+      set({
+        stock: res.data.data,
+        updateStockLoading: false,
+        updateStockSucess: true
+      });
+    } catch (e) {
+      console.error(e);
+      set({
+        updateStockLoading: false,
+        updateStockSucess: false,
+        updateStockError: 'Failed to update stock'
+      });
+      throw e;
+    }
+  },
+
+  markAsReturned: async (payload, params) => {
+    set({ markAsReturnedLoading: true, markAsReturnedError: null });
+    try {
+      await stockApi.markAsReturned(payload, params);
       const res = await stockApi.fetchStock();
       set({
         stock: res.data.data,
