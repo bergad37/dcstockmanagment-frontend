@@ -20,13 +20,11 @@ interface CustomerFormProps {
 // Validation schema
 const CustomerSchema = Yup.object().shape({
   name: Yup.string().required('Customer name is required'),
-  email: Yup.string()
-    .email('Invalid email address')
-    .required('Email is required'),
-  address: Yup.string().required('Address is required'),
+  email: Yup.string().email('Invalid email address').optional(),
+  address: Yup.string().optional(),
   phone: Yup.string()
     .matches(/^[0-9+ ]+$/, 'Invalid phone number')
-    .required('Phone number is required')
+    .optional()
 });
 
 const CustomerForm = ({ initialValues, handleClose }: CustomerFormProps) => {
@@ -39,7 +37,9 @@ const CustomerForm = ({ initialValues, handleClose }: CustomerFormProps) => {
       : await createCustomer({ ...payload, id: undefined });
 
     if (result?.success) {
-      toast.success(result.message || (values.id ? 'Customer updated' : 'Customer created'));
+      toast.success(
+        result.message || (values.id ? 'Customer updated' : 'Customer created')
+      );
       handleClose();
     } else {
       toast.error(result?.message || 'Failed to save customer');

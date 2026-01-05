@@ -150,13 +150,15 @@ const Stock = () => {
             <LogOut size={14} />
             Stock Out
           </button>
-          <button
-            title="Increase stock quantity"
-            onClick={() => handleUpdateStock(row)}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-50 text-green-700  hover:bg-green-600 hover:text-white transition text-xs font-semibold  border border-green-200 disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <Plus size={14} />
-          </button>
+          {row?.product?.type !== 'ITEM' && (
+            <button
+              title="Increase stock quantity"
+              onClick={() => handleUpdateStock(row)}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-50 text-green-700  hover:bg-green-600 hover:text-white transition text-xs font-semibold  border border-green-200 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Plus size={14} />
+            </button>
+          )}
         </div>
       )
     }
