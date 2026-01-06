@@ -40,7 +40,7 @@ interface StockState {
   resetStockOutSuccess: (value?: boolean) => void;
   updateStock: (payload: StockInPayload, params: string) => Promise<void>;
   markAsReturned: (
-    payload: Partial<StockInPayload>,
+    payload: StockInPayload,
     params: string
   ) => Promise<void>;
 }
@@ -196,7 +196,7 @@ export const useStockStore = create<StockState>((set) => ({
     set({ markAsReturnedLoading: true, markAsReturnedError: null });
     try {
       await stockApi.markAsReturned(payload, params);
-      const res = await stockApi.fetchStock();
+      const res = await stockApi.fetchAllTransactions();
       set({
         stock: res.data.data,
         updateStockLoading: false,

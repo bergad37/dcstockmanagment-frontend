@@ -4,6 +4,7 @@ import * as Yup from 'yup';
 import { toast } from 'sonner';
 import Modal from '../../components/ui/Modal';
 import { useStockStore } from '../../store/stockStore';
+import type { StockOutPayload } from '../../api/stockApi';
 
 export interface ReturnStockFormProps {
   handleClose: () => void;
@@ -25,6 +26,7 @@ interface FormValues {
 
 const validationSchema = Yup.object({
   returnQuantity: Yup.number()
+    .required('Return quantity is required')
     .min(1, 'Quantity must be at least 1')
     .when('$productType', {
       is: 'QUANTITY',
@@ -33,7 +35,7 @@ const validationSchema = Yup.object({
           Yup.ref('$maxQuantity'),
           'Return quantity cannot exceed rented quantity'
         ),
-      otherwise: (schema) => schema.oneOf([1])
+      otherwise: (schema) => schema.default(1)
     }),
 
   returnDate: Yup.string().required('Return date is required'),
@@ -56,7 +58,8 @@ const ReturnStockForm = ({
     returnCondition: ''
   };
 
-  const { markAsReturned } = useStockStore();
+  const { markAsReturned, markAsReturnedSuccess, fetchAllTransaction } =
+    useStockStore();
   const handleSubmit = async (
     values: FormValues,
     { setSubmitting }: FormikHelpers<FormValues>
@@ -65,13 +68,19 @@ const ReturnStockForm = ({
       // 🔁 Call your return API here
 
       await markAsReturned(
-        { quantity: values.returnQuantity, productId: transaction?.productId },
+        {
+          quantity: values.returnQuantity,
+          productId: transaction?.productId,
+          returnDate: values.returnDate
+        } as StockOutPayload,
         transaction?.id
       );
 
-
-      toast.success('Item returned successfully');
-      handleClose();
+      if (markAsReturnedSuccess) {
+        fetchAllTransaction();
+        toast.success('Item returned successfully');
+        handleClose();
+      }
     } catch {
       toast.error('Failed to return item');
     } finally {

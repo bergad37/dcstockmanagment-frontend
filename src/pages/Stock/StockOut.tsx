@@ -91,10 +91,6 @@ const Stock = () => {
   const categoryOptions =
     categories?.map((c: any) => ({ value: c.id, label: c.name })) ?? [];
 
-  //   const handleReturn = (itemId: string) => {
-  //     console.log('Return item:', itemId);
-  //   };
-
   const stockInColumns = (handleUpdateStock) => [
     {
       name: 'Product',
@@ -275,7 +271,8 @@ const Stock = () => {
             label: 'Transaction type',
             options: [
               { value: 'SOLD', label: 'SOLD' },
-              { value: 'RENT', label: 'RENTED' }
+              { value: 'RENT', label: 'RENTED' },
+              { value: 'RETURNED', label: 'RETURNED' }
             ],
             value: transactionType,
             onChange: setTransactionType

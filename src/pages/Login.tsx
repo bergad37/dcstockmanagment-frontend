@@ -35,8 +35,8 @@ const Login = () => {
         <div className="flex flex-col items-center">
           <img
             alt="dc survey ltd logo Company Logo"
-            src="https://res.cloudinary.com/ds04ivdrj/image/upload/v1764774518/dcstocklogo_sk2qvt.png"
-            className="mx-auto rounded-full h-32 w-32 sm:h-40 sm:w-40 object-cover"
+            src="https://res.cloudinary.com/ds04ivdrj/image/upload/v1764616773/dclogonobackground_sclmul.png"
+            className="mx-auto h-40 w-60 sm:h-40 sm:w-60 object-cover"
           />
 
           <h2 className="mt-6 text-center text-xl sm:text-2xl font-bold tracking-tight text-[#073c56]">

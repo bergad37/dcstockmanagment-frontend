@@ -1,5 +1,5 @@
 import type { FormikHelpers } from 'formik';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { Formik, Form, Field, ErrorMessage, FieldArray } from 'formik';
 import * as Yup from 'yup';
 import { toast } from 'sonner';
 // import { useProductStore } from '../../store/productStore';
@@ -13,44 +13,32 @@ interface StockOutFormProps {
 }
 
 interface FormValues {
-  productId: string;
+  customerId: string;
   type: 'SOLD' | 'RENTED';
-  clientId: string;
-  quantity: string;
   transactionDate: string;
-  returnDate: string;
+  returnDate?: string;
+  items: {
+    productId: string;
+    quantity: string;
+  }[];
 }
 
 const validationSchema = Yup.object({
-  productId: Yup.string().required('Product is required'),
-  type: Yup.string()
-    .oneOf(['SOLD', 'RENTED'])
-    .required('Transaction type is required'),
-
-  clientId: Yup.string().required('Client is required'),
-
-  quantity: Yup.number()
-    .min(1, 'Quantity must be at least 1')
-    .required('Quantity is required'),
-
-  transactionDate: Yup.string().required('Transaction date is required'),
-
+  customerId: Yup.string().required('Client is required'),
+  type: Yup.string().oneOf(['SOLD', 'RENTED']).required(),
+  transactionDate: Yup.string().required(),
   returnDate: Yup.string().when('type', {
     is: 'RENTED',
-    then: (schema) =>
-      schema
-        .required('Return date is required')
-        .test(
-          'return-after-transaction',
-          'Return date cannot be before transaction date',
-          function (value) {
-            const { transactionDate } = this.parent;
-            if (!value || !transactionDate) return true;
-            return new Date(value) >= new Date(transactionDate);
-          }
-        ),
-    otherwise: (schema) => schema.notRequired()
-  })
+    then: (schema) => schema.required('Return date is required')
+  }),
+  items: Yup.array()
+    .of(
+      Yup.object({
+        productId: Yup.string().required('Product is required'),
+        quantity: Yup.number().min(1, 'Min 1').required('Quantity required')
+      })
+    )
+    .min(1, 'At least one product is required')
 });
 
 const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
@@ -65,12 +53,16 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
   }, [fetchStock, fetchCustomer]);
 
   const initialValues: FormValues = {
-    productId: product?.value || '',
+    customerId: '',
     type: 'SOLD',
-    clientId: '',
-    quantity: product?.type === 'ITEM' ? '1' : '',
     transactionDate: new Date().toISOString().split('T')[0],
-    returnDate: ''
+    returnDate: '',
+    items: [
+      {
+        productId: product ? product.value : '',
+        quantity: '1'
+      }
+    ]
   };
 
   const handleSubmit = async (
@@ -79,20 +71,18 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
   ) => {
     try {
       const payload = {
-        items: [
-          {
-            productId: values.productId,
-            quantity: parseInt(values.quantity)
-          }
-        ],
-        customerId: values.clientId,
-        productId: values.productId,
+        customerId: values.customerId,
         type: values.type,
         transactionDate: values.transactionDate,
         ...(values.type === 'RENTED' && {
-          expectedReturnDate: values?.returnDate
-        })
+          expectedReturnDate: values.returnDate
+        }),
+        items: values.items.map((item) => ({
+          productId: item.productId,
+          quantity: Number(item.quantity)
+        }))
       };
+
       await recordStockOut(payload);
       if (stockOutSucess) {
         toast.success(
@@ -123,29 +113,7 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
       >
         {({ isSubmitting, values, setFieldValue }) => (
           <Form className="space-y-4">
-            {/* Product Selection */}
             <div>
-              <label className="block mb-2 font-medium text-gray-700">
-                Product <span className="text-red-500">*</span>
-              </label>
-              <Field
-                name="productId"
-                as="select"
-                disabled={!!product}
-                className="w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40 focus:border-[#073c56] focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
-              >
-                <option value="">Select a product...</option>
-                {stock?.stocks.map((item) => (
-                  <option key={item.product.id} value={item.product.id}>
-                    {item.product.name}
-                  </option>
-                ))}
-              </Field>
-              <ErrorMessage
-                name="productId"
-                component="div"
-                className="text-red-500 text-sm mt-1"
-              />
               {/* Transaction Type */}
               <div>
                 <label className="block mb-2 font-medium text-gray-700">
@@ -175,40 +143,20 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
               </label>
 
               <Field
-                name="clientId"
+                name="customerId"
                 as="select"
                 className="w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40 focus:border-[#073c56] focus:outline-none"
               >
                 <option value="">Select a client...</option>
-                {customers.map((client) => (
-                  <option key={client.id} value={client.id}>
-                    {client.name}
+                {customers?.map((client) => (
+                  <option key={client?.id} value={client?.id}>
+                    {client?.name}
                   </option>
                 ))}
               </Field>
 
               <ErrorMessage
-                name="clientId"
-                component="div"
-                className="text-red-500 text-sm mt-1"
-              />
-            </div>
-
-            {/* Quantity */}
-            <div>
-              <label className="block mb-2 font-medium text-gray-700">
-                Quantity <span className="text-red-500">*</span>
-              </label>
-              <Field
-                name="quantity"
-                type="number"
-                min="1"
-                placeholder="Enter quantity"
-                disabled={product?.type === 'ITEM'}
-                className="w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40 focus:border-[#073c56] focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
-              />
-              <ErrorMessage
-                name="quantity"
+                name="customerId"
                 component="div"
                 className="text-red-500 text-sm mt-1"
               />
@@ -249,6 +197,98 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
                 />
               </div>
             )}
+
+            {/* Products */}
+            <div className="pt-4 border-t">
+              <h3 className="font-semibold text-gray-800 mb-2">Products</h3>
+
+              <FieldArray name="items">
+                {({ push, remove }) => (
+                  <div className="space-y-4">
+                    {values.items.map((item, index) => {
+                      const selectedProduct = stock?.stocks.find(
+                        (s) => s.product.id === item.productId
+                      );
+
+                      const isItemType =
+                        selectedProduct?.product.type === 'ITEM';
+
+                      return (
+                        <div key={index} className="flex gap-3 items-end">
+                          {/* Product */}
+                          <div className="flex-1">
+                            <label className="block text-sm font-medium">
+                              Product
+                            </label>
+                            <Field
+                              as="select"
+                              name={`items.${index}.productId`}
+                              className="w-full rounded-xl border px-3 py-2"
+                              onChange={(e) => {
+                                const productId = e.target.value;
+                                setFieldValue(
+                                  `items.${index}.productId`,
+                                  productId
+                                );
+
+                                const product = stock?.stocks.find(
+                                  (s) => s.product.id === productId
+                                );
+
+                                if (product?.product.type === 'ITEM') {
+                                  setFieldValue(`items.${index}.quantity`, '1');
+                                }
+                              }}
+                            >
+                              <option value="">Select product...</option>
+                              {stock?.stocks.map((s) => (
+                                <option key={s.product.id} value={s.product.id}>
+                                  {s.product.name}
+                                </option>
+                              ))}
+                            </Field>
+                          </div>
+
+                          {/* Quantity */}
+                          <div className="w-32">
+                            <label className="block text-sm font-medium">
+                              Qty
+                            </label>
+                            <Field
+                              name={`items.${index}.quantity`}
+                              type="number"
+                              min="1"
+                              disabled={isItemType}
+                              className="w-full rounded-xl border px-3 py-2 disabled:bg-gray-100"
+                            />
+                          </div>
+
+                          {/* Remove */}
+                          {values.items.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => remove(index)}
+                              className="text-white-500 font-bold px-2 rounded-full"
+                            >
+                              −
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+
+                    {/* Add Product */}
+                    <button
+                      type="button"
+                      onClick={() => push({ productId: '', quantity: '1' })}
+                      className="font-medium"
+                    >
+                      + Add another product
+                    </button>
+                  </div>
+                )}
+              </FieldArray>
+            </div>
 
             {/* Buttons */}
             <div className="flex justify-end gap-2 pt-6">
