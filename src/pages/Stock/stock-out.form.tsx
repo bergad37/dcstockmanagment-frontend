@@ -13,7 +13,8 @@ interface StockOutFormProps {
 }
 
 interface FormValues {
-  customerId: string;
+  customerId?: string;
+  customerName?: string;
   type: 'SOLD' | 'RENTED';
   transactionDate: string;
   returnDate?: string;
@@ -24,13 +25,17 @@ interface FormValues {
 }
 
 const validationSchema = Yup.object({
-  customerId: Yup.string().required('Client is required'),
+  customerId: Yup.string().nullable(),
+  customerName: Yup.string().nullable(),
+
   type: Yup.string().oneOf(['SOLD', 'RENTED']).required(),
   transactionDate: Yup.string().required(),
+
   returnDate: Yup.string().when('type', {
     is: 'RENTED',
     then: (schema) => schema.required('Return date is required')
   }),
+
   items: Yup.array()
     .of(
       Yup.object({
@@ -39,7 +44,13 @@ const validationSchema = Yup.object({
       })
     )
     .min(1, 'At least one product is required')
-});
+}).test(
+  'customer-required',
+  'Select a client or enter a new client name',
+  (values) => {
+    return !!values?.customerId || !!values?.customerName;
+  }
+);
 
 const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
   const { stock, fetchStock, stockOutSucess } = useStockStore();
@@ -54,13 +65,14 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
 
   const initialValues: FormValues = {
     customerId: '',
+    customerName: '',
     type: 'SOLD',
     transactionDate: new Date().toISOString().split('T')[0],
     returnDate: '',
     items: [
       {
-        productId: product ? product.value : '',
-        quantity: '1'
+        productId: product?.value ?? '',
+        quantity: product?.type === 'ITEM' ? '1' : '1'
       }
     ]
   };
@@ -71,12 +83,17 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
   ) => {
     try {
       const payload = {
-        customerId: values.customerId,
+        ...(values.customerId
+          ? { customerId: values.customerId }
+          : { customerName: values.customerName }),
+
         type: values.type,
         transactionDate: values.transactionDate,
+
         ...(values.type === 'RENTED' && {
           expectedReturnDate: values.returnDate
         }),
+
         items: values.items.map((item) => ({
           productId: item.productId,
           quantity: Number(item.quantity)
@@ -110,6 +127,7 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
         initialValues={initialValues}
         validationSchema={validationSchema}
         onSubmit={handleSubmit}
+        enableReinitialize
       >
         {({ isSubmitting, values, setFieldValue }) => (
           <Form className="space-y-4">
@@ -145,22 +163,42 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
               <Field
                 name="customerId"
                 as="select"
-                className="w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40 focus:border-[#073c56] focus:outline-none"
+                className="w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40"
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                  setFieldValue('customerId', e.target.value);
+                  if (e.target.value) {
+                    setFieldValue('customerName', '');
+                  }
+                }}
               >
-                <option value="">Select a client...</option>
+                <option value="">Select existing client...</option>
                 {customers?.map((client) => (
-                  <option key={client?.id} value={client?.id}>
-                    {client?.name}
+                  <option key={client!.id} value={client!.id}>
+                    {client!.name}
                   </option>
                 ))}
               </Field>
-
-              <ErrorMessage
-                name="customerId"
-                component="div"
-                className="text-red-500 text-sm mt-1"
-              />
             </div>
+
+            {!values.customerId && (
+              <div className="mt-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Or enter new client name
+                </label>
+                <Field
+                  name="customerName"
+                  type="text"
+                  placeholder="Client name"
+                  className="w-full rounded-xl px-3 py-2 border border-[#073c56]/40"
+                />
+              </div>
+            )}
+
+            <ErrorMessage
+              name="customerName"
+              component="div"
+              className="text-red-500 text-sm mt-1"
+            />
 
             {/* Transaction Date */}
             <div>
@@ -209,6 +247,7 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
                       const selectedProduct = stock?.stocks.find(
                         (s) => s.product.id === item.productId
                       );
+                      const isPrefilled = !!product;
 
                       const isItemType =
                         selectedProduct?.product.type === 'ITEM';
@@ -223,6 +262,7 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
                             <Field
                               as="select"
                               name={`items.${index}.productId`}
+                              disabled={isPrefilled && index === 0}
                               className="w-full rounded-xl border px-3 py-2"
                               onChange={(e) => {
                                 const productId = e.target.value;
