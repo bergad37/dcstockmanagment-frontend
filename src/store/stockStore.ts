@@ -39,10 +39,7 @@ interface StockState {
   fetchStock: (params?: Record<string, any>) => Promise<void>;
   resetStockOutSuccess: (value?: boolean) => void;
   updateStock: (payload: StockInPayload, params: string) => Promise<void>;
-  markAsReturned: (
-    payload: StockInPayload,
-    params: string
-  ) => Promise<void>;
+  markAsReturned: (payload: StockInPayload, params: string) => Promise<void>;
 }
 
 export const useStockStore = create<StockState>((set) => ({
@@ -199,15 +196,15 @@ export const useStockStore = create<StockState>((set) => ({
       const res = await stockApi.fetchAllTransactions();
       set({
         stock: res.data.data,
-        updateStockLoading: false,
-        updateStockSucess: true
+        markAsReturnedLoading: false,
+        markAsReturnedSuccess: true
       });
     } catch (e) {
       console.error(e);
       set({
-        updateStockLoading: false,
-        updateStockSucess: false,
-        updateStockError: 'Failed to update stock'
+        markAsReturnedLoading: false,
+        markAsReturnedSuccess: false,
+        markAsReturnedError: 'Failed to return item in stock'
       });
       throw e;
     }

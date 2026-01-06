@@ -58,11 +58,11 @@ const ReturnStockForm = ({
     returnCondition: ''
   };
 
-  const { markAsReturned, markAsReturnedSuccess, fetchAllTransaction } =
+  const { markAsReturned, fetchAllTransaction } =
     useStockStore();
   const handleSubmit = async (
     values: FormValues,
-    { setSubmitting }: FormikHelpers<FormValues>
+    { setSubmitting, resetForm }: FormikHelpers<FormValues>
   ) => {
     try {
       // 🔁 Call your return API here
@@ -76,11 +76,11 @@ const ReturnStockForm = ({
         transaction?.id
       );
 
-      if (markAsReturnedSuccess) {
         fetchAllTransaction();
         toast.success('Item returned successfully');
+        resetForm();
         handleClose();
-      }
+      
     } catch {
       toast.error('Failed to return item');
     } finally {
