@@ -324,20 +324,22 @@ const Stock = () => {
     return tab === 'STOCK'
       ? []
       : [
-          {
-            key: 'category',
-            label: 'Category',
-            options: categoryOptions.length > 0 ? categoryOptions : [],
-            value: categoryFilter,
-            onChange: setCategoryFilter
-          },
+          //   {
+          //     key: 'category',
+          //     label: 'Category',
+          //     options: categoryOptions.length > 0 ? categoryOptions : [],
+          //     value: categoryFilter,
+          //     onChange: setCategoryFilter
+          //   },
           {
             key: 'type',
             label: 'Transaction type',
             options: [
               { value: 'SOLD', label: 'SOLD' },
               { value: 'RENT', label: 'RENTED' },
-              { value: 'RETURNED', label: 'RETURNED' }
+              { value: 'RETURNED', label: 'RETURNED' },
+              { value: 'MAINTAINED', label: 'MAINTAINED' },
+              { value: 'NOT_MAINTAINED', label: 'NOT MAINTAINED' }
             ],
             value: transactionType,
             onChange: setTransactionType

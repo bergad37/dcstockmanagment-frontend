@@ -12,7 +12,7 @@ import {
 import { Link, useLocation } from 'react-router-dom';
 
 const menuItems = [
-  { title: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
+  { title: 'Analytics', icon: LayoutDashboard, path: '/dashboard' },
   { title: 'Users', icon: Users, path: '/users' },
   { title: 'Clients', icon: Briefcase, path: '/clients' },
   { title: 'Products/Equipments', icon: Briefcase, path: '/products' },
