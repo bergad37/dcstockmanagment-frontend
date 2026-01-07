@@ -10,12 +10,12 @@ import Filters, {
 import DateRangeFilter from '../../components/ui/DatePicker';
 import { customStyles } from '../../utils/ui.helper.styles';
 import { useStockStore } from '../../store/stockStore';
-import { LogOut, Plus, RotateCcw } from 'lucide-react';
 import ReturnStockForm from './Return.item';
 import { useCategoryStore } from '../../store/categoriesStore';
 import { formatStockTransactions } from '../../utils/auth';
+import { LogOut, Plus, RotateCcw } from 'lucide-react';
 
-type TabType = 'STOCK' | 'STOCK_OUT';
+type TabType = 'STOCK' | 'STOCK_OUT' | 'CALIBRATION_STOCK';
 
 const Stock = () => {
   const {
@@ -37,7 +37,7 @@ const Stock = () => {
   const [selectedProduct, setSelectedProduct] = useState<{
     label: string;
     value: string;
-    type: 'ITEM' | 'QUANTITY';
+    type: 'ITEM' | 'QUANTITY' | 'CALIBRATION';
   } | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<FilterOption | null>(
     null
@@ -64,6 +64,10 @@ const Stock = () => {
     productId: ''
   });
 
+  // Handle Details Modal
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
+
   const filteredStockOutData = formatStockTransactions(
     transactions?.transactions
   )?.filter((item) => {
@@ -83,93 +87,144 @@ const Stock = () => {
   });
 
   useEffect(() => {
-    fetchStock();
+    if (activeTab === 'CALIBRATION_STOCK') {
+      fetchStock({ type: 'CALIBRATION' });
+    } else {
+      fetchStock(); // ITEM + QUANTITY
+    }
+
     fetchAllTransaction();
     fetchCategories();
-  }, [fetchStock, fetchAllTransaction, fetchCategories, activeTab]);
+  }, [activeTab]);
+
+  useEffect(() => {
+    fetchAllTransaction();
+    fetchCategories();
+  }, [fetchAllTransaction, fetchCategories]);
 
   const categoryOptions =
     categories?.map((c: any) => ({ value: c.id, label: c.name })) ?? [];
 
-  const stockInColumns = (handleUpdateStock) => [
-    {
-      name: 'Product',
-      selector: (row: any) => row?.product?.name,
-      sortable: true
-    },
-    {
-      name: 'Category',
-      selector: (row: any) =>
-        row?.product?.category ? row?.product?.category?.name : '-',
-      sortable: true
-    },
-    {
-      name: 'Quantity',
-      selector: (row: any) => row.quantity,
-      sortable: true
-    },
-    {
-      name: 'Date Added',
-      sortable: true,
-      cell: (row: any) =>
-        row?.product?.entryDate
-          ? new Date(row.product.entryDate).toLocaleDateString()
-          : '-'
-    },
-    // {
-    //   name: 'Status',
-    //   selector: (row: any) => row.status || 'AVAILABLE',
-    //   cell: (row: any) => (
-    //     <span
-    //       className={`px-3 py-1 rounded-full text-xs font-semibold ${
-    //         row.status === 'AVAILABLE'
-    //           ? 'bg-green-100 text-green-800'
-    //           : 'bg-gray-100 text-gray-800'
-    //       }`}
-    //     >
-    //       {row.status || 'AVAILABLE'}
-    //     </span>
-    //   )
-    // },
-    {
-      name: 'Action',
-      cell: (row: any) => (
-        <div className="inline-flex items-center gap-1">
-          <button
-            title={`Record stock out for ${row.product?.name}`}
-            onClick={() => {
-              setSelectedProduct({
-                label: row.product?.name,
-                value: row.product?.id,
-                type: row.product?.type
-              });
-              setShowForm(true);
-            }}
-            disabled={row.quantity === 0}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-50 text-red-700  hover:bg-red-600 hover:text-white transition text-xs font-semibold  border border-red-200 disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <LogOut size={14} />
-            Stock Out
-          </button>
-          {row?.product?.type !== 'ITEM' && (
-            <button
-              title="Increase stock quantity"
-              onClick={() => handleUpdateStock(row)}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-50 text-green-700  hover:bg-green-600 hover:text-white transition text-xs font-semibold  border border-green-200 disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <Plus size={14} />
-            </button>
-          )}
-        </div>
-      )
-    }
-  ];
+  const closeStockOutModal = () => {
+    setShowForm(false);
+    setSelectedProduct(null);
+  };
 
-  const stockOutColumns = (returnAction: (param: any) => void) => [
+  const stockInColumns = (handleUpdateStock, isOnCalibrationTab) => {
+    const columns = [
+      {
+        name: 'Product',
+        selector: (row: any) => row?.product?.name,
+        sortable: true
+      },
+      {
+        name: 'Category',
+        selector: (row: any) =>
+          row?.product?.category ? row?.product?.category?.name : '-',
+        sortable: true
+      },
+      {
+        name: 'Quantity',
+        selector: (row: any) => row.quantity,
+        sortable: true
+      }
+    ];
+
+    if (isOnCalibrationTab) {
+      columns.push({
+        name: 'Equip.Owner',
+        selector: (row: any) => row?.product?.supplier?.name ?? '-',
+        sortable: true
+      });
+    }
+
+    columns.push(
+      {
+        name: 'Date Added',
+        sortable: true,
+        selector: (row: any) =>
+          row?.product?.entryDate
+            ? new Date(row.product.entryDate).toLocaleDateString()
+            : '-'
+      },
+      // {
+      //   name: 'Status',
+      //   selector: (row: any) => row.status || 'AVAILABLE',
+      //   cell: (row: any) => (
+      //     <span
+      //       className={`px-3 py-1 rounded-full text-xs font-semibold ${
+      //         row.status === 'AVAILABLE'
+      //           ? 'bg-green-100 text-green-800'
+      //           : 'bg-gray-100 text-gray-800'
+      //       }`}
+      //     >
+      //       {row.status || 'AVAILABLE'}
+      //     </span>
+      //   )
+      // },
+      {
+        name: 'Action',
+        cell: (row: any) => (
+          <div className="inline-flex items-center gap-1">
+            <button
+              title={`Record stock out for ${row.product?.name}`}
+              onClick={() => {
+                setSelectedProduct({
+                  label: row.product?.name,
+                  value: row.product?.id,
+                  type: row.product?.type
+                });
+                setShowForm(true);
+              }}
+              disabled={row.quantity === 0}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-50 text-red-700  hover:bg-red-600 hover:text-white transition text-xs font-semibold  border border-red-200 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <LogOut size={14} />
+              Stock Out
+            </button>
+            {row?.product?.type !== 'ITEM' &&
+              row?.product?.type !== 'CALIBRATION' && (
+                <button
+                  title="Increase stock quantity"
+                  onClick={() => handleUpdateStock(row)}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-50 text-green-700  hover:bg-green-600 hover:text-white transition text-xs font-semibold  border border-green-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <Plus size={14} />
+                </button>
+              )}
+          </div>
+        )
+      }
+    );
+
+    return columns;
+  };
+
+  const isOverdue = (row: any) => {
+    if (row.returnDate || !row.expectedReturnDate) return false;
+    const expectedDate = new Date(row.expectedReturnDate);
+    const now = new Date();
+    return now > expectedDate;
+  };
+
+  const stockOutColumns = (
+    returnAction: (param: any) => void,
+    viewDetailsAction: (param: any) => void
+  ) => [
     {
       name: 'Product',
       selector: (row: any) => row.productName,
-      sortable: true
+      sortable: true,
+      cell: (row: any) => (
+        <div className="flex items-center gap-2">
+          <span>{row.productName}</span>
+          {isOverdue(row) && (
+            <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full">
+              Overdue
+            </span>
+          )}
+        </div>
+      )
     },
     {
       name: 'Type',
@@ -177,7 +232,7 @@ const Stock = () => {
       sortable: true,
       cell: (row: any) => (
         <span
-          className={`px-3 py-1 rounded-full text-xs font-semibold ${
+          className={`px-2 py-1 rounded-full text-[11px] font-semibold ${
             row.type === 'SOLD'
               ? 'bg-blue-100 text-blue-800'
               : 'bg-amber-100 text-amber-800'
@@ -235,23 +290,33 @@ const Stock = () => {
     },
     {
       name: 'Actions',
-      cell: (row: any) =>
-        row.type === 'RENT' ? (
+      cell: (row: any) => (
+        <div className="flex gap-2 flex-col my-3">
           <button
-            title={`Return ${row.productName}`}
-            onClick={() => returnAction(row)}
-            disabled={row.quantity === 0}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500 text-white hover:bg-amber-600 transition text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+            title="View Details"
+            onClick={() => viewDetailsAction(row)}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white transition text-xs font-semibold border border-blue-200"
           >
-            <RotateCcw
-              size={14}
-              className="animate-[spin_0.6s_ease-in-out_1]"
-            />
-            Return
+            View Details
           </button>
-        ) : (
-          <span>-</span>
-        )
+          {row.type === 'RENT' ? (
+            <button
+              title={`Return ${row.productName}`}
+              onClick={() => returnAction(row)}
+              disabled={row.quantity === 0}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500 text-white hover:bg-amber-600 transition text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+            >
+              <RotateCcw
+                size={14}
+                className="animate-[spin_0.6s_ease-in-out_1]"
+              />
+              Return
+            </button>
+          ) : (
+            <span>-</span>
+          )}
+        </div>
+      )
     }
   ];
 
@@ -288,6 +353,16 @@ const Stock = () => {
     setShowReturnModal(false);
   };
 
+  const viewDetailsAction = (row: any) => {
+    setSelectedTransaction(row);
+    setShowDetailsModal(true);
+  };
+
+  const handleCloseDetailsModal = () => {
+    setShowDetailsModal(false);
+    setSelectedTransaction(null);
+  };
+
   const returnAction = (data: any) => {
     setTransaction(data);
     setShowReturnModal(true);
@@ -303,7 +378,18 @@ const Stock = () => {
       fetchAllTransaction();
       resetStockOutSuccess();
     }
-  }, [stockOutSucess, fetchStock, fetchAllTransaction, resetStockOutSuccess]);
+
+    if (activeTab === 'CALIBRATION_STOCK') {
+      fetchStock({ type: 'CALIBRATION' });
+    }
+  }, [
+    stockOutSucess,
+    fetchStock,
+    fetchAllTransaction,
+    resetStockOutSuccess,
+    activeTab
+  ]);
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="mb-8">
@@ -318,7 +404,7 @@ const Stock = () => {
       {/* Tab Navigation */}
       <div className="flex justify-between gap-2 mb-6">
         <div className="inline-flex rounded-full border border-[#073c56]/30 bg-gray-100 p-1 gap-2">
-          {(['STOCK', 'STOCK_OUT'] as const).map((tab) => {
+          {(['STOCK', 'STOCK_OUT', 'CALIBRATION_STOCK'] as const).map((tab) => {
             const isActive = activeTab === tab;
             return (
               <button
@@ -330,18 +416,22 @@ const Stock = () => {
                     : 'bg-transparent text-[#073c56] hover:text-white'
                 }`}
               >
-                {tab === 'STOCK' ? 'Stock' : 'Transactions'}
+                {tab === 'STOCK'
+                  ? 'Stock'
+                  : tab === 'STOCK_OUT'
+                  ? 'Transactions'
+                  : 'Tools for Maintainance'}
               </button>
             );
           })}
         </div>
 
-        <button
+        {/* <button
           onClick={() => setShowForm(true)}
           className="px-4 py-1 rounded-full border border-[#073c56] text-[#073c56] bg-transparent transition-all duration-200 ease-in-out hover:bg-[#073c56] hover:text-white"
         >
           <p className="text-sm font-medium">+ Add item in stock</p>
-        </button>
+        </button> */}
       </div>
       <div className="border rounded-xl py-12">
         <div className="mb-4 flex justify-between">
@@ -374,17 +464,12 @@ const Stock = () => {
 
         <Modal
           isOpen={showForm}
-          onClose={() => {
-            setShowForm(false);
-            setSelectedProduct(null);
-          }}
+          onClose={closeStockOutModal}
           title={'Register Stock Out'}
+          maxHeight={600}
         >
           <StockOutForm
-            handleClose={() => {
-              setShowForm(false);
-              setSelectedProduct(null);
-            }}
+            handleClose={closeStockOutModal}
             product={selectedProduct}
           />
         </Modal>
@@ -400,7 +485,7 @@ const Stock = () => {
             </div>
           ) : activeTab === 'STOCK' ? (
             <DataTable
-              columns={stockInColumns(handleUpdateStock)}
+              columns={stockInColumns(handleUpdateStock, false)}
               data={stock?.stocks}
               highlightOnHover
               pointerOnHover
@@ -411,11 +496,24 @@ const Stock = () => {
               responsive
               striped
             />
+          ) : activeTab === 'STOCK_OUT' ? (
+            <DataTable
+              columns={stockOutColumns(returnAction, viewDetailsAction)}
+              data={filteredStockOutData}
+              highlightOnHover
+              pointerOnHover
+              customStyles={customStyles}
+              pagination
+              paginationPerPage={10}
+              paginationRowsPerPageOptions={[10, 20, 50]}
+              responsive
+              striped
+            />
           ) : (
-            activeTab === 'STOCK_OUT' && (
+            activeTab === 'CALIBRATION_STOCK' && (
               <DataTable
-                columns={stockOutColumns(returnAction)}
-                data={filteredStockOutData}
+                columns={stockInColumns(handleUpdateStock, true)}
+                data={stock?.stocks}
                 highlightOnHover
                 pointerOnHover
                 customStyles={customStyles}
@@ -434,6 +532,189 @@ const Stock = () => {
         transaction={transaction}
         isOpen={showReturnModal}
       />
+
+      {/* Transaction Details Modal */}
+      <Modal
+        isOpen={showDetailsModal}
+        onClose={handleCloseDetailsModal}
+        title="Transaction Details"
+        maxHeight={600}
+      >
+        {selectedTransaction && (
+          <div className="space-y-6">
+            {/* Transaction Info */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                Transaction Information
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">
+                    Transaction ID
+                  </p>
+                  <p className="text-sm text-gray-900">
+                    {selectedTransaction.id}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">
+                    Transaction Type
+                  </p>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                      selectedTransaction.type === 'MAINTAINED'
+                        ? 'bg-blue-100 text-blue-800'
+                        : selectedTransaction.type === 'RETURNED'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}
+                  >
+                    {selectedTransaction.type}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">
+                    Transaction Date
+                  </p>
+                  <p className="text-sm text-gray-900">
+                    {new Date(
+                      selectedTransaction.transactionDate
+                    ).toLocaleDateString()}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">
+                    Expected Return Date
+                  </p>
+                  <p className="text-sm text-gray-900">
+                    {selectedTransaction.expectedReturnDate
+                      ? new Date(
+                          selectedTransaction.expectedReturnDate
+                        ).toLocaleDateString()
+                      : 'N/A'}
+                  </p>
+                </div>
+                {selectedTransaction.returnDate && (
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">
+                      Return Date
+                    </p>
+                    <p className="text-sm text-gray-900">
+                      {new Date(
+                        selectedTransaction.returnDate
+                      ).toLocaleDateString()}
+                    </p>
+                  </div>
+                )}
+                {selectedTransaction.returnCondition && (
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">
+                      Return Condition
+                    </p>
+                    <p className="text-sm text-gray-900">
+                      {selectedTransaction.returnCondition}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Customer Info */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                Customer Information
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Name</p>
+                  <p className="text-sm text-gray-900">
+                    {selectedTransaction.customer.name || 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Email</p>
+                  <p className="text-sm text-gray-900">
+                    {selectedTransaction.customer.email || 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Phone</p>
+                  <p className="text-sm text-gray-900">
+                    {selectedTransaction.customer.phone || 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Address</p>
+                  <p className="text-sm text-gray-900">
+                    {selectedTransaction.customer.address || 'N/A'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Product Info */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                Product Information
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Name</p>
+                  <p className="text-sm text-gray-900">
+                    {selectedTransaction.product.name || 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Type</p>
+                  <p className="text-sm text-gray-900">
+                    {selectedTransaction.product.type || 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">
+                    Serial Number
+                  </p>
+                  <p className="text-sm text-gray-900">
+                    {selectedTransaction.product.serialNumber || 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Quantity</p>
+                  <p className="text-sm text-gray-900">
+                    {selectedTransaction.quantity}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Warranty</p>
+                  <p className="text-sm text-gray-900">
+                    {selectedTransaction.product.warranty || 'N/A'}
+                  </p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-sm font-medium text-gray-500">
+                    Description
+                  </p>
+                  <p className="text-sm text-gray-900">
+                    {selectedTransaction.product.description || 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">
+                    Entry Date
+                  </p>
+                  <p className="text-sm text-gray-900">
+                    {selectedTransaction.product.entryDate
+                      ? new Date(
+                          selectedTransaction.product.entryDate
+                        ).toLocaleDateString()
+                      : 'N/A'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

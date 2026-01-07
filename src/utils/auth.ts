@@ -46,7 +46,15 @@ export const formatStockTransactions = (transactions: any[] = []) => {
       transactionDate: transaction?.startDate ?? null,
       createdAt: transaction?.createdAt ?? null,
       updatedAt: transaction?.updatedAt ?? null,
-      returnDate: transaction?.returnDate ?? ''
+      returnDate: transaction?.returnDate ?? '',
+      expectedReturnDate: transaction?.expectedReturnDate ?? '',
+      returnCondition: transaction?.returnCondition ?? '',
+      totalAmount: transaction?.totalAmount ?? '',
+      totalCost: transaction?.totalCost ?? '',
+      profitLoss: transaction?.profitLoss ?? '',
+      customer: transaction?.customer ?? {},
+      product: item?.product ?? {},
+      transaction: transaction
     }));
   });
 };

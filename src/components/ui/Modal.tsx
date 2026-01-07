@@ -10,9 +10,18 @@ interface ModalProps {
   children?: ReactNode;
   /** When false, hide the close button and prevent manual closing via the UI */
   closable?: boolean;
+  /** Maximum height of the modal body in pixels */
+  maxHeight?: number;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, closable = true }) => {
+const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+  closable = true,
+  maxHeight
+}) => {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -44,7 +53,12 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, closabl
             </div>
 
             {/* Modal Body */}
-            <div>{children}</div>
+            <div
+              className="overflow-y-auto"
+              style={maxHeight ? { maxHeight: `${maxHeight}px` } : undefined}
+            >
+              {children}
+            </div>
           </motion.div>
         </motion.div>
       )}

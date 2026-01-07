@@ -9,13 +9,17 @@ import { useEffect } from 'react';
 
 interface StockOutFormProps {
   handleClose: () => void;
-  product: { label: string; value: string; type: 'ITEM' | 'QUANTITY' } | null;
+  product: {
+    label: string;
+    value: string;
+    type: 'ITEM' | 'QUANTITY' | 'CALIBRATION';
+  } | null;
 }
 
 interface FormValues {
   customerId?: string;
   customerName?: string;
-  type: 'SOLD' | 'RENTED';
+  type: 'SOLD' | 'RENTED' | 'MAINTAINED' | 'NOT_MAINTAINED';
   transactionDate: string;
   returnDate?: string;
   items: {
@@ -28,7 +32,9 @@ const validationSchema = Yup.object({
   customerId: Yup.string().nullable(),
   customerName: Yup.string().nullable(),
 
-  type: Yup.string().oneOf(['SOLD', 'RENTED']).required(),
+  type: Yup.string()
+    .oneOf(['SOLD', 'RENTED', 'MAINTAINED', 'NOT_MAINTAINED'])
+    .required(),
   transactionDate: Yup.string().required(),
 
   returnDate: Yup.string().when('type', {
@@ -59,7 +65,9 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
   const { recordStockOut } = useStockStore();
 
   useEffect(() => {
-    fetchStock();
+    if (product && product?.type !== 'CALIBRATION') {
+      fetchStock();
+    }
     fetchCustomer();
   }, [fetchStock, fetchCustomer]);
 
@@ -143,8 +151,18 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
                   className="w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40 focus:border-[#073c56] focus:outline-none"
                 >
                   <option value="">Select transaction type...</option>
-                  <option value="SOLD">Sold</option>
-                  <option value="RENTED">Rented</option>
+                  {product?.type !== 'CALIBRATION' ? (
+                    <>
+                      <option value="SOLD">Sold</option>
+                      <option value="RENTED">Rented</option>
+                    </>
+                  ) : (
+                    <>
+                      {' '}
+                      <option value="MAINTAINED">Maintained</option>
+                      <option value="NOT_MAINTAINED">Not_Maintained</option>
+                    </>
+                  )}
                 </Field>
                 <ErrorMessage
                   name="type"
@@ -318,13 +336,15 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
                     })}
 
                     {/* Add Product */}
-                    <button
-                      type="button"
-                      onClick={() => push({ productId: '', quantity: '1' })}
-                      className="font-medium"
-                    >
-                      + Add another product
-                    </button>
+                    {product?.type !== 'CALIBRATION' && (
+                      <button
+                        type="button"
+                        onClick={() => push({ productId: '', quantity: '1' })}
+                        className="font-medium"
+                      >
+                        + Add another product
+                      </button>
+                    )}
                   </div>
                 )}
               </FieldArray>

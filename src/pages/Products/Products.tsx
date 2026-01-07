@@ -54,7 +54,6 @@ const Products = () => {
       const params: Record<string, any> = {};
       if (trimmed) params.searchKey = trimmed;
       if (selectedCategory?.value) params.categoryId = selectedCategory.value;
-      console.log('Fetching products with params', params);
       await listProducts(Object.keys(params).length ? params : undefined);
     }, 300);
   };
@@ -66,7 +65,6 @@ const Products = () => {
     const params: Record<string, any> = {};
     if (searchQuery) params.searchKey = searchQuery;
     if (opt?.value) params.categoryId = opt.value;
-    console.log('Fetching products with params', params);
     await listProducts(Object.keys(params).length ? params : undefined);
   };
 
@@ -88,11 +86,7 @@ const Products = () => {
       serialNumber: data.serialNumber || '',
       costPrice: data.costPrice || null,
       entryDate: data.entryDate || '',
-      type: data.type
-        ? String(data.type).toLowerCase() === 'quantity'
-          ? 'quantity'
-          : 'item'
-        : 'item'
+      type: data.type ? data.type.toLowerCase() : 'item'
     });
   };
 

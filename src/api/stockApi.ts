@@ -2,7 +2,7 @@ import axiosClient from './axiosClient';
 
 export interface StockOutPayload {
   productId: string;
-  type: 'SOLD' | 'RENTED'; // SOLD or RENTED
+  type: 'SOLD' | 'RENTED' | 'MAINTAINED' | 'NOT_MAINTAINED';
   clientName: string;
   clientEmail: string;
   quantity: number;
@@ -19,7 +19,7 @@ export interface StockTransaction {
   id: string;
   productId: string;
   productName: string;
-  type: 'SOLD' | 'RENTED';
+  type: 'SOLD' | 'RENTED' | 'MAINTAINED' | 'NOT_MAINTAINED';
   clientName: string;
   clientEmail: string;
   quantity: number;
