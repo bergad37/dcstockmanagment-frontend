@@ -369,7 +369,9 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
                   ? 'Recording...'
                   : values.type === 'SOLD'
                   ? 'Record Sale'
-                  : 'Record Rental'}
+                  : values.type === 'RENTED'
+                  ? 'Record Rental'
+                  : 'Record Stock Out'}
               </button>
             </div>
           </Form>
