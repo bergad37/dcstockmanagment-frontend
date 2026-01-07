@@ -493,7 +493,7 @@ const Analytics = () => {
                 }}
               />
               <Legend />
-              <Bar dataKey="sold" fill={CHART_COLORS.secondary} name="Sold" />
+              <Bar  dataKey="sold" fill={CHART_COLORS.secondary} name="Sold" />
               <Bar dataKey="rented" fill={CHART_COLORS.success} name="Rented" />
             </BarChart>
           </ResponsiveContainer>
