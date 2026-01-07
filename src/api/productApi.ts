@@ -4,7 +4,13 @@ export interface ProductPayload {
   name: string;
   categoryId: string;
   supplierId?: string | null;
-  type: 'ITEM' | 'QUANTITY' | 'item' | 'quantity';
+  type:
+    | 'ITEM'
+    | 'QUANTITY'
+    | 'item'
+    | 'quantity'
+    | 'CALIBRATION'
+    | 'calibration';
   serialNumber?: string | null;
   warranty?: string | null;
   description?: string | null;

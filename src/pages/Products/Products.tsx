@@ -28,7 +28,7 @@ const Products = () => {
   useEffect(() => {
     listProducts();
     fetchCategories();
-  }, [listProducts,fetchCategories]);
+  }, [listProducts, fetchCategories]);
 
   // filters state
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -119,7 +119,6 @@ const Products = () => {
     setShowForm(false);
   };
 
-  console.log('#########', deleteItem);
   return (
     <div>
       <DeleteModal

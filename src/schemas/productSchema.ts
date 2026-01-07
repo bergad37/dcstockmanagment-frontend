@@ -22,7 +22,7 @@ export const ProductSchema = Yup.object().shape({
     .max(50, 'Product name too long')
     .required('Product name is required'),
   type: Yup.string()
-    .oneOf(['item', 'quantity'], 'Invalid product type')
+    .oneOf(['item', 'quantity','calibration'], 'Invalid product type')
     .required('Product type is required'),
   description: Yup.string().nullable(),
   warranty: Yup.string().nullable(),
