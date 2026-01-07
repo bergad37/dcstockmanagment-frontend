@@ -29,16 +29,23 @@ export default function Sidebar() {
   return (
     <div
       className={`
-        bg-primary text-white h-screen transition-all shhadow-lg duration-300 flex flex-col  ${open ? 'w-64' : 'w-20'
+        bg-primary text-white h-screen transition-all shhadow-lg duration-300 flex flex-col  ${
+          open ? 'w-64' : 'w-20'
         }`}
     >
       {/* Top */}
       <div className="flex items-center justify-between p-4">
         <h1
-          className={`font-bold text-xl transition-all ${open ? 'block' : 'hidden'
-            }`}
+          className={`font-bold text-xl transition-all ${
+            open ? 'block' : 'hidden'
+          }`}
         >
-          DC Stock
+          {/* DC Stock */}
+          <img
+            alt="dc survey ltd logo Company Logo"
+            src="https://res.cloudinary.com/ds04ivdrj/image/upload/v1764616773/dclogonobackground_sclmul.png"
+            className="mx-auto h-40 w-40 sm:h-20 sm:w-40 object-cover"
+          />
         </h1>
         <Menu className="cursor-pointer" onClick={() => setOpen(!open)} />
       </div>
