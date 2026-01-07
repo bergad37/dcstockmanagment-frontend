@@ -22,7 +22,7 @@ const CHART_COLORS = {
   secondary: '#0ea5e9',
   success: '#10b981',
   warning: '#f59e0b',
-  danger: '#ef4444',
+  danger: '#ef4444'
 };
 
 // Summary Cards Component
@@ -34,19 +34,35 @@ interface StatCardProps {
   color: string;
 }
 
-const StatCard = ({ title, value, icon: Icon, trend, color }: StatCardProps) => (
-  <div className="bg-white rounded-lg shadow p-6 border-l-4" style={{ borderColor: color }}>
+const StatCard = ({
+  title,
+  value,
+  icon: Icon,
+  trend,
+  color
+}: StatCardProps) => (
+  <div
+    className="bg-white rounded-lg shadow p-6 border-l-4"
+    style={{ borderColor: color }}
+  >
     <div className="flex items-center justify-between">
       <div>
         <p className="text-gray-600 text-sm font-medium">{title}</p>
         <p className="text-2xl font-bold text-gray-800 mt-2">{value}</p>
         {trend && (
-          <p className={`text-sm mt-2 ${trend > 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <p
+            className={`text-sm mt-2 ${
+              trend > 0 ? 'text-green-600' : 'text-red-600'
+            }`}
+          >
             {trend > 0 ? '↑' : '↓'} {Math.abs(trend)}% from last period
           </p>
         )}
       </div>
-      <div className="p-3 rounded-full" style={{ backgroundColor: `${color}20` }}>
+      <div
+        className="p-3 rounded-full"
+        style={{ backgroundColor: `${color}20` }}
+      >
         <Icon size={24} color={color} />
       </div>
     </div>
@@ -64,12 +80,20 @@ const Analytics = () => {
   const [analyticsFlowData, setAnalyticsFlowData] = useState<any[]>([]);
   const [highMovingItemsData, setHighMovingItemsData] = useState<any[]>([]);
   const [lowMovingItemsData, setLowMovingItemsData] = useState<any[]>([]);
-  const [categoryPerformanceData, setCategoryPerformanceData] = useState<any[]>([]);
+  const [categoryPerformanceData, setCategoryPerformanceData] = useState<any[]>(
+    []
+  );
   const [inventoryTurnoverData, setInventoryTurnoverData] = useState<any[]>([]);
 
   const downloadReport = (format: 'csv' | 'json') => {
-    const totalFlowLocal = analyticsFlowData.reduce((sum: number, item: any) => sum + (item.inbound ?? 0), 0);
-    const totalOutboundLocal = analyticsFlowData.reduce((sum: number, item: any) => sum + (item.outbound ?? 0), 0);
+    const totalFlowLocal = analyticsFlowData.reduce(
+      (sum: number, item: any) => sum + (item.inbound ?? 0),
+      0
+    );
+    const totalOutboundLocal = analyticsFlowData.reduce(
+      (sum: number, item: any) => sum + (item.outbound ?? 0),
+      0
+    );
     const netFlowLocal = totalFlowLocal - totalOutboundLocal;
     const totalActiveProducts =
       highMovingItemsData.length + lowMovingItemsData.length;
@@ -118,7 +142,10 @@ const Analytics = () => {
         'Period,Stock In,Stock Out,Net Movement'
       ];
 
-      const flowRows = analyticsFlowData.map((d: any) => `${d.month ?? ''},${d.inbound ?? 0},${d.outbound ?? 0},${d.net ?? ''}`);
+      const flowRows = analyticsFlowData.map(
+        (d: any) =>
+          `${d.month ?? ''},${d.inbound ?? 0},${d.outbound ?? 0},${d.net ?? ''}`
+      );
       const categoryRows = [
         '',
         'CATEGORY ACTIVITY',
@@ -136,14 +163,20 @@ const Analytics = () => {
         'HIGH MOVING ITEMS',
         '',
         'Product,Category,Units,Percentage',
-        ...highMovingItemsData.map((d: any) => `${d.name},${d.category},${d.units ?? 0},${d.percentage ?? 0}%`),
+        ...highMovingItemsData.map(
+          (d: any) =>
+            `${d.name},${d.category},${d.units ?? 0},${d.percentage ?? 0}%`
+        )
       ];
       const lowRows = [
         '',
         'LOW MOVING ITEMS',
         '',
         'Product,Category,Units,Percentage',
-        ...lowMovingItemsData.map((d: any) => `${d.name},${d.category},${d.units ?? 0},${d.percentage ?? 0}%`),
+        ...lowMovingItemsData.map(
+          (d: any) =>
+            `${d.name},${d.category},${d.units ?? 0},${d.percentage ?? 0}%`
+        )
       ];
 
       content = [
@@ -151,7 +184,7 @@ const Analytics = () => {
         ...flowRows,
         ...categoryRows,
         ...highRows,
-        ...lowRows,
+        ...lowRows
       ].join('\n');
 
       filename = `stock-analytics-report-${
@@ -159,7 +192,9 @@ const Analytics = () => {
       }.csv`;
     }
 
-    const blob = new Blob([content], { type: format === 'json' ? 'application/json' : 'text/csv' });
+    const blob = new Blob([content], {
+      type: format === 'json' ? 'application/json' : 'text/csv'
+    });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -171,8 +206,14 @@ const Analytics = () => {
   };
 
   // Calculate summary statistics (derived from remote state)
-  const totalFlow = analyticsFlowData.reduce((sum, item) => sum + (item.inbound ?? 0), 0);
-  const totalOutbound = analyticsFlowData.reduce((sum, item) => sum + (item.outbound ?? 0), 0);
+  const totalFlow = analyticsFlowData.reduce(
+    (sum, item) => sum + (item.inbound ?? 0),
+    0
+  );
+  const totalOutbound = analyticsFlowData.reduce(
+    (sum, item) => sum + (item.outbound ?? 0),
+    0
+  );
   const netFlow = totalFlow - totalOutbound;
   const totalProducts = highMovingItemsData.length + lowMovingItemsData.length;
 
@@ -188,55 +229,96 @@ const Analytics = () => {
         // Accept several possible shapes; prefer API shape: { success, message, data: { totals, stockFlow, categoryPerformance, topItems, lowItems, revenueByCategory } }
         const payload = data?.data ?? data;
 
-        const rawFlow = payload?.stockFlow || payload?.flow || payload?.analyticsFlowData || payload?.analyticsFlow || [];
+        const rawFlow =
+          payload?.stockFlow ||
+          payload?.flow ||
+          payload?.analyticsFlowData ||
+          payload?.analyticsFlow ||
+          [];
         // normalize flow: backend uses `label` for month
         const flow = Array.isArray(rawFlow)
-          ? rawFlow.map((it: any) => ({ month: it.label ?? it.month ?? '', inbound: it.inbound ?? 0, outbound: it.outbound ?? 0, net: it.net ?? ((it.inbound ?? 0) - (it.outbound ?? 0)) }))
+          ? rawFlow.map((it: any) => ({
+              month: it.label ?? it.month ?? '',
+              inbound: it.inbound ?? 0,
+              outbound: it.outbound ?? 0,
+              net: it.net ?? (it.inbound ?? 0) - (it.outbound ?? 0)
+            }))
           : [];
 
-        const rawHigh = payload?.topItems || payload?.highMoving || payload?.highMovingItems || payload?.highMovingItemsData || [];
+        const rawHigh =
+          payload?.topItems ||
+          payload?.highMoving ||
+          payload?.highMovingItems ||
+          payload?.highMovingItemsData ||
+          [];
         const high = Array.isArray(rawHigh)
           ? rawHigh.map((it: any) => ({
-            // normalize to primitives expected by the UI
-            name: it.name ?? it.productName ?? it.product?.name ?? '',
-            category:
-              typeof it.category === 'string'
-                ? it.category
-                : it.category?.name ?? it.categoryName ?? it.product?.category?.name ?? '',
-            units: Number(it.units ?? it.unitsSold ?? it.count ?? it.stock?.quantity ?? 0),
-            percentage: Number(it.percentage ?? it.percent ?? 0),
-            raw: it
-          }))
+              // normalize to primitives expected by the UI
+              name: it.name ?? it.productName ?? it.product?.name ?? '',
+              category:
+                typeof it.category === 'string'
+                  ? it.category
+                  : it.category?.name ??
+                    it.categoryName ??
+                    it.product?.category?.name ??
+                    '',
+              units: Number(
+                it.units ?? it.unitsSold ?? it.count ?? it.stock?.quantity ?? 0
+              ),
+              percentage: Number(it.percentage ?? it.percent ?? 0),
+              raw: it
+            }))
           : [];
 
-        const rawLow = payload?.lowItems || payload?.lowMoving || payload?.lowMovingItems || payload?.lowMovingItemsData || [];
+        const rawLow =
+          payload?.lowItems ||
+          payload?.lowMoving ||
+          payload?.lowMovingItems ||
+          payload?.lowMovingItemsData ||
+          [];
         const low = Array.isArray(rawLow)
           ? rawLow.map((it: any) => ({
-            name: it.name ?? it.productName ?? it.product?.name ?? '',
-            category:
-              typeof it.category === 'string'
-                ? it.category
-                : it.category?.name ?? it.categoryName ?? it.product?.category?.name ?? '',
-            units: Number(it.units ?? it.count ?? it.stock?.quantity ?? 0),
-            percentage: Number(it.percentage ?? it.percent ?? 0),
-            raw: it
-          }))
+              name: it.name ?? it.productName ?? it.product?.name ?? '',
+              category:
+                typeof it.category === 'string'
+                  ? it.category
+                  : it.category?.name ??
+                    it.categoryName ??
+                    it.product?.category?.name ??
+                    '',
+              units: Number(it.units ?? it.count ?? it.stock?.quantity ?? 0),
+              percentage: Number(it.percentage ?? it.percent ?? 0),
+              raw: it
+            }))
           : [];
 
         const rawCategory =
-          payload?.categoryPerformance || payload?.categoryPerformanceData || payload?.categories || payload?.revenueByCategory || [];
+          payload?.categoryPerformance ||
+          payload?.categoryPerformanceData ||
+          payload?.categories ||
+          payload?.revenueByCategory ||
+          [];
         // normalize category performance items to { category, sold, rented, revenue }
         const category = Array.isArray(rawCategory)
           ? rawCategory.map((c: any) => ({
-            category: c.name ?? c.category ?? c.category?.name ?? c.categoryName ?? '',
-            sold: Number(c.sold ?? c.soldCount ?? 0),
-            rented: Number(c.rented ?? c.rentedCount ?? 0),
-            revenue: Number(c.revenue ?? c.amount ?? 0),
-            raw: c
-          }))
+              category:
+                c.name ??
+                c.category ??
+                c.category?.name ??
+                c.categoryName ??
+                '',
+              sold: Number(c.sold ?? c.soldCount ?? 0),
+              rented: Number(c.rented ?? c.rentedCount ?? 0),
+              revenue: Number(c.revenue ?? c.amount ?? 0),
+              raw: c
+            }))
           : [];
 
-        const turnover = payload?.inventoryTurnover || payload?.inventoryTurnoverData || payload?.turnover || [];
+        const turnover =
+          payload?.inventoryTurnover ||
+          payload?.inventoryTurnoverData ||
+          payload?.turnover ||
+          [];
 
         if (!mounted) return;
 
@@ -313,28 +395,28 @@ const Analytics = () => {
           title="Total Stock In"
           value={loading ? '—' : totalFlow.toLocaleString()}
           icon={TrendingUp}
-          trend={12}
+          //   trend={12}
           color={CHART_COLORS.success}
         />
         <StatCard
           title="Total Stock Out"
           value={loading ? '—' : totalOutbound.toLocaleString()}
           icon={TrendingDown}
-          trend={8}
+          //   trend={8}
           color={CHART_COLORS.danger}
         />
         <StatCard
           title="Net Stock Movement"
           value={loading ? '—' : netFlow.toLocaleString()}
           icon={Package}
-          trend={netFlow > 0 ? 15 : -5}
+          //   trend={netFlow > 0 ? 15 : -5}
           color={CHART_COLORS.primary}
         />
         <StatCard
           title="Active Products"
           value={loading ? '—' : totalProducts.toString()}
           icon={Package}
-          trend={5}
+          //   trend={5}
           color={CHART_COLORS.warning}
         />
       </div>
@@ -545,9 +627,9 @@ const Analytics = () => {
                   <th className="text-right py-3 px-4 font-semibold text-gray-700">
                     Units
                   </th>
-                  <th className="text-right py-3 px-4 font-semibold text-gray-700">
+                  {/* <th className="text-right py-3 px-4 font-semibold text-gray-700">
                     %
-                  </th>
+                  </th> */}
                 </tr>
               </thead>
               <tbody>
@@ -561,9 +643,9 @@ const Analytics = () => {
                     <td className="text-right py-3 px-4 font-semibold text-green-600">
                       {(Number(item.units) ?? 0).toLocaleString()}
                     </td>
-                    <td className="text-right py-3 px-4 text-gray-600">
+                    {/* <td className="text-right py-3 px-4 text-gray-600">
                       {item.percentage ?? 0}%
-                    </td>
+                    </td> */}
                   </tr>
                 ))}
               </tbody>
@@ -589,9 +671,9 @@ const Analytics = () => {
                   <th className="text-right py-3 px-4 font-semibold text-gray-700">
                     Units
                   </th>
-                  <th className="text-right py-3 px-4 font-semibold text-gray-700">
+                  {/* <th className="text-right py-3 px-4 font-semibold text-gray-700">
                     %
-                  </th>
+                  </th> */}
                 </tr>
               </thead>
               <tbody>
@@ -605,9 +687,9 @@ const Analytics = () => {
                     <td className="text-right py-3 px-4 font-semibold text-orange-600">
                       {(Number(item.units) ?? 0).toLocaleString()}
                     </td>
-                    <td className="text-right py-3 px-4 text-gray-600">
+                    {/* <td className="text-right py-3 px-4 text-gray-600">
                       {item.percentage ?? 0}%
-                    </td>
+                    </td> */}
                   </tr>
                 ))}
               </tbody>
