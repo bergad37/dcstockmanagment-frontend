@@ -79,7 +79,7 @@ const Products = () => {
       id: data.id,
       name: data.name,
       description: data.description || '',
-      warranty: data.warranty || '',
+      warranty: data.warranty,
       categoryId: data.categoryId ?? data.category?.id ?? data.category ?? '',
       supplierId: data.supplierId ?? data.supplier?.id ?? '',
       quantity: data.quantity ?? null,
@@ -192,7 +192,11 @@ const Products = () => {
         onClose={handleClose}
         title={initialValues.id ? 'Edit Product' : 'Add new product in stock'}
       >
-        <ProductForm handleClose={handleClose} initialValues={initialValues} />
+        <ProductForm
+          handleClose={handleClose}
+          initialValues={initialValues}
+          isEditClicked={initialValues.id !== null}
+        />
       </Modal>
     </div>
   );
