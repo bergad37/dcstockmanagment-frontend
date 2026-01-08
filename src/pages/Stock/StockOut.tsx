@@ -201,7 +201,7 @@ const Stock = () => {
   };
 
   const isOverdue = (row: any) => {
-    if (row.returnDate || !row.expectedReturnDate) return false;
+    if (!row.expectedReturnDate) return false;
     const expectedDate = new Date(row.expectedReturnDate);
     const now = new Date();
     return now > expectedDate;
@@ -216,16 +216,28 @@ const Stock = () => {
       selector: (row: any) => row.productName,
       sortable: true,
       cell: (row: any) => (
-        <div className="flex items-center gap-2">
-          <span>{row.productName}</span>
+        <div className="relative inline-block max-w-full">
+          {/* Product name */}
+          <span className="block font-medium text-gray-900 pr-10">
+            {row.productName}
+          </span>
+
+          {/* Overdue badge */}
           {isOverdue(row) && (
-            <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full">
-              Overdue
+            <span
+              className="absolute -bottom-4 right-0
+                     inline-flex items-center gap-1
+                     px-2 py-0.5 rounded-full
+                     bg-red-50 text-red-700 text-[10px] font-semibold
+                     shadow-sm border border-red-200"
+            >
+              • Overdue
             </span>
           )}
         </div>
       )
     },
+
     {
       name: 'Type',
       selector: (row: any) => row.type,
@@ -595,6 +607,17 @@ const Stock = () => {
                         ).toLocaleDateString()
                       : 'N/A'}
                   </p>
+                  {isOverdue(selectedTransaction) && (
+                    <span
+                      className="
+                     inline-flex items-center gap-1
+                     px-2 py-0.5 rounded-full
+                     bg-red-50 text-red-700 text-[10px] font-semibold
+                     shadow-sm border border-red-200"
+                    >
+                      • Overdue
+                    </span>
+                  )}
                 </div>
                 {selectedTransaction.returnDate && (
                   <div>
