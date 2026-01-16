@@ -43,7 +43,7 @@ export default function Sidebar() {
           {/* DC Stock */}
           <img
             alt="dc survey ltd logo Company Logo"
-            src="https://res.cloudinary.com/ds04ivdrj/image/upload/v1764616773/dclogonobackground_sclmul.png"
+            src="/logo.png"
             className="mx-auto h-40 w-40 sm:h-20 sm:w-40 object-cover"
           />
         </h1>
