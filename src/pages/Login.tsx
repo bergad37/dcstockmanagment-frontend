@@ -35,7 +35,7 @@ const Login = () => {
         <div className="flex flex-col items-center">
           <img
             alt="dc survey ltd logo Company Logo"
-            src="https://res.cloudinary.com/ds04ivdrj/image/upload/v1764616773/dclogonobackground_sclmul.png"
+            src="/logo.png"
             className="mx-auto h-40 w-60 sm:h-40 sm:w-60 object-cover"
           />
 

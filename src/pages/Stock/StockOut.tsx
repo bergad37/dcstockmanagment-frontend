@@ -12,7 +12,7 @@ import { customStyles } from '../../utils/ui.helper.styles';
 import { useStockStore } from '../../store/stockStore';
 import ReturnStockForm from './Return.item';
 import { useCategoryStore } from '../../store/categoriesStore';
-import { formatStockTransactions } from '../../utils/auth';
+import { formatStockTransactions, getOverdueDays } from '../../utils/auth';
 import { LogOut, Plus, RotateCcw } from 'lucide-react';
 
 type TabType = 'STOCK' | 'STOCK_OUT' | 'CALIBRATION_STOCK';
@@ -615,7 +615,7 @@ const Stock = () => {
                      bg-red-50 text-red-700 text-[10px] font-semibold
                      shadow-sm border border-red-200"
                     >
-                      • Overdue
+                      • Overdue ({getOverdueDays(selectedTransaction)} days)
                     </span>
                   )}
                 </div>

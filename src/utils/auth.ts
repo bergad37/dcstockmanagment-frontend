@@ -58,3 +58,22 @@ export const formatStockTransactions = (transactions: any[] = []) => {
     }));
   });
 };
+
+
+export const getOverdueDays = (row: any): number => {
+  if (!row.expectedReturnDate) return 0;
+
+  const expected = new Date(row.expectedReturnDate);
+  const actual = row.returnDate
+    ? new Date(row.returnDate)
+    : new Date(); // today
+
+  // Normalize time to avoid partial-day issues
+  expected.setHours(0, 0, 0, 0);
+  actual.setHours(0, 0, 0, 0);
+
+  const diffTime = actual.getTime() - expected.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  return diffDays > 0 ? diffDays : 0;
+};
