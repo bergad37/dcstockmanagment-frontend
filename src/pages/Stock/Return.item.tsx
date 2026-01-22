@@ -58,8 +58,7 @@ const ReturnStockForm = ({
     returnCondition: ''
   };
 
-  const { markAsReturned, fetchAllTransaction } =
-    useStockStore();
+  const { markAsReturned, fetchAllTransaction } = useStockStore();
   const handleSubmit = async (
     values: FormValues,
     { setSubmitting, resetForm }: FormikHelpers<FormValues>
@@ -71,16 +70,16 @@ const ReturnStockForm = ({
         {
           quantity: values.returnQuantity,
           productId: transaction?.productId,
-          returnDate: values.returnDate
+          returnDate: values.returnDate,
+          returnCondition: values?.returnCondition
         } as StockOutPayload,
         transaction?.id
       );
 
-        fetchAllTransaction();
-        toast.success('Item returned successfully');
-        resetForm();
-        handleClose();
-      
+      fetchAllTransaction();
+      toast.success('Item returned successfully');
+      resetForm();
+      handleClose();
     } catch {
       toast.error('Failed to return item');
     } finally {
