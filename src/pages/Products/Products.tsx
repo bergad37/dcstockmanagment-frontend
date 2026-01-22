@@ -191,6 +191,7 @@ const Products = () => {
         isOpen={showForm}
         onClose={handleClose}
         title={initialValues.id ? 'Edit Product' : 'Add new product in stock'}
+        maxHeight={600}
       >
         <ProductForm
           handleClose={handleClose}
