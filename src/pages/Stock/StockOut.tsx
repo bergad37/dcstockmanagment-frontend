@@ -386,6 +386,12 @@ const Stock = () => {
     const payload = { quantity: data.quantity + 1 };
     updateStock(payload as any, data.id);
   };
+
+  const handleClear = () => {
+    setDateFrom(null);
+    setDateTo(null);
+  };
+
   useEffect(() => {
     if (stockOutSucess) {
       fetchStock();
@@ -433,8 +439,8 @@ const Stock = () => {
                 {tab === 'STOCK'
                   ? 'Stock'
                   : tab === 'STOCK_OUT'
-                  ? 'Transactions'
-                  : 'Tools for Maintainance'}
+                    ? 'Transactions'
+                    : 'Tools for Maintainance'}
               </button>
             );
           })}
@@ -461,6 +467,16 @@ const Stock = () => {
                   onFromChange={setDateFrom}
                   onToChange={setDateTo}
                 />
+                {/* Clear button */}
+                {(dateFrom || dateTo) && (
+                  <button
+                    type="button"
+                    onClick={handleClear} // you handle this
+                    className="px-4 py-2 rounded-xl border border-gray-300 text-sm font-medium text-gray-700 bg-gray-50 transition hover:bg-gray-100"
+                  >
+                    Clear
+                  </button>
+                )}
               </>
             )}
           </div>
@@ -579,8 +595,8 @@ const Stock = () => {
                       selectedTransaction.type === 'MAINTAINED'
                         ? 'bg-blue-100 text-blue-800'
                         : selectedTransaction.type === 'RETURNED'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-yellow-100 text-yellow-800'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-yellow-100 text-yellow-800'
                     }`}
                   >
                     {selectedTransaction.type}
