@@ -9,9 +9,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer,
-  ScatterChart,
-  Scatter
+  ResponsiveContainer
 } from 'recharts';
 import { Download, TrendingUp, TrendingDown, Package } from 'lucide-react';
 import { getStatistics } from '../../api/statisticsApi';

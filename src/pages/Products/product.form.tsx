@@ -40,19 +40,19 @@ const ProductForm = ({
         type: isCalibration
           ? 'CALIBRATION'
           : values.type === 'item'
-          ? 'ITEM'
-          : 'QUANTITY',
+            ? 'ITEM'
+            : 'QUANTITY',
 
         description: values.description || null,
         serialNumber: values.serialNumber,
         warranty: isCalibration ? null : values.warranty || null,
-        costPrice: isCalibration ? null : values.costPrice ?? null,
+        costPrice: isCalibration ? null : (values.costPrice ?? null),
         entryDate: values.entryDate,
         quantity: values.quantity ?? 1
       };
 
       // Quantity rules
-      payload.quantity = values.type === 'item' ? 1 : values.quantity ?? 1;
+      payload.quantity = values.type === 'item' ? 1 : (values.quantity ?? 1);
 
       // Supplier handling
       if (values.supplierId) {
@@ -82,11 +82,11 @@ const ProductForm = ({
       label: c.name
     })) ?? [];
 
-  const supplierOptions =
-    suppliers?.map((s) => ({
-      value: s.id,
-      label: s.name
-    })) ?? [];
+  //   const supplierOptions =
+  //     suppliers?.map((s) => ({
+  //       value: s.id,
+  //       label: s.name
+  //     })) ?? [];
 
   const productTypeOptions = [
     { value: 'item', label: 'Item' },
@@ -157,8 +157,8 @@ const ProductForm = ({
                         backgroundColor: state.isSelected
                           ? '#073c56'
                           : state.isFocused
-                          ? '#073c5620'
-                          : 'white',
+                            ? '#073c5620'
+                            : 'white',
                         color: state.isSelected ? 'white' : '#111827',
                         padding: '10px 12px',
                         cursor: 'pointer'
@@ -224,8 +224,8 @@ const ProductForm = ({
                         backgroundColor: state.isSelected
                           ? '#073c56'
                           : state.isFocused
-                          ? '#073c5620'
-                          : 'white',
+                            ? '#073c5620'
+                            : 'white',
                         color: state.isSelected ? 'white' : '#111827',
                         padding: '10px 12px',
                         cursor: 'pointer'
@@ -400,8 +400,8 @@ const ProductForm = ({
                       ? 'Updating...'
                       : 'Adding...'
                     : initialValues.id
-                    ? 'Update'
-                    : 'Save'}
+                      ? 'Update'
+                      : 'Save'}
                 </button>
               </div>
             </Form>

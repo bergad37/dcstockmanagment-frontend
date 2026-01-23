@@ -4,7 +4,7 @@ import * as Yup from 'yup';
 import { toast } from 'sonner';
 import Modal from '../../components/ui/Modal';
 import { useStockStore } from '../../store/stockStore';
-import type { StockOutPayload } from '../../api/stockApi';
+// import type { StockOutPayload } from '../../api/stockApi';
 
 export interface ReturnStockFormProps {
   handleClose: () => void;
@@ -72,7 +72,7 @@ const ReturnStockForm = ({
           productId: transaction?.productId,
           returnDate: values.returnDate,
           returnCondition: values?.returnCondition
-        } as StockOutPayload,
+        },
         transaction?.id
       );
 

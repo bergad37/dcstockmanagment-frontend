@@ -108,7 +108,7 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
         }))
       };
 
-      await recordStockOut(payload);
+      await recordStockOut(payload as any);
       if (stockOutSucess) {
         toast.success(
           values.type === 'SOLD'
@@ -191,7 +191,7 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
               >
                 <option value="">Select existing client...</option>
                 {customers?.map((client) => (
-                  <option key={client!.id} value={client!.id}>
+                  <option key={client!.id} value={client!.id as any}>
                     {client!.name}
                   </option>
                 ))}
@@ -263,7 +263,7 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
                   <div className="space-y-4">
                     {values.items.map((item, index) => {
                       const selectedProduct = stock?.stocks.find(
-                        (s) => s.product.id === item.productId
+                        (s:any) => s.product.id === item.productId
                       );
                       const isPrefilled = !!product;
 
@@ -282,7 +282,7 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
                               name={`items.${index}.productId`}
                               disabled={isPrefilled && index === 0}
                               className="w-full rounded-xl border px-3 py-2"
-                              onChange={(e) => {
+                              onChange={(e:any) => {
                                 const productId = e.target.value;
                                 setFieldValue(
                                   `items.${index}.productId`,
@@ -290,7 +290,7 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
                                 );
 
                                 const product = stock?.stocks.find(
-                                  (s) => s.product.id === productId
+                                  (s:any) => s.product.id === productId
                                 );
 
                                 if (product?.product.type === 'ITEM') {
@@ -299,7 +299,7 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
                               }}
                             >
                               <option value="">Select product...</option>
-                              {stock?.stocks.map((s) => (
+                              {stock?.stocks.map((s:any) => (
                                 <option key={s.product.id} value={s.product.id}>
                                   {s.product.name}
                                 </option>
@@ -368,10 +368,10 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
                 {isSubmitting
                   ? 'Recording...'
                   : values.type === 'SOLD'
-                  ? 'Record Sale'
-                  : values.type === 'RENTED'
-                  ? 'Record Rental'
-                  : 'Record Stock Out'}
+                    ? 'Record Sale'
+                    : values.type === 'RENTED'
+                      ? 'Record Rental'
+                      : 'Record Stock Out'}
               </button>
             </div>
           </Form>

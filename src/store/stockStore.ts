@@ -8,8 +8,8 @@ import { dummyStockOut, dummyInventory } from '../data/dummyData';
 
 interface StockState {
   stockOut: StockTransaction[];
-  stock: StockTransaction[];
-  transactions: StockTransaction[];
+  stock: any;
+  transactions: any;
   stockOutLoading: boolean;
   allTransactionsLoading: boolean;
   allTransactionError: string | null;
@@ -39,7 +39,7 @@ interface StockState {
   fetchStock: (params?: Record<string, any>) => Promise<void>;
   resetStockOutSuccess: (value?: boolean) => void;
   updateStock: (payload: StockInPayload, params: string) => Promise<void>;
-  markAsReturned: (payload: StockInPayload, params: string) => Promise<void>;
+  markAsReturned: (payload: any, params: string) => Promise<void>;
 }
 
 export const useStockStore = create<StockState>((set) => ({

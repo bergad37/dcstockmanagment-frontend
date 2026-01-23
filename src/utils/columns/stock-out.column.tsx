@@ -1,8 +1,8 @@
 import type { StockTransaction } from '../../api/stockApi';
-import Button from '../../components/ui/Button';
-import ReturnItemModal from '../../components/ReturnItemModal';
-import { useState } from 'react';
-import { useStockStore } from '../../store/stockStore';
+// import Button from '../../components/ui/Button';
+// import ReturnItemModal from '../../components/ReturnItemModal';
+// import { useState } from 'react';
+// import { useStockStore } from '../../store/stockStore';
 
 interface StockOutColumnDef {
   name: string;
@@ -18,39 +18,39 @@ interface InventoryColumnDef {
   cell?: (row: StockTransaction) => React.ReactNode;
 }
 
-const ReturnButton = ({ row }: { row: StockTransaction }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const { markAsReturned } = useStockStore();
+// const ReturnButton = ({ row }: { row: StockTransaction }) => {
+//   const [isModalOpen, setIsModalOpen] = useState(false);
+//   const { markAsReturned } = useStockStore();
 
-  const handleReturn = async (_returnDate: string) => {
-    try {
-      await markAsReturned(row.id);
-    } catch (error) {
-      console.error('Failed to return item:', error);
-    }
-  };
+//   const handleReturn = async (_returnDate: string) => {
+//     try {
+//       await markAsReturned(row.id);
+//     } catch (error) {
+//       console.error('Failed to return item:', error);
+//     }
+//   };
 
-  if (row.type !== 'RENTED' || row.status === 'RETURNED') {
-    return <span className="text-gray-400">-</span>;
-  }
+//   if (row.type !== 'RENTED' || row.status === 'RETURNED') {
+//     return <span className="text-gray-400">-</span>;
+//   }
 
-  return (
-    <>
-      <Button
-        label="Return Item"
-        onClick={() => setIsModalOpen(true)}
-        bg="bg-green-600"
-        className="py-1 px-3 text-xs hover:bg-green-700"
-      />
-      <ReturnItemModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={handleReturn}
-        productName={row.productName}
-      />
-    </>
-  );
-};
+//   return (
+//     <>
+//       <Button
+//         label="Return Item"
+//         onClick={() => setIsModalOpen(true)}
+//         bg="bg-green-600"
+//         className="py-1 px-3 text-xs hover:bg-green-700"
+//       />
+//       <ReturnItemModal
+//         isOpen={isModalOpen}
+//         onClose={() => setIsModalOpen(false)}
+//         onSubmit={handleReturn}
+//         productName={row.productName}
+//       />
+//     </>
+//   );
+// };
 
 export const stockOutColumns: StockOutColumnDef[] = [
   {
@@ -64,10 +64,11 @@ export const stockOutColumns: StockOutColumnDef[] = [
     sortable: true,
     cell: (row: StockTransaction) => (
       <span
-        className={`px-3 py-1 rounded-full text-xs font-semibold ${row.type === 'SOLD'
-          ? 'bg-blue-100 text-blue-800'
-          : 'bg-amber-100 text-amber-800'
-          }`}
+        className={`px-3 py-1 rounded-full text-xs font-semibold ${
+          row.type === 'SOLD'
+            ? 'bg-blue-100 text-blue-800'
+            : 'bg-amber-100 text-amber-800'
+        }`}
       >
         {row.type}
       </span>
@@ -128,12 +129,13 @@ export const stockOutColumns: StockOutColumnDef[] = [
       const status = row.status || 'COMPLETED';
       return (
         <span
-          className={`px-3 py-1 rounded-full text-xs font-semibold ${status === 'ACTIVE'
-            ? 'bg-green-100 text-green-800'
-            : status === 'RETURNED'
-              ? 'bg-gray-100 text-gray-800'
-              : 'bg-blue-100 text-blue-800'
-            }`}
+          className={`px-3 py-1 rounded-full text-xs font-semibold ${
+            status === 'ACTIVE'
+              ? 'bg-green-100 text-green-800'
+              : status === 'RETURNED'
+                ? 'bg-gray-100 text-gray-800'
+                : 'bg-blue-100 text-blue-800'
+          }`}
         >
           {status}
         </span>
@@ -143,7 +145,7 @@ export const stockOutColumns: StockOutColumnDef[] = [
   {
     name: 'Action',
     selector: (row: StockTransaction) => row.id,
-    cell: (row: StockTransaction) => <ReturnButton row={row} />
+    cell: () => <span className="text-gray-400">-</span>
   }
 ];
 

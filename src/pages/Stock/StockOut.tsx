@@ -30,7 +30,7 @@ const Stock = () => {
 
   const { resetStockOutSuccess } = useStockStore();
 
-  const { fetchCategories, categories } = useCategoryStore();
+  const { fetchCategories } = useCategoryStore();
 
   const [activeTab, setActiveTab] = useState<TabType>('STOCK');
   const [showForm, setShowForm] = useState(false);
@@ -39,9 +39,9 @@ const Stock = () => {
     value: string;
     type: 'ITEM' | 'QUANTITY' | 'CALIBRATION';
   } | null>(null);
-  const [categoryFilter, setCategoryFilter] = useState<FilterOption | null>(
-    null
-  );
+  //   const [categoryFilter, setCategoryFilter] = useState<FilterOption | null>(
+  //     null
+  //   );
   const [transactionType, setTransactionType] = useState<FilterOption | null>(
     null
   );
@@ -102,16 +102,19 @@ const Stock = () => {
     fetchCategories();
   }, [fetchAllTransaction, fetchCategories]);
 
-  const categoryOptions =
-    categories?.map((c: any) => ({ value: c.id, label: c.name })) ?? [];
+  //   const categoryOptions =
+  //     categories?.map((c: any) => ({ value: c.id, label: c.name })) ?? [];
 
   const closeStockOutModal = () => {
     setShowForm(false);
     setSelectedProduct(null);
   };
 
-  const stockInColumns = (handleUpdateStock, isOnCalibrationTab) => {
-    const columns = [
+  const stockInColumns = (
+    handleUpdateStock: (param: any) => void,
+    isOnCalibrationTab: boolean
+  ) => {
+    const columns: any[] = [
       {
         name: 'Product',
         selector: (row: any) => row?.product?.name,
@@ -163,7 +166,8 @@ const Stock = () => {
       //   )
       // },
       {
-        name: 'Action',
+        name: 'Actions',
+        selector: (row: any) => row.id,
         cell: (row: any) => (
           <div className="inline-flex items-center gap-1">
             <button
@@ -284,7 +288,7 @@ const Stock = () => {
         return (
           <span
             className={`px-3 py-1 rounded-full text-xs font-semibold ${
-              status === 'ACTIVE'
+              row.type === 'RETURNED'
                 ? 'bg-green-100 text-green-800'
                 : 'bg-gray-100 text-gray-800'
             }`}
@@ -359,7 +363,7 @@ const Stock = () => {
         ];
   };
 
-  const handleSearchProductInStock = (data) => {
+  const handleSearchProductInStock = (data: string) => {
     fetchStock({ searchKey: data });
   };
 
