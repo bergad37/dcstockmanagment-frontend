@@ -14,7 +14,7 @@ import Modal from '../../components/ui/Modal';
 import { useCategoryStore } from '../../store/categoriesStore';
 import { customStyles } from '../../utils/ui.helper.styles';
 const Products = () => {
-  const { listProducts, products, deleteProduct } = useProductStore();
+  const { listProducts, products, deleteProduct, pagination } = useProductStore();
   const { fetchCategories, categories } = useCategoryStore();
   const [showForm, setShowForm] = useState(false);
   const [initialValues, setInitialValues] =
@@ -25,9 +25,15 @@ const Products = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteItem, setDeleteItem] = useState(null);
 
+  // pagination state (page is 1-based for backend)
+  const [page, setPage] = useState<number>(1);
+  const [perPage, setPerPage] = useState<number>(10);
+
   useEffect(() => {
-    listProducts();
-    fetchCategories();
+    // initial load
+    void listProducts({ page, limit: perPage });
+    void fetchCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listProducts, fetchCategories]);
 
   // filters state
@@ -43,6 +49,23 @@ const Products = () => {
   // debounce timer
   let searchTimer: number | undefined;
 
+  const buildQueryParams = (override?: {
+    page?: number;
+    limit?: number;
+  }): Record<string, any> => {
+    const params: Record<string, any> = {};
+    const effectivePage = override?.page ?? page;
+    const effectiveLimit = override?.limit ?? perPage;
+
+    params.page = effectivePage;
+    params.limit = effectiveLimit;
+
+    if (searchQuery) params.searchKey = searchQuery;
+    if (selectedCategory?.value) params.categoryId = selectedCategory.value;
+
+    return params;
+  };
+
   const runSearch = (q: string) => {
     const trimmed = q.trim();
     setSearchQuery(trimmed);
@@ -51,10 +74,15 @@ const Products = () => {
     if (searchTimer) window.clearTimeout(searchTimer);
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     searchTimer = window.setTimeout(async () => {
-      const params: Record<string, any> = {};
+      // reset to first page when searching
+      setPage(1);
+      const params: Record<string, any> = {
+        page: 1,
+        limit: perPage
+      };
       if (trimmed) params.searchKey = trimmed;
       if (selectedCategory?.value) params.categoryId = selectedCategory.value;
-      await listProducts(Object.keys(params).length ? params : undefined);
+      await listProducts(params);
     }, 300);
   };
 
@@ -62,10 +90,15 @@ const Products = () => {
     opt: { value: string; label: string } | null
   ) => {
     setSelectedCategory(opt);
-    const params: Record<string, any> = {};
+    // reset to first page when filter changes
+    setPage(1);
+    const params: Record<string, any> = {
+      page: 1,
+      limit: perPage
+    };
     if (searchQuery) params.searchKey = searchQuery;
     if (opt?.value) params.categoryId = opt.value;
-    await listProducts(Object.keys(params).length ? params : undefined);
+    await listProducts(params);
   };
 
   const deleteAction = (data: any) => {
@@ -111,6 +144,22 @@ const Products = () => {
   const handleClose = () => {
     setShowDeleteModal(false);
     setShowForm(false);
+  };
+
+  const handleChangePage = async (newPage: number) => {
+    setPage(newPage);
+    const params = buildQueryParams({ page: newPage });
+    await listProducts(params);
+  };
+
+  const handleChangeRowsPerPage = async (
+    newPerPage: number,
+    newPage: number
+  ) => {
+    setPerPage(newPerPage);
+    setPage(newPage);
+    const params = buildQueryParams({ page: newPage, limit: newPerPage });
+    await listProducts(params);
   };
 
   return (
@@ -179,7 +228,13 @@ const Products = () => {
               data={Array.isArray(products) ? products : []}
               customStyles={customStyles}
               pagination
-              paginationPerPage={5}
+              paginationServer
+              paginationPerPage={perPage}
+              paginationTotalRows={
+                pagination?.total ?? (Array.isArray(products) ? products.length : 0)
+              }
+              onChangePage={handleChangePage}
+              onChangeRowsPerPage={handleChangeRowsPerPage}
               fixedHeader
               responsive
             />
