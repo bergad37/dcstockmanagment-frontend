@@ -1,0 +1,51 @@
+name: Frontend CI/CD
+
+on:
+  push:
+    branches:
+      - main  # triggers only on main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repo
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Setup Node
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Step 3: Install dependencies
+      - name: Install frontend dependencies
+        run: npm install
+
+      # Step 4: Build frontend
+      - name: Build frontend
+        run: npm run build
+
+      # Step 5: Copy build to server
+      - name: Deploy build to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          source: "dist/*"          # or "build/*" if CRA
+          target: "/var/www/frontend"
+
+      # Step 6: Reload nginx (optional, usually not needed for SPA)
+      - name: Reload nginx
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          script: |
+            sudo systemctl reload nginx
