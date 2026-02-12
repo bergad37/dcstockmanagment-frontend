@@ -22,7 +22,7 @@ jobs:
 
       # Step 3: Install dependencies
       - name: Install frontend dependencies
-        run: pnpm install
+        run: npm install
 
       # Step 4: Build frontend
       - name: Build frontend
