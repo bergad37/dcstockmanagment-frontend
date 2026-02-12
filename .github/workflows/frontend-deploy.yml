@@ -22,11 +22,11 @@ jobs:
 
       # Step 3: Install dependencies
       - name: Install frontend dependencies
-        run: npm install
+        run: pnpm install
 
       # Step 4: Build frontend
       - name: Build frontend
-        run: npm run build
+        run: pnpm run build
 
       # Step 5: Copy build to server
       - name: Deploy build to server
