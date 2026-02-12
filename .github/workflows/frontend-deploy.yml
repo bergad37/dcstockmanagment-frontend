@@ -38,6 +38,8 @@ jobs:
           port: 22
           source: "dist/*"          # or "build/*" if CRA
           target: "/var/www/frontend"
+          rm: true
+
 
       # Step 6: Reload nginx (optional, usually not needed for SPA)
       - name: Reload nginx
