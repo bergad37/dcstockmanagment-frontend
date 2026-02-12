@@ -6,10 +6,21 @@ import stockApi, {
 } from '../api/stockApi';
 import { dummyStockOut, dummyInventory } from '../data/dummyData';
 
+interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+}
+
 interface StockState {
   stockOut: StockTransaction[];
+  // backend usually returns { stocks: [...], pagination: {...} }
   stock: any;
   transactions: any;
+
+  stockPagination: Pagination | null;
+  transactionsPagination: Pagination | null;
+
   stockOutLoading: boolean;
   allTransactionsLoading: boolean;
   allTransactionError: string | null;
@@ -39,6 +50,7 @@ interface StockState {
   fetchStock: (params?: Record<string, any>) => Promise<void>;
   resetStockOutSuccess: (value?: boolean) => void;
   updateStock: (payload: StockInPayload, params: string) => Promise<void>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   markAsReturned: (payload: any, params: string) => Promise<void>;
 }
 
@@ -46,6 +58,9 @@ export const useStockStore = create<StockState>((set) => ({
   stockOut: dummyStockOut,
   stock: [],
   transactions: [],
+
+  stockPagination: null,
+  transactionsPagination: null,
 
   stockOutLoading: false,
   stockLoading: false,
@@ -72,11 +87,35 @@ export const useStockStore = create<StockState>((set) => ({
     set({ stockLoading: true, stockError: null });
     try {
       const res = await stockApi.fetchStock(params);
-      set({ stock: res.data.data, stockLoading: false });
+      const payload = res.data?.data;
+      const stocks = payload?.stocks ?? payload ?? [];
+      const p = payload?.pagination;
+
+      const pagination: Pagination | null = p
+        ? {
+            page: p.page ?? params?.page ?? 1,
+            limit: p.limit ?? params?.limit ?? stocks.length,
+            total: p.total ?? stocks.length
+          }
+        : stocks
+          ? {
+              page: params?.page ?? 1,
+              limit: params?.limit ?? stocks.length,
+              total: stocks.length
+            }
+          : null;
+
+      set({
+        stock: payload ?? { stocks },
+        stockPagination: pagination,
+        stockLoading: false
+      });
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error(e);
       set({
         stock: [],
+        stockPagination: null,
         stockLoading: false,
         stockError: 'Failed to fetch stock'
       });
@@ -91,11 +130,35 @@ export const useStockStore = create<StockState>((set) => ({
     set({ allTransactionsLoading: true, allTransactionError: null });
     try {
       const res = await stockApi.fetchAllTransactions(params);
-      set({ transactions: res.data.data, allTransactionsLoading: false });
+      const payload = res.data?.data;
+      const tx = payload?.transactions ?? payload ?? [];
+      const p = payload?.pagination;
+
+      const pagination: Pagination | null = p
+        ? {
+            page: p.page ?? params?.page ?? 1,
+            limit: p.limit ?? params?.limit ?? tx.length,
+            total: p.total ?? tx.length
+          }
+        : tx
+          ? {
+              page: params?.page ?? 1,
+              limit: params?.limit ?? tx.length,
+              total: tx.length
+            }
+          : null;
+
+      set({
+        transactions: payload ?? { transactions: tx },
+        transactionsPagination: pagination,
+        allTransactionsLoading: false
+      });
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error(e);
       set({
         transactions: [],
+        transactionsPagination: null,
         allTransactionsLoading: false,
         allTransactionError: 'Failed to fetch transactions'
       });
@@ -173,8 +236,24 @@ export const useStockStore = create<StockState>((set) => ({
     try {
       await stockApi.updateStockIn(payload, params);
       const res = await stockApi.fetchStock();
+      const payloadRes = res.data?.data;
+      const stocks = payloadRes?.stocks ?? payloadRes ?? [];
+      const p = payloadRes?.pagination;
+      const pagination: Pagination | null = p
+        ? {
+            page: p.page ?? 1,
+            limit: p.limit ?? stocks.length,
+            total: p.total ?? stocks.length
+          }
+        : {
+            page: 1,
+            limit: stocks.length,
+            total: stocks.length
+          };
+
       set({
-        stock: res.data.data,
+        stock: payloadRes ?? { stocks },
+        stockPagination: pagination,
         updateStockLoading: false,
         updateStockSucess: true
       });
@@ -194,8 +273,24 @@ export const useStockStore = create<StockState>((set) => ({
     try {
       await stockApi.markAsReturned(payload, params);
       const res = await stockApi.fetchAllTransactions();
+      const payloadRes = res.data?.data;
+      const tx = payloadRes?.transactions ?? payloadRes ?? [];
+      const p = payloadRes?.pagination;
+      const pagination: Pagination | null = p
+        ? {
+            page: p.page ?? 1,
+            limit: p.limit ?? tx.length,
+            total: p.total ?? tx.length
+          }
+        : {
+            page: 1,
+            limit: tx.length,
+            total: tx.length
+          };
+
       set({
-        stock: res.data.data,
+        transactions: payloadRes ?? { transactions: tx },
+        transactionsPagination: pagination,
         markAsReturnedLoading: false,
         markAsReturnedSuccess: true
       });

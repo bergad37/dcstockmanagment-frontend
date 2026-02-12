@@ -25,7 +25,9 @@ const Stock = () => {
     transactions,
     stockLoading,
     fetchAllTransaction,
-    updateStock
+    updateStock,
+    stockPagination,
+    transactionsPagination
   } = useStockStore();
 
   const { resetStockOutSuccess } = useStockStore();
@@ -47,6 +49,17 @@ const Stock = () => {
   );
   const [dateFrom, setDateFrom] = useState<string | null>(null);
   const [dateTo, setDateTo] = useState<string | null>(null);
+
+  // pagination state for stock (STOCK & CALIBRATION_STOCK)
+  const [stockPage, setStockPage] = useState<number>(1);
+  const [stockPerPage, setStockPerPage] = useState<number>(10);
+
+  // pagination state for transactions (STOCK_OUT)
+  const [txPage, setTxPage] = useState<number>(1);
+  const [txPerPage, setTxPerPage] = useState<number>(10);
+
+  // keep current stock search query so we can carry it across pages
+  const [stockSearch, setStockSearch] = useState<string>('');
 
   //Handle Return Item
   const [showReturnModal, setShowReturnModal] = useState(false);
@@ -86,21 +99,39 @@ const Stock = () => {
     return true;
   });
 
+  // initial loads
   useEffect(() => {
-    if (activeTab === 'CALIBRATION_STOCK') {
-      fetchStock({ type: 'CALIBRATION' });
-    } else {
-      fetchStock(); // ITEM + QUANTITY
+    fetchCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // load stock whenever tab/page/limit or search changes
+  useEffect(() => {
+    const params: Record<string, any> = {
+      page: stockPage,
+      limit: stockPerPage
+    };
+
+    if (stockSearch) {
+      params.searchKey = stockSearch;
     }
 
-    fetchAllTransaction();
-    fetchCategories();
-  }, [activeTab]);
+    if (activeTab === 'CALIBRATION_STOCK') {
+      params.type = 'CALIBRATION';
+    }
 
+    // ITEM + QUANTITY (default) when not calibration
+    void fetchStock(params);
+  }, [activeTab, stockPage, stockPerPage, stockSearch, fetchStock]);
+
+  // load transactions whenever page/limit changes
   useEffect(() => {
-    fetchAllTransaction();
-    fetchCategories();
-  }, [fetchAllTransaction, fetchCategories]);
+    const params: Record<string, any> = {
+      page: txPage,
+      limit: txPerPage
+    };
+    void fetchAllTransaction(params);
+  }, [txPage, txPerPage, fetchAllTransaction]);
 
   //   const categoryOptions =
   //     categories?.map((c: any) => ({ value: c.id, label: c.name })) ?? [];
@@ -364,7 +395,10 @@ const Stock = () => {
   };
 
   const handleSearchProductInStock = (data: string) => {
-    fetchStock({ searchKey: data });
+    const trimmed = data.trim();
+    setStockSearch(trimmed);
+    // reset to first page on new search
+    setStockPage(1);
   };
 
   const handleClose = () => {
@@ -398,21 +432,61 @@ const Stock = () => {
 
   useEffect(() => {
     if (stockOutSucess) {
-      fetchStock();
-      fetchAllTransaction();
-      resetStockOutSuccess();
-    }
+      // reload current pages
+      const stockParams: Record<string, any> = {
+        page: stockPage,
+        limit: stockPerPage
+      };
+      if (stockSearch) stockParams.searchKey = stockSearch;
+      if (activeTab === 'CALIBRATION_STOCK') {
+        stockParams.type = 'CALIBRATION';
+      }
 
-    if (activeTab === 'CALIBRATION_STOCK') {
-      fetchStock({ type: 'CALIBRATION' });
+      const txParams: Record<string, any> = {
+        page: txPage,
+        limit: txPerPage
+      };
+
+      void fetchStock(stockParams);
+      void fetchAllTransaction(txParams);
+      resetStockOutSuccess();
     }
   }, [
     stockOutSucess,
     fetchStock,
     fetchAllTransaction,
     resetStockOutSuccess,
-    activeTab
+    activeTab,
+    stockPage,
+    stockPerPage,
+    stockSearch,
+    txPage,
+    txPerPage
   ]);
+
+  const handleChangeStockPage = async (newPage: number) => {
+    setStockPage(newPage);
+  };
+
+  const handleChangeStockRowsPerPage = async (
+    newPerPage: number,
+    newPage: number
+  ) => {
+    setStockPerPage(newPerPage);
+    setStockPage(newPage);
+  };
+
+  const handleChangeTxPage = async (newPage: number) => {
+    setTxPage(newPage);
+  };
+
+  const handleChangeTxRowsPerPage = async (
+    newPerPage: number,
+    newPage: number
+  ) => {
+    setTxPerPage(newPerPage);
+    setTxPage(newPage);
+  };
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -433,7 +507,16 @@ const Stock = () => {
             return (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab)}
+                onClick={() => {
+                  setActiveTab(tab);
+                  // reset pages when switching tabs
+                  if (tab === 'STOCK' || tab === 'CALIBRATION_STOCK') {
+                    setStockPage(1);
+                  }
+                  if (tab === 'STOCK_OUT') {
+                    setTxPage(1);
+                  }
+                }}
                 className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                   isActive
                     ? 'bg-[#073c56] text-white shadow-sm'
@@ -525,8 +608,14 @@ const Stock = () => {
               pointerOnHover
               customStyles={customStyles}
               pagination
-              paginationPerPage={10}
-              paginationRowsPerPageOptions={[10, 20, 50]}
+              paginationServer
+              paginationPerPage={stockPerPage}
+              paginationTotalRows={
+                stockPagination?.total ?? (stock?.stocks?.length ?? 0)
+              }
+              onChangePage={handleChangeStockPage}
+              onChangeRowsPerPage={handleChangeStockRowsPerPage}
+              paginationRowsPerPageOptions={[10,15, 20, 50]}
               responsive
               striped
             />
@@ -538,8 +627,15 @@ const Stock = () => {
               pointerOnHover
               customStyles={customStyles}
               pagination
-              paginationPerPage={10}
-              paginationRowsPerPageOptions={[10, 20, 50]}
+              paginationServer
+              paginationPerPage={txPerPage}
+              paginationTotalRows={
+                transactionsPagination?.total ??
+                (filteredStockOutData?.length ?? 0)
+              }
+              onChangePage={handleChangeTxPage}
+              onChangeRowsPerPage={handleChangeTxRowsPerPage}
+              paginationRowsPerPageOptions={[10,15, 20,30, 50]}
               responsive
               striped
             />
@@ -552,8 +648,14 @@ const Stock = () => {
                 pointerOnHover
                 customStyles={customStyles}
                 pagination
-                paginationPerPage={10}
-                paginationRowsPerPageOptions={[10, 20, 50]}
+                paginationServer
+                paginationPerPage={stockPerPage}
+                paginationTotalRows={
+                  stockPagination?.total ?? (stock?.stocks?.length ?? 0)
+                }
+                onChangePage={handleChangeStockPage}
+                onChangeRowsPerPage={handleChangeStockRowsPerPage}
+                paginationRowsPerPageOptions={[10, 15,20,30, 50]}
                 responsive
                 striped
               />
