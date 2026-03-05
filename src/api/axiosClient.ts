@@ -2,7 +2,7 @@ import axios from 'axios';
 import { isTokenExpired } from '../utils/auth';
 
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL_DCSURVEY_APP
+  baseURL: import.meta.env.VITE_API_URL
 });
 
 axiosClient.interceptors.request.use((config) => {
