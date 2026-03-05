@@ -22,7 +22,6 @@ const ProductForm = ({
   const { listProducts, createProduct, updateProduct } = useProductStore();
   const { fetchCategories, categories } = useCategoryStore();
   const { fetchSuppliers, suppliers } = useSupplierStore();
-
   useEffect(() => {
     fetchCategories();
     fetchSuppliers();
@@ -47,7 +46,7 @@ const ProductForm = ({
         serialNumber: values.serialNumber,
         warranty: isCalibration ? null : values.warranty || null,
         costPrice: isCalibration ? null : (values.costPrice ?? null),
-        entryDate: values.entryDate,
+        entryDate: new Date(values.entryDate).toISOString(),
         quantity: values.quantity ?? 1
       };
 

@@ -14,7 +14,8 @@ import Modal from '../../components/ui/Modal';
 import { useCategoryStore } from '../../store/categoriesStore';
 import { customStyles } from '../../utils/ui.helper.styles';
 const Products = () => {
-  const { listProducts, products, deleteProduct, pagination } = useProductStore();
+  const { listProducts, products, deleteProduct, pagination } =
+    useProductStore();
   const { fetchCategories, categories } = useCategoryStore();
   const [showForm, setShowForm] = useState(false);
   const [initialValues, setInitialValues] =
@@ -115,10 +116,12 @@ const Products = () => {
       warranty: data.warranty,
       categoryId: data.categoryId ?? data.category?.id ?? data.category ?? '',
       supplierId: data.supplierId ?? data.supplier?.id ?? '',
-      quantity: data.quantity ?? null,
+      quantity: data.stock.quantity ?? null,
       serialNumber: data.serialNumber || '',
       costPrice: data.costPrice || null,
-      entryDate: data.entryDate || '',
+      entryDate: data.entryDate
+        ? new Date(data?.entryDate).toISOString().split('T')[0]
+        : '',
       type: data.type ? data.type.toLowerCase() : 'item'
     });
   };
@@ -231,7 +234,8 @@ const Products = () => {
               paginationServer
               paginationPerPage={perPage}
               paginationTotalRows={
-                pagination?.total ?? (Array.isArray(products) ? products.length : 0)
+                pagination?.total ??
+                (Array.isArray(products) ? products.length : 0)
               }
               onChangePage={handleChangePage}
               onChangeRowsPerPage={handleChangeRowsPerPage}
