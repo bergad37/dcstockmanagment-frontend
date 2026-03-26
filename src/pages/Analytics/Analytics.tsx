@@ -75,6 +75,7 @@ const Analytics = () => {
   // remote data states
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [allProducts, setAllproducts] = useState<string | number>(0);
   const [analyticsFlowData, setAnalyticsFlowData] = useState<any[]>([]);
   const [highMovingItemsData, setHighMovingItemsData] = useState<any[]>([]);
   const [lowMovingItemsData, setLowMovingItemsData] = useState<any[]>([]);
@@ -319,12 +320,14 @@ const Analytics = () => {
           [];
 
         if (!mounted) return;
-
+console.log('%%%%%%%%%%%%%%',data)
         setAnalyticsFlowData(flow);
         setHighMovingItemsData(high);
         setLowMovingItemsData(low);
         setCategoryPerformanceData(category);
         setInventoryTurnoverData(turnover);
+        setAllproducts(payload?.totals?.allProducts);
+
       } catch (err: any) {
         setError(err?.message || 'Failed to fetch statistics');
       } finally {
@@ -388,7 +391,7 @@ const Analytics = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <StatCard
           title="Total Stock In"
           value={loading ? '—' : totalFlow.toLocaleString()}
@@ -403,16 +406,16 @@ const Analytics = () => {
           //   trend={8}
           color={CHART_COLORS.danger}
         />
-        <StatCard
+        {/* <StatCard
           title="Net Stock Movement"
           value={loading ? '—' : netFlow.toLocaleString()}
           icon={Package}
           //   trend={netFlow > 0 ? 15 : -5}
           color={CHART_COLORS.primary}
-        />
+        /> */}
         <StatCard
           title="Active Products"
-          value={loading ? '—' : totalProducts.toString()}
+          value={loading ? '—' : allProducts?.toString()}
           icon={Package}
           //   trend={5}
           color={CHART_COLORS.warning}
