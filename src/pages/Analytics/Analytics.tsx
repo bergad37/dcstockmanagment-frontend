@@ -213,8 +213,8 @@ const Analytics = () => {
     (sum, item) => sum + (item.outbound ?? 0),
     0
   );
-  const netFlow = totalFlow - totalOutbound;
-  const totalProducts = highMovingItemsData.length + lowMovingItemsData.length;
+//   const netFlow = totalFlow - totalOutbound;
+//   const totalProducts = highMovingItemsData.length + lowMovingItemsData.length;
 
   useEffect(() => {
     let mounted = true;
