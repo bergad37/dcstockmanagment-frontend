@@ -7,6 +7,7 @@ export const productColumns = (actions: any, user: any) => [
     selector: (row: any) => row?.name,
     grow: 1
   },
+
   {
     name: 'Serial Number',
     selector: (row: any) => row?.serialNumber,
