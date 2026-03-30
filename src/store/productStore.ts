@@ -67,7 +67,7 @@ export const useProductStore = create<ProductState>((set) => ({
     }
   },
 
-  listAllProducts: async (params?: Record<string, any>) => {
+  listAllProducts: async () => {
     set({ loading: true, error: null });
     try {
       const res = await productApi.fetchAllProducts();

@@ -348,7 +348,7 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
                               }}
                               value={
                                 productOptions.find(
-                                  (opt) => opt.value === item.productId
+                                  (opt : any) => opt.value === item.productId
                                 ) || null
                               }
                               className="mt-1"
