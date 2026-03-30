@@ -63,6 +63,9 @@ const Stock = () => {
   // keep current stock search query so we can carry it across pages
   const [stockSearch, setStockSearch] = useState<string>('');
 
+  // keep current transaction search query
+  const [transactionSearch, setTransactionSearch] = useState<string>('');
+
   //Handle Return Item
   const [showReturnModal, setShowReturnModal] = useState(false);
   const [transaction, setTransaction] = useState<{
@@ -126,14 +129,19 @@ const Stock = () => {
     void fetchStock(params);
   }, [activeTab, stockPage, stockPerPage, stockSearch, fetchStock]);
 
-  // load transactions whenever page/limit changes
+  // load transactions whenever page/limit/search changes
   useEffect(() => {
     const params: Record<string, any> = {
       page: txPage,
       limit: txPerPage
     };
+
+    if (transactionSearch) {
+      params.searchKey = transactionSearch;
+    }
+
     void fetchAllTransaction(params);
-  }, [txPage, txPerPage, fetchAllTransaction]);
+  }, [txPage, txPerPage, transactionSearch, fetchAllTransaction]);
 
   //   const categoryOptions =
   //     categories?.map((c: any) => ({ value: c.id, label: c.name })) ?? [];
@@ -400,6 +408,13 @@ const Stock = () => {
     setStockPage(1);
   };
 
+  const handleSearchTransactions = (data: string) => {
+    const trimmed = data.trim();
+    setTransactionSearch(trimmed);
+    // reset to first page on new search
+    setTxPage(1);
+  };
+
   const handleClose = () => {
     setShowReturnModal(false);
   };
@@ -446,6 +461,8 @@ const Stock = () => {
         limit: txPerPage
       };
 
+      if (transactionSearch) txParams.searchKey = transactionSearch;
+
       void fetchStock(stockParams);
       void fetchAllTransaction(txParams);
       resetStockOutSuccess();
@@ -460,7 +477,8 @@ const Stock = () => {
     stockPerPage,
     stockSearch,
     txPage,
-    txPerPage
+    txPerPage,
+    transactionSearch
   ]);
 
   const handleChangeStockPage = async (newPage: number) => {
@@ -511,9 +529,11 @@ const Stock = () => {
                   // reset pages when switching tabs
                   if (tab === 'STOCK' || tab === 'CALIBRATION_STOCK') {
                     setStockPage(1);
+                    setStockSearch(''); // clear stock search when switching away
                   }
                   if (tab === 'STOCK_OUT') {
                     setTxPage(1);
+                    setTransactionSearch(''); // clear transaction search when switching away
                   }
                 }}
                 className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
@@ -542,7 +562,13 @@ const Stock = () => {
       <div className="border rounded-xl py-12">
         <div className="mb-4 flex justify-between">
           <div className="flex gap-4 items-end">
-            <SearchBar onSubmit={handleSearchProductInStock} />
+            <SearchBar
+              onSubmit={
+                activeTab === 'STOCK_OUT'
+                  ? handleSearchTransactions
+                  : handleSearchProductInStock
+              }
+            />
 
             {activeTab === 'STOCK_OUT' && (
               <>
