@@ -14,11 +14,12 @@ export const userColumns = (actions: any, user: any) =>
       name: 'Role',
       selector: (row: any) => row?.role ?? 'user'
     },
-    user?.role === 'ADMIN' && {
+    {
       name: 'Actions',
       type: 'actions',
-      cell: (row: any) => (
-        <ActionButtons row={row} key={row?.id} actions={actions} />
-      )
+      cell: (row: any) =>
+        user?.role === 'ADMIN' && (
+          <ActionButtons row={row} key={row?.id} actions={actions} />
+        )
     }
   ].filter(Boolean);
