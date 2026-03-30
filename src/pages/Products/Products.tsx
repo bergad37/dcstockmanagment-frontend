@@ -13,6 +13,7 @@ import { productColumns } from '../../utils/columns/products.column';
 import Modal from '../../components/ui/Modal';
 import { useCategoryStore } from '../../store/categoriesStore';
 import { customStyles } from '../../utils/ui.helper.styles';
+import { useAuthStore } from '../../store/authStore';
 const Products = () => {
   const { listProducts, products, deleteProduct, pagination } =
     useProductStore();
@@ -29,6 +30,8 @@ const Products = () => {
   // pagination state (page is 1-based for backend)
   const [page, setPage] = useState<number>(1);
   const [perPage, setPerPage] = useState<number>(10);
+  const user = useAuthStore((s) => s.user);
+
 
   useEffect(() => {
     // initial load
@@ -216,18 +219,20 @@ const Products = () => {
                 />
               </div>
 
-              <Button
-                label="Add New product"
-                onClick={() => setShowForm(true)}
-                className="self-start sm:self-auto"
-              />
+              {user?.role === 'ADMIN' && (
+                <Button
+                  label="Add New product"
+                  onClick={() => setShowForm(true)}
+                  className="self-start sm:self-auto"
+                />
+              )}
             </div>
           </div>
 
           {/* Table wrapper for horizontal scrolling on mobile */}
           <div className="overflow-x-auto my-12">
             <DataTable
-              columns={productColumns(actions)}
+              columns={productColumns(actions, user)}
               data={Array.isArray(products) ? products : []}
               customStyles={customStyles}
               pagination

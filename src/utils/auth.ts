@@ -39,6 +39,7 @@ export const formatStockTransactions = (transactions: any[] = []) => {
       id: transaction?.id ?? '',
       productId: item?.product?.id ?? '',
       productName: item?.product?.name ?? '',
+      serialNumber: item?.product?.serialNumber ?? '',
       type: transaction?.type ?? '',
       clientName: transaction?.customer?.name ?? '',
       clientEmail: transaction?.customer?.email ?? '',

@@ -7,6 +7,7 @@ import CategoryForm, { type InitialValuesType } from './categories.form';
 import { useCategoryStore } from '../../store/categoriesStore';
 import SupplierForm from './suppliers.form';
 import { useSupplierStore } from '../../store/supplierStore';
+import { useAuthStore } from '../../store/authStore';
 import { Edit2, TrashIcon, Plus, Search, X } from 'lucide-react';
 import { ActionButtons } from '../../components/ui/ActionButtons';
 import DeleteModal from '../../components/ui/ConfirmModal';
@@ -14,6 +15,7 @@ import Modal from '../../components/ui/Modal';
 import { toast } from 'sonner';
 
 const Settings = () => {
+  const { user } = useAuthStore();
   const { categories, fetchCategories, deleteCategory, loading: categoryLoading, success: categorySuccess, errorCategory } = useCategoryStore();
   const { suppliers, fetchSuppliers, deleteSupplier, loading: supplierLoading, success: supplierSuccess, errorSupplier } = useSupplierStore();
 
@@ -205,7 +207,13 @@ const Settings = () => {
         description="Are you sure you want to delete this item? This action cannot be undone."
         onConfirm={handleDelete}
         onCancel={handleClose}
-        loading={deleteItem ? categoryLoading : deleteSupplierId ? supplierLoading : false}
+        loading={
+          deleteItem
+            ? categoryLoading
+            : deleteSupplierId
+              ? supplierLoading
+              : false
+        }
       />
 
       <div className="w-full min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30 lg:p-1">
@@ -216,7 +224,9 @@ const Settings = () => {
               <h1 className="text-3xl sm:text-4xl font-bold text-[#073c56] tracking-tight">
                 Settings
               </h1>
-              <p className="text-sm text-gray-600 mt-1">Manage your categories and suppliers</p>
+              <p className="text-sm text-gray-600 mt-1">
+                Manage your categories and suppliers
+              </p>
             </div>
           </div>
         </div>
@@ -228,18 +238,25 @@ const Settings = () => {
             <div className="bg-gradient-to-r from-[#073c56] to-[#0a5273] px-6 py-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-bold text-white">Product Categories</h2>
+                  <h2 className="text-xl font-bold text-white">
+                    Product Categories
+                  </h2>
                   <p className="text-sm text-blue-100 mt-1">
-                    {filteredCategories.length} {filteredCategories.length === 1 ? 'category' : 'categories'}
+                    {filteredCategories.length}{' '}
+                    {filteredCategories.length === 1
+                      ? 'category'
+                      : 'categories'}
                   </p>
                 </div>
-                <button
-                  onClick={() => setShowForm(true)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-[#073c56] font-semibold hover:bg-blue-50 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>Add Category</span>
-                </button>
+                {user?.role === 'ADMIN' && (
+                  <button
+                    onClick={() => setShowForm(true)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-[#073c56] font-semibold hover:bg-blue-50 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Add Category</span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -268,7 +285,7 @@ const Settings = () => {
             {/* Table */}
             <div className="overflow-x-auto">
               <DataTable
-                columns={productCategoriesColumns(actions)}
+                columns={productCategoriesColumns(actions, user)}
                 data={filteredCategories}
                 pagination
                 paginationPerPage={8}
@@ -280,7 +297,11 @@ const Settings = () => {
                 conditionalRowStyles={[
                   {
                     when: () => !!deleteItem,
-                    style: { opacity: 0.5, pointerEvents: 'none', backgroundColor: '#FEF2F2' }
+                    style: {
+                      opacity: 0.5,
+                      pointerEvents: 'none',
+                      backgroundColor: '#FEF2F2'
+                    }
                   }
                 ]}
                 noDataComponent={
@@ -288,8 +309,12 @@ const Settings = () => {
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
                       <Search className="h-8 w-8 text-gray-400" />
                     </div>
-                    <p className="text-gray-500 font-medium">No categories found</p>
-                    <p className="text-sm text-gray-400 mt-1">Try adjusting your search or add a new category</p>
+                    <p className="text-gray-500 font-medium">
+                      No categories found
+                    </p>
+                    <p className="text-sm text-gray-400 mt-1">
+                      Try adjusting your search or add a new category
+                    </p>
                   </div>
                 }
               />
@@ -304,19 +329,27 @@ const Settings = () => {
                 <div>
                   <h2 className="text-xl font-bold text-white">Suppliers</h2>
                   <p className="text-sm text-blue-100 mt-1">
-                    {filteredSuppliers.length} {filteredSuppliers.length === 1 ? 'supplier' : 'suppliers'}
+                    {filteredSuppliers.length}{' '}
+                    {filteredSuppliers.length === 1 ? 'supplier' : 'suppliers'}
                   </p>
                 </div>
-                <button
-                  onClick={() => {
-                    setSupplierInitial({ id: null, name: '', phone: '', email: '' });
-                    setShowSupplierForm(true);
-                  }}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-[#073c56] font-semibold hover:bg-blue-50 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>Add Supplier</span>
-                </button>
+                {user?.role === 'ADMIN' && (
+                  <button
+                    onClick={() => {
+                      setSupplierInitial({
+                        id: null,
+                        name: '',
+                        phone: '',
+                        email: ''
+                      });
+                      setShowSupplierForm(true);
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-[#073c56] font-semibold hover:bg-blue-50 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Add Supplier</span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -356,7 +389,9 @@ const Settings = () => {
                     selector: (row: any) => row.name,
                     sortable: true,
                     cell: (row: any) => (
-                      <div className="font-medium text-gray-900">{row.name}</div>
+                      <div className="font-medium text-gray-900">
+                        {row.name}
+                      </div>
                     )
                   },
                   {
@@ -370,18 +405,25 @@ const Settings = () => {
                     name: 'Phone',
                     selector: (row: any) => row.phone,
                     cell: (row: any) => (
-                      <div className="text-gray-600 text-sm font-mono">{row.phone}</div>
+                      <div className="text-gray-600 text-sm font-mono">
+                        {row.phone}
+                      </div>
                     )
                   },
                   {
                     name: 'Actions',
-                    cell: (row: any) => (
-                      <ActionButtons
-                        row={row}
-                        actions={supplierActions}
-                        disabled={!!deleteSupplierId}
-                      />
-                    ),
+                    cell: (row: any) =>
+                      user?.role === 'ADMIN' ? (
+                        <ActionButtons
+                          row={row}
+                          actions={supplierActions}
+                          disabled={!!deleteSupplierId}
+                        />
+                      ) : (
+                        <span className="text-xs text-gray-500">
+                          No actions
+                        </span>
+                      ),
                     right: true
                   }
                 ]}
@@ -396,7 +438,11 @@ const Settings = () => {
                 conditionalRowStyles={[
                   {
                     when: () => !!deleteSupplierId,
-                    style: { opacity: 0.5, pointerEvents: 'none', backgroundColor: '#FEF2F2' }
+                    style: {
+                      opacity: 0.5,
+                      pointerEvents: 'none',
+                      backgroundColor: '#FEF2F2'
+                    }
                   }
                 ]}
                 noDataComponent={
@@ -404,8 +450,12 @@ const Settings = () => {
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
                       <Search className="h-8 w-8 text-gray-400" />
                     </div>
-                    <p className="text-gray-500 font-medium">No suppliers found</p>
-                    <p className="text-sm text-gray-400 mt-1">Try adjusting your search or add a new supplier</p>
+                    <p className="text-gray-500 font-medium">
+                      No suppliers found
+                    </p>
+                    <p className="text-sm text-gray-400 mt-1">
+                      Try adjusting your search or add a new supplier
+                    </p>
                   </div>
                 }
               />
@@ -414,15 +464,34 @@ const Settings = () => {
         </div>
 
         {/* Modals */}
-        <Modal isOpen={showForm} onClose={handleClose} title={initialValues.id ? "Edit Category" : "Add New Category"}>
-          <CategoryForm handleClose={() => { handleClose(); fetchCategories(); }} initialValues={initialValues} />
+        <Modal
+          isOpen={showForm}
+          onClose={handleClose}
+          title={initialValues.id ? 'Edit Category' : 'Add New Category'}
+        >
+          <CategoryForm
+            handleClose={() => {
+              handleClose();
+              fetchCategories();
+            }}
+            initialValues={initialValues}
+          />
         </Modal>
 
-        <Modal isOpen={showSupplierForm} onClose={handleClose} title={supplierInitial?.id ? 'Edit Supplier' : 'Add Supplier'}>
-          <SupplierForm handleClose={() => { handleClose(); fetchSuppliers(); }} initialValues={supplierInitial} />
+        <Modal
+          isOpen={showSupplierForm}
+          onClose={handleClose}
+          title={supplierInitial?.id ? 'Edit Supplier' : 'Add Supplier'}
+        >
+          <SupplierForm
+            handleClose={() => {
+              handleClose();
+              fetchSuppliers();
+            }}
+            initialValues={supplierInitial}
+          />
         </Modal>
       </div>
-
     </>
   );
 };

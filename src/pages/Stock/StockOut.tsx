@@ -10,6 +10,7 @@ import Filters, {
 import DateRangeFilter from '../../components/ui/DatePicker';
 import { customStyles } from '../../utils/ui.helper.styles';
 import { useStockStore } from '../../store/stockStore';
+import { useAuthStore } from '../../store/authStore';
 import ReturnStockForm from './Return.item';
 import { useCategoryStore } from '../../store/categoriesStore';
 import { formatStockTransactions, getOverdueDays } from '../../utils/auth';
@@ -18,6 +19,7 @@ import { LogOut, Plus, RotateCcw } from 'lucide-react';
 type TabType = 'STOCK' | 'STOCK_OUT' | 'CALIBRATION_STOCK';
 
 const Stock = () => {
+  const { user } = useAuthStore();
   const {
     fetchStock,
     stockOutSucess,
@@ -143,7 +145,8 @@ const Stock = () => {
 
   const stockInColumns = (
     handleUpdateStock: (param: any) => void,
-    isOnCalibrationTab: boolean
+    isOnCalibrationTab: boolean,
+    user: any
   ) => {
     const columns: any[] = [
       {
@@ -158,8 +161,14 @@ const Stock = () => {
         sortable: true
       },
       {
+        name: 'Serial Number',
+        selector: (row: any) => row?.product?.serialNumber ?? '---',
+        sortable: true
+      },
+      {
         name: 'Quantity',
         selector: (row: any) => row.quantity,
+        grow: 0.5,
         sortable: true
       }
     ];
@@ -181,22 +190,7 @@ const Stock = () => {
             ? new Date(row.product.entryDate).toLocaleDateString()
             : '-'
       },
-      // {
-      //   name: 'Status',
-      //   selector: (row: any) => row.status || 'AVAILABLE',
-      //   cell: (row: any) => (
-      //     <span
-      //       className={`px-3 py-1 rounded-full text-xs font-semibold ${
-      //         row.status === 'AVAILABLE'
-      //           ? 'bg-green-100 text-green-800'
-      //           : 'bg-gray-100 text-gray-800'
-      //       }`}
-      //     >
-      //       {row.status || 'AVAILABLE'}
-      //     </span>
-      //   )
-      // },
-      {
+      user?.role === 'ADMIN' && {
         name: 'Actions',
         selector: (row: any) => row.id,
         cell: (row: any) => (
@@ -244,10 +238,12 @@ const Stock = () => {
 
   const stockOutColumns = (
     returnAction: (param: any) => void,
-    viewDetailsAction: (param: any) => void
+    viewDetailsAction: (param: any) => void,
+    user: any
   ) => [
     {
       name: 'Product',
+      grow: 2,
       selector: (row: any) => row.productName,
       sortable: true,
       cell: (row: any) => (
@@ -255,6 +251,9 @@ const Stock = () => {
           {/* Product name */}
           <span className="block font-medium text-gray-900 pr-10">
             {row.productName}
+          </span>
+          <span className="block font-light text-gray-900 pr-10 py-1">
+            sn: {row.serialNumber}
           </span>
 
           {/* Overdue badge */}
@@ -291,9 +290,9 @@ const Stock = () => {
     },
     {
       name: 'Prod.Qty',
+      grow: 0.5,
       selector: (row: any) => row.quantity,
       sortable: true,
-      flex: 0.5
     },
     {
       name: 'Transaction Date',
@@ -335,7 +334,7 @@ const Stock = () => {
         );
       }
     },
-    {
+    user?.role === 'ADMIN' && {
       name: 'Actions',
       cell: (row: any) => (
         <div className="flex gap-2 flex-col my-3">
@@ -602,7 +601,7 @@ const Stock = () => {
             </div>
           ) : activeTab === 'STOCK' ? (
             <DataTable
-              columns={stockInColumns(handleUpdateStock, false)}
+              columns={stockInColumns(handleUpdateStock, false, user)}
               data={stock?.stocks}
               highlightOnHover
               pointerOnHover
@@ -611,17 +610,17 @@ const Stock = () => {
               paginationServer
               paginationPerPage={stockPerPage}
               paginationTotalRows={
-                stockPagination?.total ?? (stock?.stocks?.length ?? 0)
+                stockPagination?.total ?? stock?.stocks?.length ?? 0
               }
               onChangePage={handleChangeStockPage}
               onChangeRowsPerPage={handleChangeStockRowsPerPage}
-              paginationRowsPerPageOptions={[10,15, 20, 50]}
+              paginationRowsPerPageOptions={[10, 15, 20, 50]}
               responsive
               striped
             />
           ) : activeTab === 'STOCK_OUT' ? (
             <DataTable
-              columns={stockOutColumns(returnAction, viewDetailsAction)}
+              columns={stockOutColumns(returnAction, viewDetailsAction, user)}
               data={filteredStockOutData}
               highlightOnHover
               pointerOnHover
@@ -631,18 +630,19 @@ const Stock = () => {
               paginationPerPage={txPerPage}
               paginationTotalRows={
                 transactionsPagination?.total ??
-                (filteredStockOutData?.length ?? 0)
+                filteredStockOutData?.length ??
+                0
               }
               onChangePage={handleChangeTxPage}
               onChangeRowsPerPage={handleChangeTxRowsPerPage}
-              paginationRowsPerPageOptions={[10,15, 20,30, 50]}
+              paginationRowsPerPageOptions={[10, 15, 20, 30, 50]}
               responsive
               striped
             />
           ) : (
             activeTab === 'CALIBRATION_STOCK' && (
               <DataTable
-                columns={stockInColumns(handleUpdateStock, true)}
+                columns={stockInColumns(handleUpdateStock, true, user)}
                 data={stock?.stocks}
                 highlightOnHover
                 pointerOnHover
@@ -651,11 +651,11 @@ const Stock = () => {
                 paginationServer
                 paginationPerPage={stockPerPage}
                 paginationTotalRows={
-                  stockPagination?.total ?? (stock?.stocks?.length ?? 0)
+                  stockPagination?.total ?? stock?.stocks?.length ?? 0
                 }
                 onChangePage={handleChangeStockPage}
                 onChangeRowsPerPage={handleChangeStockRowsPerPage}
-                paginationRowsPerPageOptions={[10, 15,20,30, 50]}
+                paginationRowsPerPageOptions={[10, 15, 20, 30, 50]}
                 responsive
                 striped
               />

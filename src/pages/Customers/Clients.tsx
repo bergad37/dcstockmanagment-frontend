@@ -6,6 +6,7 @@ import type { CustomerInitialValues } from './clients.form';
 import { Edit2, TrashIcon, Users, Plus } from 'lucide-react';
 import CustomerForm from './clients.form';
 import { useCustomerStore } from '../../store/CustomerStore';
+import { useAuthStore } from '../../store/authStore';
 import { toast } from 'sonner';
 import DeleteModal from '../../components/ui/ConfirmModal';
 import Modal from '../../components/ui/Modal';
@@ -13,6 +14,7 @@ import SearchBar from '../../components/ui/SearchBar';
 import { customStyles } from '../../utils/ui.helper.styles';
 
 const Clients = () => {
+  const { user } = useAuthStore();
   const { fetchCustomer, deleteCustomer, customers, loading, pagination, error } = useCustomerStore();
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [showForm, setShowForm] = useState(false);
@@ -150,24 +152,28 @@ const Clients = () => {
                 </div>
 
                 {/* Add Client Button */}
-                <Button
-                  label="Add Client"
-                  onClick={() => setShowForm(true)}
-                />
+                {user?.role === 'ADMIN' && (
+                  <Button
+                    label="Add Client"
+                    onClick={() => setShowForm(true)}
+                  />
+                )}
               </div>
             </div>
 
             {/* Data Table Section with integrated search */}
             <div className="bg-white rounded-2xl shadow-xl border  overflow-hidden">
               <DataTable
-                columns={customerColumns(actions)}
+                columns={customerColumns(actions, user)}
                 data={customers}
                 pagination
                 customStyles={customStyles}
                 paginationServer
                 paginationPerPage={pagination.limit}
                 paginationTotalRows={pagination.total}
-                onChangePage={(page) => fetchCustomer(page, pagination.limit, searchTerm)}
+                onChangePage={(page) =>
+                  fetchCustomer(page, pagination.limit, searchTerm)
+                }
                 onChangeRowsPerPage={(newPerPage, page) =>
                   fetchCustomer(page, newPerPage, searchTerm)
                 }

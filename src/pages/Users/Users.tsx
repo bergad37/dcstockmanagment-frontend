@@ -6,11 +6,12 @@ import { Edit2, TrashIcon } from 'lucide-react';
 import DeleteModal from '../../components/ui/ConfirmModal';
 import { userColumns } from '../../utils/columns/user.column';
 import { useUserStore } from '../../store/userStore';
+import { useAuthStore } from '../../store/authStore';
 import Modal from '../../components/ui/Modal';
 import { customStyles } from '../../utils/ui.helper.styles';
 
 const Users = () => {
-
+  const { user } = useAuthStore();
   const { listUsers, users, deleteUser, loading, pagination } = useUserStore();
   const [initialValues, setInitialValues] = useState<UserInitialValues>({
     id: null,
@@ -101,16 +102,18 @@ const Users = () => {
               Registered users
             </h2>
 
-            <Button
-              label="Add New User"
-              onClick={() => setShowForm(true)}
-              className="self-start sm:self-auto"
-            />
+            {user?.role === 'ADMIN' && (
+              <Button
+                label="Add New User"
+                onClick={() => setShowForm(true)}
+                className="self-start sm:self-auto"
+              />
+            )}
           </div>
 
           <div className="m-2 rounded-[10px] border border-[#EAECF0]">
             <DataTable
-              columns={userColumns(actions)}
+              columns={userColumns(actions, user)}
               data={users || []}
               customStyles={customStyles}
               pagination
