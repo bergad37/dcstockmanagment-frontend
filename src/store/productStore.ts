@@ -86,8 +86,11 @@ export const useProductStore = create<ProductState>((set) => ({
           pagination: state.pagination
         }));
       }
-    } catch (e) {
-      set({ loading: false, error: 'Failed to create product' });
+    } catch (e: any) {
+      const errorMessage =
+        e?.response?.data?.message || e?.message || 'Failed to create product';
+      set({ loading: false, error: errorMessage });
+      throw new Error(errorMessage); // Re-throw so component can catch it
     }
   },
 
@@ -120,8 +123,11 @@ export const useProductStore = create<ProductState>((set) => ({
             };
         set({ products: list, pagination, loading: false });
       }
-    } catch (e) {
-      set({ loading: false, error: 'Failed to update product' });
+    } catch (e: any) {
+      const errorMessage =
+        e?.response?.data?.message || e?.message || 'Failed to update product';
+      set({ loading: false, error: errorMessage });
+      throw new Error(errorMessage); // Re-throw so component can catch it
     }
   },
 

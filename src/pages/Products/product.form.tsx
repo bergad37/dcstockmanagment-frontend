@@ -19,7 +19,8 @@ const ProductForm = ({
   initialValues,
   isEditClicked
 }: ProductFormProps) => {
-  const { listProducts, createProduct, updateProduct } = useProductStore();
+  const { listProducts, createProduct, updateProduct, loading } =
+    useProductStore();
   const { fetchCategories, categories } = useCategoryStore();
   const { fetchSuppliers, suppliers } = useSupplierStore();
   useEffect(() => {
@@ -71,7 +72,10 @@ const ProductForm = ({
       handleClose();
       await listProducts();
     } catch (error: any) {
-      toast.warning('Failed to save product');
+      // Extract error message from backend response
+      const errorMessage = error?.message || 'Failed to save product';
+      toast.error(errorMessage);
+      // Don't close modal on error - let user try again
     }
   };
 
@@ -391,10 +395,10 @@ const ProductForm = ({
 
                 <button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="bg-[#073c56] rounded-full text-white px-4 py-1 hover:bg-[#055082]"
+                  disabled={isSubmitting || loading}
+                  className="bg-[#073c56] rounded-full text-white px-4 py-1 hover:bg-[#055082] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isSubmitting
+                  {isSubmitting || loading
                     ? initialValues.id
                       ? 'Updating...'
                       : 'Adding...'
