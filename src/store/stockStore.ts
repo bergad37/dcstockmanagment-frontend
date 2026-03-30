@@ -48,6 +48,7 @@ interface StockState {
   recordStockOut: (payload: StockOutPayload) => Promise<void>;
   recordStockIn: (payload: StockInPayload) => Promise<void>;
   fetchStock: (params?: Record<string, any>) => Promise<void>;
+  fetchAllStock: () => Promise<void>;
   resetStockOutSuccess: (value?: boolean) => void;
   updateStock: (payload: StockInPayload, params: string) => Promise<void>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -108,6 +109,29 @@ export const useStockStore = create<StockState>((set) => ({
       set({
         stock: payload ?? { stocks },
         stockPagination: pagination,
+        stockLoading: false
+      });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+      set({
+        stock: [],
+        stockPagination: null,
+        stockLoading: false,
+        stockError: 'Failed to fetch stock'
+      });
+    }
+  },
+
+  fetchAllStock: async () => {
+    set({ stockLoading: true, stockError: null });
+    try {
+      const res = await stockApi.fetchAllStock();
+      const payload = res.data?.data;
+      const stocks = payload?.stocks ?? payload ?? [];
+
+      set({
+        stock: payload ?? { stocks },
         stockLoading: false
       });
     } catch (e) {

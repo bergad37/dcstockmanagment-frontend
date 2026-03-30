@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { useStockStore } from '../../store/stockStore';
 import { useCustomerStore } from '../../store/CustomerStore';
 import { useEffect } from 'react';
+import Select from 'react-select';
 
 interface StockOutFormProps {
   handleClose: () => void;
@@ -59,17 +60,29 @@ const validationSchema = Yup.object({
 );
 
 const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
-  const { stock, fetchStock, stockOutSucess } = useStockStore();
-  const { customers, fetchCustomer } = useCustomerStore();
+  const { stock, stockOutSucess, fetchAllStock } = useStockStore();
+  const { customers, fetchAllCustomers } = useCustomerStore();
 
   const { recordStockOut } = useStockStore();
 
   useEffect(() => {
-    if (product && product?.type !== 'CALIBRATION') {
-      fetchStock();
-    }
-    fetchCustomer();
-  }, [fetchStock, fetchCustomer]);
+    // if (product && product?.type !== 'CALIBRATION') {
+    fetchAllStock();
+    // }
+    fetchAllCustomers();
+  }, [product]); // Only depend on product to avoid infinite re-renders
+
+  const clientOptions =
+    customers?.map((c) => ({
+      value: c.id,
+      label: c.name
+    })) ?? [];
+
+  const productOptions =
+    stock?.stocks?.map((s: any) => ({
+      value: s.product.id,
+      label: `${s.product.name} (${s.product.serialNumber})`
+    })) ?? [];
 
   const initialValues: FormValues = {
     customerId: '',
@@ -178,24 +191,58 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
                 Client <span className="text-red-500">*</span>
               </label>
 
-              <Field
+              <Select
+                id="customerId"
                 name="customerId"
-                as="select"
-                className="w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40"
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                  setFieldValue('customerId', e.target.value);
-                  if (e.target.value) {
+                options={clientOptions}
+                placeholder="Select client"
+                isClearable
+                menuPortalTarget={document.body}
+                onChange={(option) => {
+                  setFieldValue('customerId', option ? option.value : '');
+                  if (option?.value) {
                     setFieldValue('customerName', '');
                   }
                 }}
-              >
-                <option value="">Select existing client...</option>
-                {customers?.map((client) => (
-                  <option key={client!.id} value={client!.id as any}>
-                    {client!.name}
-                  </option>
-                ))}
-              </Field>
+                value={
+                  clientOptions.find(
+                    (opt) => opt.value === values.customerId
+                  ) || null
+                }
+                className="mt-2"
+                classNamePrefix="react-select"
+                styles={{
+                  control: (base, state) => ({
+                    ...base,
+                    borderRadius: '0.75rem',
+                    padding: '2px',
+                    borderColor: state.isFocused ? '#073c56' : '#073c5666',
+                    boxShadow: state.isFocused
+                      ? '0 0 0 2px rgba(7,60,86,0.2)'
+                      : 'none',
+                    '&:hover': { borderColor: '#073c56' }
+                  }),
+                  placeholder: (base) => ({ ...base, color: '#6b7280' }),
+                  menu: (base) => ({
+                    ...base,
+                    borderRadius: '0.75rem',
+                    overflow: 'hidden',
+                    zIndex: 9999
+                  }),
+                  menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                  option: (base, state) => ({
+                    ...base,
+                    backgroundColor: state.isSelected
+                      ? '#073c56'
+                      : state.isFocused
+                        ? '#073c5620'
+                        : 'white',
+                    color: state.isSelected ? 'white' : '#111827',
+                    padding: '10px 12px',
+                    cursor: 'pointer'
+                  })
+                }}
+              />
             </div>
 
             {!values.customerId && (
@@ -277,13 +324,15 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
                             <label className="block text-sm font-medium">
                               Product
                             </label>
-                            <Field
-                              as="select"
+                            <Select
                               name={`items.${index}.productId`}
-                              disabled={isPrefilled && index === 0}
-                              className="w-full rounded-xl border px-3 py-2"
-                              onChange={(e: any) => {
-                                const productId = e.target.value;
+                              options={productOptions}
+                              placeholder="Select product"
+                              isClearable
+                              isDisabled={isPrefilled && index === 0}
+                              menuPortalTarget={document.body}
+                              onChange={(option) => {
+                                const productId = option ? option.value : '';
                                 setFieldValue(
                                   `items.${index}.productId`,
                                   productId
@@ -297,14 +346,53 @@ const StockOutForm = ({ handleClose, product }: StockOutFormProps) => {
                                   setFieldValue(`items.${index}.quantity`, '1');
                                 }
                               }}
-                            >
-                              <option value="">Select product...</option>
-                              {stock?.stocks.map((s: any) => (
-                                <option key={s.product.id} value={s.product.id}>
-                                  {s.product.name} ({s.product.serialNumber})
-                                </option>
-                              ))}
-                            </Field>
+                              value={
+                                productOptions.find(
+                                  (opt) => opt.value === item.productId
+                                ) || null
+                              }
+                              className="mt-1"
+                              classNamePrefix="react-select"
+                              styles={{
+                                control: (base, state) => ({
+                                  ...base,
+                                  borderRadius: '0.75rem',
+                                  padding: '2px',
+                                  borderColor: state.isFocused
+                                    ? '#073c56'
+                                    : '#073c5666',
+                                  boxShadow: state.isFocused
+                                    ? '0 0 0 2px rgba(7,60,86,0.2)'
+                                    : 'none',
+                                  '&:hover': { borderColor: '#073c56' }
+                                }),
+                                placeholder: (base) => ({
+                                  ...base,
+                                  color: '#6b7280'
+                                }),
+                                menu: (base) => ({
+                                  ...base,
+                                  borderRadius: '0.75rem',
+                                  overflow: 'hidden',
+                                  zIndex: 9999
+                                }),
+                                menuPortal: (base) => ({
+                                  ...base,
+                                  zIndex: 9999
+                                }),
+                                option: (base, state) => ({
+                                  ...base,
+                                  backgroundColor: state.isSelected
+                                    ? '#073c56'
+                                    : state.isFocused
+                                      ? '#073c5620'
+                                      : 'white',
+                                  color: state.isSelected ? 'white' : '#111827',
+                                  padding: '10px 12px',
+                                  cursor: 'pointer'
+                                })
+                              }}
+                            />
                           </div>
 
                           {/* Quantity */}

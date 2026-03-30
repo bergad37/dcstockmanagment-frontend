@@ -12,8 +12,9 @@ const customerApi = {
   createCustomer: (payload: CustomerPayload) =>
     axiosClient.post('/customers', payload),
 
-  fetchCustomer: (params?: Record<string, any>) => axiosClient.get('/customers', { params }),
-
+  fetchCustomer: (params?: Record<string, any>) =>
+    axiosClient.get('/customers', { params }),
+  fetchAllCustomers: () => axiosClient.get('/customers/all'),
   updateCustomer: (id: string, payload: CustomerPayload) =>
     axiosClient.put(`/customers/${id}`, payload),
 

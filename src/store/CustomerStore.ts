@@ -28,6 +28,7 @@ type CustomerState = {
   error: string | null;
   pagination: Pagination;
   fetchCustomer: (page?: number, limit?: number, search?: string) => Promise<void>;
+  fetchAllCustomers: () => Promise<void>;
   createCustomer: (payload: CustomerPayload) => Promise<ActionResult>;
   updateCustomer: (id: string, payload: CustomerPayload) => Promise<ActionResult>;
   deleteCustomer: (id: string) => Promise<ActionResult>;
@@ -54,6 +55,22 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
       });
     }
   },
+
+  fetchAllCustomers: async () => {
+    set({ loading: true, error: null });
+    try {
+      const res = await customerApi.fetchAllCustomers();
+      const customers = res.data?.data?.customers ?? res.data?.data ?? [];
+      set({ customers, loading: false });
+    } catch (e: any) {
+      console.log(e);
+      set({
+        loading: false,
+        error: `Failed to load customers`
+      });
+    }
+  },
+
 
   createCustomer: async (payload: CustomerPayload) => {
     try {

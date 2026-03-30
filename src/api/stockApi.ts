@@ -38,6 +38,8 @@ const stockApi = {
   fetchAllTransactions: (params?: Record<string, any>) =>
     axiosClient.get('/transactions', { params }),
 
+  fetchAllStock: () => axiosClient.get('/stock/all'),
+
   // Stock Out - Record sold or rented items
   recordStockOut: (payload: StockOutPayload) =>
     axiosClient.post('/transactions/stock/out', payload),

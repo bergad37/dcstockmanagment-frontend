@@ -25,6 +25,7 @@ const productApi = {
   fetchProducts: (params?: Record<string, any>) =>
     axiosClient.get('/products', { params }),
 
+  fetchAllProducts: () => axiosClient.get('/products/all'),
   update: (id: string, payload: ProductPayload) =>
     axiosClient.put(`/products/${id}`, payload),
 

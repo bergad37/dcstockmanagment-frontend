@@ -85,11 +85,11 @@ const ProductForm = ({
       label: c.name
     })) ?? [];
 
-  //   const supplierOptions =
-  //     suppliers?.map((s) => ({
-  //       value: s.id,
-  //       label: s.name
-  //     })) ?? [];
+  const supplierOptions =
+    suppliers?.map((s) => ({
+      value: s.id,
+      label: s.name
+    })) ?? [];
 
   const productTypeOptions = [
     { value: 'item', label: 'Item' },
@@ -192,6 +192,7 @@ const ProductForm = ({
                     options={categoryOptions}
                     placeholder="Select category"
                     isClearable
+                    menuPortalTarget={document.body}
                     onChange={(option) =>
                       formik.setFieldValue(
                         'categoryId',
@@ -220,8 +221,10 @@ const ProductForm = ({
                       menu: (base) => ({
                         ...base,
                         borderRadius: '0.75rem',
-                        overflow: 'hidden'
+                        overflow: 'hidden',
+                        zIndex: 9999
                       }),
+                      menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                       option: (base, state) => ({
                         ...base,
                         backgroundColor: state.isSelected
@@ -273,24 +276,58 @@ const ProductForm = ({
               <div className="mt-3 w-full">
                 <label className="block mb-1 font-medium">Supplier</label>
 
-                <Field
+                <Select
+                  id="supplierId"
                   name="supplierId"
-                  as="select"
-                  className="w-full rounded-xl px-3 py-2 text-gray-900 border border-[#073c56]/40"
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                    formik.setFieldValue('supplierId', e.target.value);
-                    if (e.target.value) {
-                      formik.setFieldValue('supplierName', '');
-                    }
+                  options={supplierOptions}
+                  placeholder="Select supplier"
+                  isClearable
+                  menuPortalTarget={document.body}
+                  onChange={(option) =>
+                    formik.setFieldValue(
+                      'supplierId',
+                      option ? option.value : ''
+                    )
+                  }
+                  value={
+                    supplierOptions.find(
+                      (opt) => opt.value === formik.values.supplierId
+                    ) || null
+                  }
+                  className="mt-2"
+                  classNamePrefix="react-select"
+                  styles={{
+                    control: (base, state) => ({
+                      ...base,
+                      borderRadius: '0.75rem',
+                      padding: '2px',
+                      borderColor: state.isFocused ? '#073c56' : '#073c5666',
+                      boxShadow: state.isFocused
+                        ? '0 0 0 2px rgba(7,60,86,0.2)'
+                        : 'none',
+                      '&:hover': { borderColor: '#073c56' }
+                    }),
+                    placeholder: (base) => ({ ...base, color: '#6b7280' }),
+                    menu: (base) => ({
+                      ...base,
+                      borderRadius: '0.75rem',
+                      overflow: 'hidden',
+                      zIndex: 9999
+                    }),
+                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                    option: (base, state) => ({
+                      ...base,
+                      backgroundColor: state.isSelected
+                        ? '#073c56'
+                        : state.isFocused
+                          ? '#073c5620'
+                          : 'white',
+                      color: state.isSelected ? 'white' : '#111827',
+                      padding: '10px 12px',
+                      cursor: 'pointer'
+                    })
                   }}
-                >
-                  <option value="">Select existing supplier...</option>
-                  {suppliers?.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-                </Field>
+                />
 
                 {!formik.values.supplierId && (
                   <div className="mt-2">

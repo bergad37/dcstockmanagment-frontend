@@ -21,6 +21,7 @@ type ProductState = {
   error: string | null;
   pagination: Pagination | null;
   listProducts: (params?: Record<string, any>) => Promise<void>;
+  listAllProducts: () => Promise<void>;
   createProduct: (data: ProductPayload) => Promise<void>;
   updateProduct: (id: string, data: ProductPayload) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
@@ -56,6 +57,23 @@ export const useProductStore = create<ProductState>((set) => ({
           : null;
 
       set({ products: list, pagination, loading: false });
+    } catch (e: any) {
+      // eslint-disable-next-line no-console
+      console.log(e);
+      set({
+        loading: false,
+        error: `Failed to load products`
+      });
+    }
+  },
+
+  listAllProducts: async (params?: Record<string, any>) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await productApi.fetchAllProducts();
+      const list = res.data?.data;
+
+      set({ products: list, loading: false });
     } catch (e: any) {
       // eslint-disable-next-line no-console
       console.log(e);
