@@ -34,19 +34,18 @@ export const productColumns = (actions: any, user: any) => [
   {
     name: 'Warranty',
     selector: (row: any) => row?.warranty ?? '---',
-    grow: 1 
+    grow: 1
   },
   {
     name: 'Stock',
     selector: (row: any) => row?.stock?.quantity ?? 0,
     grow: 1
   },
-  user?.role === 'ADMIN' && {
+  {
     name: 'Actions',
     type: 'actions',
-    cell: (row: any) => (
-      <ActionButtons row={row} key={row?.id} actions={actions} />
-    ),
+    cell: (row: any) =>
+      user?.role ==='ADMIN' && <ActionButtons row={row} key={row?.id} actions={actions} />,
     grow: 1
   }
 ];

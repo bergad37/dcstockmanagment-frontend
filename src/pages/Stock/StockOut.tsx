@@ -300,7 +300,7 @@ const Stock = () => {
       name: 'Prod.Qty',
       grow: 0.5,
       selector: (row: any) => row.quantity,
-      sortable: true,
+      sortable: true
     },
     {
       name: 'Transaction Date',
@@ -342,35 +342,36 @@ const Stock = () => {
         );
       }
     },
-    user?.role === 'ADMIN' && {
+    {
       name: 'Actions',
-      cell: (row: any) => (
-        <div className="flex gap-2 flex-col my-3">
-          <button
-            title="View Details"
-            onClick={() => viewDetailsAction(row)}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white transition text-xs font-semibold border border-blue-200"
-          >
-            View Details
-          </button>
-          {row.type === 'RENT' ? (
+      cell: (row: any) =>
+        user?.role === 'ADMIN' && (
+          <div className="flex gap-2 flex-col my-3">
             <button
-              title={`Return ${row.productName}`}
-              onClick={() => returnAction(row)}
-              disabled={row.quantity === 0}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500 text-white hover:bg-amber-600 transition text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+              title="View Details"
+              onClick={() => viewDetailsAction(row)}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white transition text-xs font-semibold border border-blue-200"
             >
-              <RotateCcw
-                size={14}
-                className="animate-[spin_0.6s_ease-in-out_1]"
-              />
-              Return
+              View Details
             </button>
-          ) : (
-            <span>-</span>
-          )}
-        </div>
-      )
+            {row.type === 'RENT' ? (
+              <button
+                title={`Return ${row.productName}`}
+                onClick={() => returnAction(row)}
+                disabled={row.quantity === 0}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500 text-white hover:bg-amber-600 transition text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+              >
+                <RotateCcw
+                  size={14}
+                  className="animate-[spin_0.6s_ease-in-out_1]"
+                />
+                Return
+              </button>
+            ) : (
+              <span>-</span>
+            )}
+          </div>
+        )
     }
   ];
 
