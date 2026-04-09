@@ -17,7 +17,13 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
+  user: (() => {
+    try {
+      return JSON.parse(localStorage.getItem('user') || 'null');
+    } catch {
+      return null;
+    }
+  })(),
   loading: false,
 
   login: async (data) => {
@@ -32,6 +38,9 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
 
       set({ user: user ?? null, loading: false });
+      if (user) {
+        localStorage.setItem('user', JSON.stringify(user));
+      }
       return true;
     } catch {
       set({ loading: false });
@@ -43,13 +52,18 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const res = await authApi.profile();
       set({ user: res.data });
+      localStorage.setItem('user', JSON.stringify(res.data));
     } catch {
+      // If profile fetch fails (e.g., token expired), logout
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
       set({ user: null });
     }
   },
 
   logout: () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     set({ user: null });
   }
 }));
