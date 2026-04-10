@@ -32,7 +32,6 @@ const Products = () => {
   const [perPage, setPerPage] = useState<number>(10);
   const user = useAuthStore((s) => s.user);
 
-
   useEffect(() => {
     // initial load
     void listProducts({ page, limit: perPage });
@@ -173,9 +172,11 @@ const Products = () => {
       <DeleteModal
         isOpen={showDeleteModal}
         description="Are you sure you want to delete this product?"
-        onConfirm={async () => {
+        requireComment={true} // 👈 enforce here
+        commentLabel="Why are you deleting this product?"
+        onConfirm={async (comment) => {
           if (deleteItem) {
-            await deleteProduct(deleteItem);
+            await deleteProduct(deleteItem, comment); // 👈 send comment
             await listProducts();
           }
           handleClose();

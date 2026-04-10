@@ -29,7 +29,8 @@ const productApi = {
   update: (id: string, payload: ProductPayload) =>
     axiosClient.put(`/products/${id}`, payload),
 
-  delete: (id: string) => axiosClient.delete(`/products/${id}`)
+  delete: (id: string, comment?: string) =>
+    axiosClient.delete(`/products/${id}`, { data: { comment } })
 };
 
 export default productApi;

@@ -29,7 +29,9 @@ const Stock = () => {
     fetchAllTransaction,
     updateStock,
     stockPagination,
-    transactionsPagination
+    transactionsPagination,
+    cancelTransaction,
+    cancelTransactionLoading
   } = useStockStore();
 
   const { resetStockOutSuccess } = useStockStore();
@@ -85,6 +87,10 @@ const Stock = () => {
   // Handle Details Modal
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
+  const [cancelComment, setCancelComment] = useState<string>('');
+  const [showQuantityModal, setShowQuantityModal] = useState(false);
+  const [quantityInput, setQuantityInput] = useState<number>(1);
+  const [selectedStockRow, setSelectedStockRow] = useState<any>(null);
 
   const filteredStockOutData = formatStockTransactions(
     transactions?.transactions
@@ -133,7 +139,8 @@ const Stock = () => {
   useEffect(() => {
     const params: Record<string, any> = {
       page: txPage,
-      limit: txPerPage
+      limit: txPerPage,
+      includeCancelled: true
     };
 
     if (transactionSearch) {
@@ -152,7 +159,7 @@ const Stock = () => {
   };
 
   const stockInColumns = (
-    handleUpdateStock: (param: any) => void,
+    handleOpenQuantityModal: (param: any) => void,
     isOnCalibrationTab: boolean,
     user: any
   ) => {
@@ -223,7 +230,7 @@ const Stock = () => {
               row?.product?.type !== 'CALIBRATION' && (
                 <button
                   title="Increase stock quantity"
-                  onClick={() => handleUpdateStock(row)}
+                  onClick={() => handleOpenQuantityModal(row)}
                   className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-50 text-green-700  hover:bg-green-600 hover:text-white transition text-xs font-semibold  border border-green-200 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Plus size={14} />
@@ -282,17 +289,33 @@ const Stock = () => {
 
     {
       name: 'Type',
+      grow: 0.5,
       selector: (row: any) => row.type,
       sortable: true,
       cell: (row: any) => (
         <span
-          className={`px-2 py-1 rounded-full text-[11px] font-semibold ${
+          className={`px-2 py-1 rounded-full text-[8px] font-semibold ${
             row.type === 'SOLD'
               ? 'bg-blue-100 text-blue-800'
               : 'bg-amber-100 text-amber-800'
           }`}
         >
           {row.type}
+        </span>
+      )
+    },
+    {
+      name: 'status',
+      grow: 0.5,
+      selector: (row: any) => row.status,
+      sortable: true,
+      cell: (row: any) => (
+        <span
+          className={`px-2 py-1 rounded-full text-[8px] font-semibold ${
+            row.status === 'CANCELLED' ? 'text-red-800' : 'text-blue-800'
+          }`}
+        >
+          {row.status}
         </span>
       )
     },
@@ -422,12 +445,57 @@ const Stock = () => {
 
   const viewDetailsAction = (row: any) => {
     setSelectedTransaction(row);
+    setCancelComment('');
     setShowDetailsModal(true);
   };
 
   const handleCloseDetailsModal = () => {
     setShowDetailsModal(false);
     setSelectedTransaction(null);
+    setCancelComment('');
+  };
+
+  const handleCancelTransaction = async () => {
+    if (!selectedTransaction?.id) return;
+    const trimmedComment = cancelComment.trim();
+    if (!trimmedComment) {
+      window.alert('Please provide a reason for cancelling this transaction.');
+      return;
+    }
+
+    const shouldCancel = window.confirm(
+      'Are you sure you want to cancel this transaction?'
+    );
+    if (!shouldCancel) return;
+
+    try {
+      await cancelTransaction(selectedTransaction.id, trimmedComment);
+
+      // Reload current pages with current filters/search
+      const stockParams: Record<string, any> = {
+        page: stockPage,
+        limit: stockPerPage
+      };
+      if (stockSearch) stockParams.searchKey = stockSearch;
+      if (activeTab === 'CALIBRATION_STOCK') {
+        stockParams.type = 'CALIBRATION';
+      }
+
+      const txParams: Record<string, any> = {
+        page: txPage,
+        limit: txPerPage
+      };
+      if (transactionSearch) txParams.searchKey = transactionSearch;
+
+      await Promise.all([
+        fetchStock(stockParams),
+        fetchAllTransaction(txParams)
+      ]);
+      handleCloseDetailsModal();
+    } catch (error) {
+      console.error(error);
+      window.alert('Failed to cancel transaction. Please try again.');
+    }
   };
 
   const returnAction = (data: any) => {
@@ -504,6 +572,21 @@ const Stock = () => {
   ) => {
     setTxPerPage(newPerPage);
     setTxPage(newPage);
+  };
+
+  const handleOpenQuantityModal = (row: any) => {
+    setSelectedStockRow(row);
+    setQuantityInput(row.quantity); // pre-fill with current value instead of 1
+    setShowQuantityModal(false);
+    setShowQuantityModal(true);
+  };
+
+  const handleConfirmQuantityUpdate = () => {
+    if (!selectedStockRow || quantityInput < 0) return;
+    const payload = { quantity: quantityInput }; // exact value, not additive
+    updateStock(payload as any, selectedStockRow.id);
+    setShowQuantityModal(false);
+    setSelectedStockRow(null);
   };
 
   return (
@@ -628,7 +711,7 @@ const Stock = () => {
             </div>
           ) : activeTab === 'STOCK' ? (
             <DataTable
-              columns={stockInColumns(handleUpdateStock, false, user)}
+              columns={stockInColumns(handleOpenQuantityModal, false, user)}
               data={stock?.stocks}
               highlightOnHover
               pointerOnHover
@@ -696,6 +779,64 @@ const Stock = () => {
         isOpen={showReturnModal}
       />
 
+      {/* Add quantity Modal */}
+      <Modal
+        isOpen={showQuantityModal}
+        onClose={() => setShowQuantityModal(false)}
+        title="Increase Stock Quantity"
+        maxHeight={300}
+      >
+        <div className="space-y-5 p-2">
+          <p className="text-sm text-gray-600">
+            Current quantity for{' '}
+            <span className="font-semibold text-gray-900">
+              {selectedStockRow?.product?.name}
+            </span>
+            :{' '}
+            <span className="font-bold text-[#073c56]">
+              {selectedStockRow?.quantity}
+            </span>
+          </p>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Quantity to Add
+            </label>
+            <input
+              type="number"
+              min={1}
+              value={quantityInput}
+              onChange={(e) =>
+                setQuantityInput(Math.max(0, Number(e.target.value)))
+              }
+              className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-0 focus:ring-[#073c56]"
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              Previous quantity:{' '}
+              <span className="font-semibold text-gray-700">
+                {selectedStockRow?.quantity}
+              </span>
+            </p>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              onClick={() => setShowQuantityModal(false)}
+              className="px-4 py-2 bg-gray-200 rounded-full border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 transition"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirmQuantityUpdate}
+              disabled={quantityInput < 1}
+              className="px-4 py-2 rounded-full bg-[#073c56] text-white text-sm font-medium hover:bg-[#0a5070] transition disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Confirm
+            </button>
+          </div>
+        </div>
+      </Modal>
+
       {/* Transaction Details Modal */}
       <Modal
         isOpen={showDetailsModal}
@@ -708,8 +849,10 @@ const Stock = () => {
             {/* Transaction Info */}
             <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                Transaction Information
+                Transaction Information.{' '}
+                <span className="text-xs text-yellow-800 ">{`(${selectedTransaction?.status})`}</span>
               </h3>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm font-medium text-gray-500">
@@ -886,6 +1029,48 @@ const Stock = () => {
                 </div>
               </div>
             </div>
+            {selectedTransaction.status === 'CANCELLED' && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  Cancellation reason
+                </h3>
+                <p className="text-sm text-gray-900">
+                  {selectedTransaction.cancelComments || 'N/A'}
+                </p>
+              </div>
+            )}
+
+            {user?.role === 'ADMIN' &&
+              selectedTransaction.status !== 'CANCELLED' && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Cancellation Reason
+                    </label>
+                    <textarea
+                      value={cancelComment}
+                      onChange={(e) => setCancelComment(e.target.value)}
+                      rows={3}
+                      placeholder="Write the reason for cancelling this transaction..."
+                      className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-0 focus:ring-[#073c56]"
+                    />
+                  </div>
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={handleCancelTransaction}
+                      disabled={
+                        cancelTransactionLoading || !cancelComment.trim()
+                      }
+                      className="px-4 py-2 rounded-full bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {cancelTransactionLoading
+                        ? 'Cancelling Transaction...'
+                        : 'Cancel Transaction'}
+                    </button>
+                  </div>
+                </div>
+              )}
           </div>
         )}
       </Modal>

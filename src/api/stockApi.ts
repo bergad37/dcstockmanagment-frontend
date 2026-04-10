@@ -59,6 +59,10 @@ const stockApi = {
   markAsReturned: (payload: any, transactionId: string) =>
     axiosClient.patch(`/stock/out/${transactionId}/return`, payload),
 
+  // Cancel a transaction with reason/comment
+  cancelTransaction: (transactionId: string, payload: { comment: string }) =>
+    axiosClient.post(`/transactions/${transactionId}/cancel`, payload),
+
   // Stock In - Add items quantity in stock
   updateStockIn: (payload: StockInPayload, id: string) =>
     axiosClient.put(`/stock/${id}`, payload)

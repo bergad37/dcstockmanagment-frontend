@@ -24,7 +24,7 @@ type ProductState = {
   listAllProducts: () => Promise<void>;
   createProduct: (data: ProductPayload) => Promise<void>;
   updateProduct: (id: string, data: ProductPayload) => Promise<void>;
-  deleteProduct: (id: string) => Promise<void>;
+  deleteProduct: (id: string, comment?: string) => Promise<void>;
 };
 
 export const useProductStore = create<ProductState>((set) => ({
@@ -149,10 +149,10 @@ export const useProductStore = create<ProductState>((set) => ({
     }
   },
 
-  deleteProduct: async (id) => {
+  deleteProduct: async (id, comment?: string) => {
     try {
       set({ loading: true });
-      const res = await productApi.delete(id);
+      const res = await productApi.delete(id, comment);
       const payload = res.data?.data;
       const list = payload?.products ?? payload ?? [];
       if (Array.isArray(list) && list.length) {

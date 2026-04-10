@@ -37,6 +37,8 @@ export const formatStockTransactions = (transactions: any[] = []) => {
 
     return items.map((item: any) => ({
       id: transaction?.id ?? '',
+      status: transaction?.status,
+      cancelComments: transaction?.cancelComments,
       productId: item?.product?.id ?? '',
       productName: item?.product?.name ?? '',
       serialNumber: item?.product?.serialNumber ?? '',
@@ -60,14 +62,11 @@ export const formatStockTransactions = (transactions: any[] = []) => {
   });
 };
 
-
 export const getOverdueDays = (row: any): number => {
   if (!row.expectedReturnDate) return 0;
 
   const expected = new Date(row.expectedReturnDate);
-  const actual = row.returnDate
-    ? new Date(row.returnDate)
-    : new Date(); // today
+  const actual = row.returnDate ? new Date(row.returnDate) : new Date(); // today
 
   // Normalize time to avoid partial-day issues
   expected.setHours(0, 0, 0, 0);

@@ -41,6 +41,8 @@ interface StockState {
   markAsReturnedSuccess: boolean;
   markAsReturnedError: string | null;
   markAsReturnedLoading: boolean;
+  cancelTransactionLoading: boolean;
+  cancelTransactionError: string | null;
 
   fetchAllTransaction: (params?: Record<string, any>) => Promise<void>;
   fetchStockOutByType: (type: 'SOLD' | 'RENTED') => Promise<void>;
@@ -53,6 +55,7 @@ interface StockState {
   updateStock: (payload: StockInPayload, params: string) => Promise<void>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   markAsReturned: (payload: any, params: string) => Promise<void>;
+  cancelTransaction: (transactionId: string, comment: string) => Promise<void>;
 }
 
 export const useStockStore = create<StockState>((set) => ({
@@ -83,6 +86,8 @@ export const useStockStore = create<StockState>((set) => ({
   markAsReturnedSuccess: false,
   markAsReturnedError: null,
   markAsReturnedLoading: false,
+  cancelTransactionLoading: false,
+  cancelTransactionError: null,
 
   fetchStock: async (params) => {
     set({ stockLoading: true, stockError: null });
@@ -324,6 +329,63 @@ export const useStockStore = create<StockState>((set) => ({
         markAsReturnedLoading: false,
         markAsReturnedSuccess: false,
         markAsReturnedError: 'Failed to return item in stock'
+      });
+      throw e;
+    }
+  },
+
+  cancelTransaction: async (transactionId, comment) => {
+    set({ cancelTransactionLoading: true, cancelTransactionError: null });
+    try {
+      await stockApi.cancelTransaction(transactionId, { comment });
+
+      // Refresh transactions after cancellation
+      const txRes = await stockApi.fetchAllTransactions();
+      const txPayload = txRes.data?.data;
+      const tx = txPayload?.transactions ?? txPayload ?? [];
+      const txPaginationRaw = txPayload?.pagination;
+      const txPagination: Pagination | null = txPaginationRaw
+        ? {
+            page: txPaginationRaw.page ?? 1,
+            limit: txPaginationRaw.limit ?? tx.length,
+            total: txPaginationRaw.total ?? tx.length
+          }
+        : {
+            page: 1,
+            limit: tx.length,
+            total: tx.length
+          };
+
+      // Refresh stock as cancellation can impact stock quantities
+      const stockRes = await stockApi.fetchStock();
+      const stockPayload = stockRes.data?.data;
+      const stocks = stockPayload?.stocks ?? stockPayload ?? [];
+      const stockPaginationRaw = stockPayload?.pagination;
+      const stockPagination: Pagination | null = stockPaginationRaw
+        ? {
+            page: stockPaginationRaw.page ?? 1,
+            limit: stockPaginationRaw.limit ?? stocks.length,
+            total: stockPaginationRaw.total ?? stocks.length
+          }
+        : {
+            page: 1,
+            limit: stocks.length,
+            total: stocks.length
+          };
+
+      set({
+        transactions: txPayload ?? { transactions: tx },
+        transactionsPagination: txPagination,
+        stock: stockPayload ?? { stocks },
+        stockPagination,
+        cancelTransactionLoading: false
+      });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+      set({
+        cancelTransactionLoading: false,
+        cancelTransactionError: 'Failed to cancel transaction'
       });
       throw e;
     }
