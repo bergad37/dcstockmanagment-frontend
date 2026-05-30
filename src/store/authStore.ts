@@ -6,6 +6,7 @@ interface User {
   email: string;
   name: string;
   role: 'ADMIN' | 'USER' | string;
+  portalAccess: 'MINI_STOCK' | 'MAIN_STOCK' | 'BOTH';
 }
 
 interface AuthState {

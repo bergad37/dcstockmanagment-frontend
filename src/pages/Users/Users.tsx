@@ -17,7 +17,8 @@ const Users = () => {
     id: null,
     name: '',
     email: '',
-    role: ''
+    role: '',
+    portalAccess: 'MINI_STOCK',
   });
 
   useEffect(() => {
@@ -36,7 +37,8 @@ const Users = () => {
       id: null,
       name: '',
       email: '',
-      role: ''
+      role: '',
+      portalAccess: 'MINI_STOCK',
     });
   };
 
@@ -51,7 +53,8 @@ const Users = () => {
       id: data.id,
       name: data.name,
       email: data.email,
-      role: data.role
+      role: data.role,
+      portalAccess: data.portalAccess ?? 'MINI_STOCK',
     });
   };
 
