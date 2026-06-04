@@ -9,759 +9,419 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer
+  ResponsiveContainer,
 } from 'recharts';
-import { Download, TrendingUp, TrendingDown, Package } from 'lucide-react';
-import { getStatistics } from '../../api/statisticsApi';
+import {
+  Download,
+  TrendingUp,
+  TrendingDown,
+  Package,
+  Users,
+  RotateCcw,
+  ShoppingCart,
+  Loader2,
+} from 'lucide-react';
+import { getStatistics, downloadExcelReport } from '../../api/statisticsApi';
+import { toast } from 'sonner';
 
-// Color schemes
-const CHART_COLORS = {
-  primary: '#073c56',
+const PRIMARY = '#073c56';
+const COLORS = {
+  primary: PRIMARY,
   secondary: '#0ea5e9',
   success: '#10b981',
   warning: '#f59e0b',
-  danger: '#ef4444'
+  danger: '#ef4444',
 };
 
-// Summary Cards Component
+// ── Stat card ────────────────────────────────────────────────────────────────
 interface StatCardProps {
   title: string;
-  value: string;
-  icon: React.ComponentType<{ size: number; color: string }>;
-  trend?: number;
-  color: string;
+  value: string | number;
+  sub?: string;
+  icon: React.ComponentType<{ size: number; className?: string }>;
+  accent: string;
+  loading?: boolean;
 }
 
-const StatCard = ({
-  title,
-  value,
-  icon: Icon,
-  trend,
-  color
-}: StatCardProps) => (
-  <div
-    className="bg-white rounded-lg shadow p-6 border-l-4"
-    style={{ borderColor: color }}
-  >
-    <div className="flex items-center justify-between">
-      <div>
-        <p className="text-gray-600 text-sm font-medium">{title}</p>
-        <p className="text-2xl font-bold text-gray-800 mt-2">{value}</p>
-        {trend && (
-          <p
-            className={`text-sm mt-2 ${
-              trend > 0 ? 'text-green-600' : 'text-red-600'
-            }`}
-          >
-            {trend > 0 ? '↑' : '↓'} {Math.abs(trend)}% from last period
-          </p>
-        )}
-      </div>
+function StatCard({ title, value, sub, icon: Icon, accent, loading }: StatCardProps) {
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex items-start gap-4">
       <div
-        className="p-3 rounded-full"
-        style={{ backgroundColor: `${color}20` }}
+        className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+        style={{ background: `${accent}18` }}
       >
-        <Icon size={24} color={color} />
+        <Icon size={22} className="" style={{ color: accent } as any} />
+      </div>
+      <div className="min-w-0">
+        <p className="text-sm text-gray-500 font-medium">{title}</p>
+        <p className="text-2xl font-bold mt-1" style={{ color: PRIMARY }}>
+          {loading ? '—' : value}
+        </p>
+        {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
       </div>
     </div>
-  </div>
-);
+  );
+}
 
-// downloadReport will be defined inside the component so it can access fetched state
-
+// ── Main component ───────────────────────────────────────────────────────────
 const Analytics = () => {
   const [dateRange, setDateRange] = useState('30days');
-
-  // remote data states
   const [loading, setLoading] = useState(true);
+  const [excelLoading, setExcelLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [allProducts, setAllproducts] = useState<string | number>(0);
-  const [analyticsFlowData, setAnalyticsFlowData] = useState<any[]>([]);
-  const [highMovingItemsData, setHighMovingItemsData] = useState<any[]>([]);
-  const [lowMovingItemsData, setLowMovingItemsData] = useState<any[]>([]);
-  const [categoryPerformanceData, setCategoryPerformanceData] = useState<any[]>(
-    []
-  );
-  const [inventoryTurnoverData, setInventoryTurnoverData] = useState<any[]>([]);
 
-  const downloadReport = (format: 'csv' | 'json') => {
-    const totalFlowLocal = analyticsFlowData.reduce(
-      (sum: number, item: any) => sum + (item.inbound ?? 0),
-      0
-    );
-    const totalOutboundLocal = analyticsFlowData.reduce(
-      (sum: number, item: any) => sum + (item.outbound ?? 0),
-      0
-    );
-    const netFlowLocal = totalFlowLocal - totalOutboundLocal;
-    const totalActiveProducts =
-      highMovingItemsData.length + lowMovingItemsData.length;
-
-    const report = {
-      generatedDate: new Date().toISOString(),
-      summary: {
-        totalStockIn: totalFlowLocal,
-        totalStockOut: totalOutboundLocal,
-        netStockMovement: netFlowLocal,
-        activeProducts: totalActiveProducts
-      },
-      stockMovement: analyticsFlowData,
-      highMovingItems: highMovingItemsData,
-      lowMovingItems: lowMovingItemsData,
-      categoryActivity: categoryPerformanceData,
-      stockTurnover: inventoryTurnoverData
-    };
-
-    let content: string;
-    let filename: string;
-
-    if (format === 'json') {
-      content = JSON.stringify(report, null, 2);
-      filename = `stock-analytics-report-${
-        new Date().toISOString().split('T')[0]
-      }.json`;
-    } else {
-      const headers = [
-        'Report Generated',
-        new Date().toISOString(),
-        '',
-        'SUMMARY',
-        '',
-        'Total Stock In',
-        totalFlowLocal,
-        'Total Stock Out',
-        totalOutboundLocal,
-        'Net Stock Movement',
-        netFlowLocal,
-        'Active Products',
-        totalActiveProducts,
-        '',
-        'STOCK MOVEMENT DATA',
-        '',
-        'Period,Stock In,Stock Out,Net Movement'
-      ];
-
-      const flowRows = analyticsFlowData.map(
-        (d: any) =>
-          `${d.month ?? ''},${d.inbound ?? 0},${d.outbound ?? 0},${d.net ?? ''}`
-      );
-      const categoryRows = [
-        '',
-        'CATEGORY ACTIVITY',
-        '',
-        'Category,Items Sold,Items Rented,Total Activity',
-        ...categoryPerformanceData.map(
-          (d: any) =>
-            `${d.category},${d.sold ?? 0},${d.rented ?? 0},${
-              (d.sold ?? 0) + (d.rented ?? 0)
-            }`
-        )
-      ];
-      const highRows = [
-        '',
-        'HIGH MOVING ITEMS',
-        '',
-        'Product,Category,Units,Percentage',
-        ...highMovingItemsData.map(
-          (d: any) =>
-            `${d.name},${d.category},${d.units ?? 0},${d.percentage ?? 0}%`
-        )
-      ];
-      const lowRows = [
-        '',
-        'LOW MOVING ITEMS',
-        '',
-        'Product,Category,Units,Percentage',
-        ...lowMovingItemsData.map(
-          (d: any) =>
-            `${d.name},${d.category},${d.units ?? 0},${d.percentage ?? 0}%`
-        )
-      ];
-
-      content = [
-        ...headers,
-        ...flowRows,
-        ...categoryRows,
-        ...highRows,
-        ...lowRows
-      ].join('\n');
-
-      filename = `stock-analytics-report-${
-        new Date().toISOString().split('T')[0]
-      }.csv`;
-    }
-
-    const blob = new Blob([content], {
-      type: format === 'json' ? 'application/json' : 'text/csv'
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
-  // Calculate summary statistics (derived from remote state)
-  const totalFlow = analyticsFlowData.reduce(
-    (sum, item) => sum + (item.inbound ?? 0),
-    0
-  );
-  const totalOutbound = analyticsFlowData.reduce(
-    (sum, item) => sum + (item.outbound ?? 0),
-    0
-  );
-//   const netFlow = totalFlow - totalOutbound;
-//   const totalProducts = highMovingItemsData.length + lowMovingItemsData.length;
+  // totals
+  const [totals, setTotals] = useState<Record<string, any>>({});
+  // charts
+  const [flowData, setFlowData] = useState<any[]>([]);
+  const [categoryData, setCategoryData] = useState<any[]>([]);
+  const [highMoving, setHighMoving] = useState<any[]>([]);
+  const [lowMoving, setLowMoving] = useState<any[]>([]);
 
   useEffect(() => {
     let mounted = true;
+    setLoading(true);
+    setError(null);
 
-    const fetchStats = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await getStatistics({ range: dateRange });
-
-        // Accept several possible shapes; prefer API shape: { success, message, data: { totals, stockFlow, categoryPerformance, topItems, lowItems, revenueByCategory } }
+    getStatistics({ range: dateRange })
+      .then((data) => {
+        if (!mounted) return;
         const payload = data?.data ?? data;
 
-        const rawFlow =
-          payload?.stockFlow ||
-          payload?.flow ||
-          payload?.analyticsFlowData ||
-          payload?.analyticsFlow ||
-          [];
-        // normalize flow: backend uses `label` for month
-        const flow = Array.isArray(rawFlow)
-          ? rawFlow.map((it: any) => ({
-              month: it.label ?? it.month ?? '',
-              inbound: it.inbound ?? 0,
-              outbound: it.outbound ?? 0,
-              net: it.net ?? (it.inbound ?? 0) - (it.outbound ?? 0)
-            }))
-          : [];
+        setTotals(payload?.totals ?? {});
 
-        const rawHigh =
-          payload?.topItems ||
-          payload?.highMoving ||
-          payload?.highMovingItems ||
-          payload?.highMovingItemsData ||
-          [];
-        const high = Array.isArray(rawHigh)
-          ? rawHigh.map((it: any) => ({
-              // normalize to primitives expected by the UI
-              name: it.name ?? it.productName ?? it.product?.name ?? '',
-              category:
-                typeof it.category === 'string'
-                  ? it.category
-                  : it.category?.name ??
-                    it.categoryName ??
-                    it.product?.category?.name ??
-                    '',
-              units: Number(
-                it.units ?? it.unitsSold ?? it.count ?? it.stock?.quantity ?? 0
-              ),
-              percentage: Number(it.percentage ?? it.percent ?? 0),
-              raw: it
-            }))
-          : [];
+        const flow = (payload?.stockFlow ?? []).map((it: any) => ({
+          month: it.label ?? it.month ?? '',
+          inbound: it.inbound ?? 0,
+          outbound: it.outbound ?? 0,
+          net: it.net ?? 0,
+        }));
+        setFlowData(flow);
 
-        const rawLow =
-          payload?.lowItems ||
-          payload?.lowMoving ||
-          payload?.lowMovingItems ||
-          payload?.lowMovingItemsData ||
-          [];
-        const low = Array.isArray(rawLow)
-          ? rawLow.map((it: any) => ({
-              name: it.name ?? it.productName ?? it.product?.name ?? '',
-              category:
-                typeof it.category === 'string'
-                  ? it.category
-                  : it.category?.name ??
-                    it.categoryName ??
-                    it.product?.category?.name ??
-                    '',
-              units: Number(it.units ?? it.count ?? it.stock?.quantity ?? 0),
-              percentage: Number(it.percentage ?? it.percent ?? 0),
-              raw: it
-            }))
-          : [];
+        const cat = (payload?.categoryPerformance ?? []).map((c: any) => ({
+          category: c.name ?? c.category ?? '',
+          sold: Number(c.sold ?? 0),
+          rented: Number(c.rented ?? 0),
+        }));
+        setCategoryData(cat);
 
-        const rawCategory =
-          payload?.categoryPerformance ||
-          payload?.categoryPerformanceData ||
-          payload?.categories ||
-          payload?.revenueByCategory ||
-          [];
-        // normalize category performance items to { category, sold, rented, revenue }
-        const category = Array.isArray(rawCategory)
-          ? rawCategory.map((c: any) => ({
-              category:
-                c.name ??
-                c.category ??
-                c.category?.name ??
-                c.categoryName ??
-                '',
-              sold: Number(c.sold ?? c.soldCount ?? 0),
-              rented: Number(c.rented ?? c.rentedCount ?? 0),
-              revenue: Number(c.revenue ?? c.amount ?? 0),
-              raw: c
-            }))
-          : [];
+        const hi = (payload?.topItems ?? []).map((it: any) => ({
+          name: it.name ?? '',
+          category: it.category?.name ?? '',
+          units: Number(it.units ?? 0),
+        }));
+        setHighMoving(hi);
 
-        const turnover =
-          payload?.inventoryTurnover ||
-          payload?.inventoryTurnoverData ||
-          payload?.turnover ||
-          [];
-
-        if (!mounted) return;
-console.log('%%%%%%%%%%%%%%',data)
-        setAnalyticsFlowData(flow);
-        setHighMovingItemsData(high);
-        setLowMovingItemsData(low);
-        setCategoryPerformanceData(category);
-        setInventoryTurnoverData(turnover);
-        setAllproducts(payload?.totals?.allProducts);
-
-      } catch (err: any) {
-        setError(err?.message || 'Failed to fetch statistics');
-      } finally {
+        const lo = (payload?.lowItems ?? []).map((it: any) => ({
+          name: it.name ?? '',
+          category: it.category?.name ?? '',
+          units: Number(it.units ?? 0),
+        }));
+        setLowMoving(lo);
+      })
+      .catch((err) => {
+        if (mounted) setError(err?.message ?? 'Failed to load statistics');
+      })
+      .finally(() => {
         if (mounted) setLoading(false);
-      }
-    };
+      });
 
-    void fetchStats();
-
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, [dateRange]);
 
+  const handleExcelDownload = async () => {
+    setExcelLoading(true);
+    try {
+      await downloadExcelReport(dateRange);
+      toast.success('Report downloaded successfully');
+    } catch {
+      toast.error('Failed to generate report');
+    } finally {
+      setExcelLoading(false);
+    }
+  };
+
+  const totalFlow = flowData.reduce((s, d) => s + d.inbound, 0);
+  const totalOutbound = flowData.reduce((s, d) => s + d.outbound, 0);
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 p-6">
       {/* Header */}
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold tracking-tight text-[#073c56]">
-          Stock Analytics Dashboard
-        </h2>
-        <p className="text-gray-600 mt-2">
-          Comprehensive overview of your inventory movement and product
-          performance
-        </p>
-      </div>
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight text-[#073c56]">
+            Stock Analytics
+          </h2>
+          <p className="text-gray-500 mt-1 text-sm">
+            Comprehensive overview of inventory movement and product performance
+          </p>
+        </div>
 
-      {error && <div className="mb-4 text-sm text-red-600">{error}</div>}
-
-      {/* Controls */}
-      <div className="mb-8 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
           <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#073c56]"
+            className="px-4 py-2 border border-gray-200 rounded-full text-sm focus:outline-none focus:border-[#073c56] bg-white"
           >
             <option value="7days">Last 7 Days</option>
             <option value="30days">Last 30 Days</option>
             <option value="90days">Last 90 Days</option>
             <option value="1year">Last Year</option>
           </select>
-        </div>
 
-        <div className="flex gap-2">
           <button
-            onClick={() => downloadReport('json')}
-            className="flex items-center gap-2 px-4 py-2 bg-[#073c56] text-white rounded-lg hover:bg-[#052840] transition text-sm font-medium"
+            onClick={handleExcelDownload}
+            disabled={excelLoading}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#073c56] text-white text-sm font-semibold hover:bg-[#062e42] transition disabled:opacity-60"
           >
-            <Download size={16} />
-            JSON Report
-          </button>
-          <button
-            onClick={() => downloadReport('csv')}
-            className="flex items-center gap-2 px-4 py-2 bg-[#0ea5e9] text-white rounded-lg hover:bg-[#0284c7] transition text-sm font-medium"
-          >
-            <Download size={16} />
-            CSV Report
+            {excelLoading ? (
+              <Loader2 size={15} className="animate-spin" />
+            ) : (
+              <Download size={15} />
+            )}
+            {excelLoading ? 'Generating…' : 'Export Excel'}
           </button>
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      {error && (
+        <div className="mb-6 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl px-4 py-3">
+          {error}
+        </div>
+      )}
+
+      {/* ── Summary cards ─────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
         <StatCard
-          title="Total Stock In"
-          value={loading ? '—' : totalFlow.toLocaleString()}
-          icon={TrendingUp}
-          //   trend={12}
-          color={CHART_COLORS.success}
+          title="Total Sales"
+          value={totals.totalSoldTx ?? 0}
+          sub="completed sell transactions"
+          icon={ShoppingCart}
+          accent={COLORS.success}
+          loading={loading}
         />
         <StatCard
-          title="Total Stock Out"
-          value={loading ? '—' : totalOutbound.toLocaleString()}
-          icon={TrendingDown}
-          //   trend={8}
-          color={CHART_COLORS.danger}
+          title="Active Rentals"
+          value={totals.activeRentals ?? 0}
+          sub={`${totals.totalRentTx ?? 0} total rent transactions`}
+          icon={RotateCcw}
+          accent={COLORS.warning}
+          loading={loading}
         />
-        {/* <StatCard
-          title="Net Stock Movement"
-          value={loading ? '—' : netFlow.toLocaleString()}
-          icon={Package}
-          //   trend={netFlow > 0 ? 15 : -5}
-          color={CHART_COLORS.primary}
-        /> */}
         <StatCard
-          title="Active Products"
-          value={loading ? '—' : allProducts?.toString()}
+          title="Total Customers"
+          value={totals.totalCustomers ?? 0}
+          sub="registered clients"
+          icon={Users}
+          accent={COLORS.secondary}
+          loading={loading}
+        />
+        <StatCard
+          title="Products in Stock"
+          value={totals.allProducts ?? 0}
+          sub={`${(totals.totalStockUnits ?? 0).toLocaleString()} total units`}
           icon={Package}
-          //   trend={5}
-          color={CHART_COLORS.warning}
+          accent={PRIMARY}
+          loading={loading}
         />
       </div>
 
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        {/* Stock Flow Chart */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Stock Movement Trends
+      {/* ── Secondary cards ───────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-4 flex items-center gap-4">
+          <TrendingUp size={20} style={{ color: COLORS.success }} />
+          <div>
+            <p className="text-xs text-gray-400">Stock Out (sold + rented)</p>
+            <p className="text-xl font-bold text-[#073c56]">
+              {loading ? '—' : totalOutbound.toLocaleString()}
+            </p>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-4 flex items-center gap-4">
+          <TrendingDown size={20} style={{ color: COLORS.danger }} />
+          <div>
+            <p className="text-xs text-gray-400">Stock In (returned)</p>
+            <p className="text-xl font-bold text-[#073c56]">
+              {loading ? '—' : totalFlow.toLocaleString()}
+            </p>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-4 flex items-center gap-4">
+          <Package size={20} style={{ color: PRIMARY }} />
+          <div>
+            <p className="text-xs text-gray-400">Net Stock Movement</p>
+            <p className="text-xl font-bold text-[#073c56]">
+              {loading ? '—' : (totalFlow - totalOutbound).toLocaleString()}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Charts ────────────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Stock movement line chart */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <h3 className="text-base font-semibold text-[#073c56] mb-4">
+            Stock Movement Trends (6 months)
           </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={analyticsFlowData}>
+          <ResponsiveContainer width="100%" height={260}>
+            <LineChart data={flowData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="month" stroke="#6b7280" />
-              <YAxis stroke="#6b7280" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#fff',
-                  border: `1px solid ${CHART_COLORS.primary}`,
-                  borderRadius: '8px'
-                }}
-              />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="inbound"
-                stroke={CHART_COLORS.success}
-                strokeWidth={2}
-                dot={{ fill: CHART_COLORS.success, r: 5 }}
-                activeDot={{ r: 7 }}
-              />
-              <Line
-                type="monotone"
-                dataKey="outbound"
-                stroke={CHART_COLORS.danger}
-                strokeWidth={2}
-                dot={{ fill: CHART_COLORS.danger, r: 5 }}
-                activeDot={{ r: 7 }}
-              />
-              <Line
-                type="monotone"
-                dataKey="net"
-                stroke={CHART_COLORS.primary}
-                strokeWidth={2}
-                dot={{ fill: CHART_COLORS.primary, r: 5 }}
-                activeDot={{ r: 7 }}
-              />
+              <XAxis dataKey="month" stroke="#9ca3af" tick={{ fontSize: 11 }} />
+              <YAxis stroke="#9ca3af" tick={{ fontSize: 11 }} />
+              <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
+              <Line type="monotone" dataKey="inbound" name="Returned" stroke={COLORS.success} strokeWidth={2} dot={{ r: 4 }} />
+              <Line type="monotone" dataKey="outbound" name="Out (sold+rented)" stroke={COLORS.danger} strokeWidth={2} dot={{ r: 4 }} />
+              <Line type="monotone" dataKey="net" name="Net" stroke={PRIMARY} strokeWidth={2} strokeDasharray="4 3" dot={{ r: 3 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Category Performance */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Product Category Activity
+        {/* Category bar chart */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <h3 className="text-base font-semibold text-[#073c56] mb-4">
+            Category Activity (Sold vs Rented)
           </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={categoryPerformanceData}>
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={categoryData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis
-                dataKey="category"
-                stroke="#6b7280"
-                angle={-45}
-                textAnchor="end"
-                height={80}
-              />
-              <YAxis stroke="#6b7280" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#fff',
-                  border: `1px solid ${CHART_COLORS.primary}`,
-                  borderRadius: '8px'
-                }}
-              />
-              <Legend />
-              <Bar  dataKey="sold" fill={CHART_COLORS.secondary} name="Sold" />
-              <Bar dataKey="rented" fill={CHART_COLORS.success} name="Rented" />
+              <XAxis dataKey="category" stroke="#9ca3af" angle={-30} textAnchor="end" height={60} tick={{ fontSize: 10 }} />
+              <YAxis stroke="#9ca3af" tick={{ fontSize: 11 }} />
+              <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
+              <Bar dataKey="sold" name="Sold" fill={COLORS.secondary} radius={[3, 3, 0, 0]} />
+              <Bar dataKey="rented" name="Rented" fill={COLORS.success} radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        {/* High Moving Items */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Fast-Moving Products
+        {/* Fast-moving */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <h3 className="text-base font-semibold text-[#073c56] mb-4">
+            Fast-Moving Products (Top 5)
           </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart
-              data={highMovingItemsData}
-              layout="vertical"
-              margin={{ left: 150, right: 30 }}
-            >
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={highMoving} layout="vertical" margin={{ left: 130, right: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis type="number" stroke="#6b7280" />
-              <YAxis
-                dataKey="name"
-                type="category"
-                stroke="#6b7280"
-                width={145}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#fff',
-                  border: `1px solid ${CHART_COLORS.primary}`,
-                  borderRadius: '8px'
-                }}
-              />
-              <Bar
-                dataKey="units"
-                fill={CHART_COLORS.success}
-                name="Units Sold"
-              />
+              <XAxis type="number" stroke="#9ca3af" tick={{ fontSize: 11 }} />
+              <YAxis dataKey="name" type="category" stroke="#9ca3af" width={125} tick={{ fontSize: 10 }} />
+              <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} />
+              <Bar dataKey="units" name="Units" fill={COLORS.success} radius={[0, 3, 3, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Low Moving Items */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Slow-Moving Products
+        {/* Slow-moving */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <h3 className="text-base font-semibold text-[#073c56] mb-4">
+            Slow-Moving Products (Bottom 5)
           </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart
-              data={lowMovingItemsData}
-              layout="vertical"
-              margin={{ left: 150, right: 30 }}
-            >
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={lowMoving} layout="vertical" margin={{ left: 130, right: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis type="number" stroke="#6b7280" />
-              <YAxis
-                dataKey="name"
-                type="category"
-                stroke="#6b7280"
-                width={145}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#fff',
-                  border: `1px solid ${CHART_COLORS.primary}`,
-                  borderRadius: '8px'
-                }}
-              />
-              <Bar dataKey="units" fill={CHART_COLORS.warning} name="Units" />
+              <XAxis type="number" stroke="#9ca3af" tick={{ fontSize: 11 }} />
+              <YAxis dataKey="name" type="category" stroke="#9ca3af" width={125} tick={{ fontSize: 10 }} />
+              <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} />
+              <Bar dataKey="units" name="Units" fill={COLORS.warning} radius={[0, 3, 3, 0]} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
-
-        {/* Inventory Turnover Rate */}
-        {/* <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Stock Turnover Analysis
-          </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <ScatterChart
-              margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-              data={inventoryTurnoverData}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis
-                type="number"
-                dataKey="turnover"
-                stroke="#6b7280"
-                label={{
-                  value: 'Turnover Rate (times/month)',
-                  position: 'insideBottomRight',
-                  offset: -5
-                }}
-              />
-              <YAxis
-                type="number"
-                dataKey="product"
-                stroke="#6b7280"
-                label={{ value: 'Product', angle: -90, position: 'insideLeft' }}
-                width={100}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#fff',
-                  border: `1px solid ${CHART_COLORS.primary}`,
-                  borderRadius: '8px'
-                }}
-                cursor={{ strokeDasharray: '3 3' }}
-              />
-              <Scatter dataKey="turnover" fill={CHART_COLORS.primary} />
-            </ScatterChart>
-          </ResponsiveContainer>
-        </div> */}
-      </div>
-
-      {/* Detailed Tables */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        {/* High Moving Items Table */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Fast-Moving Products Summary
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                    Product
-                  </th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                    Category
-                  </th>
-                  <th className="text-right py-3 px-4 font-semibold text-gray-700">
-                    Units
-                  </th>
-                  {/* <th className="text-right py-3 px-4 font-semibold text-gray-700">
-                    %
-                  </th> */}
-                </tr>
-              </thead>
-              <tbody>
-                {highMovingItemsData.map((item, idx) => (
-                  <tr
-                    key={idx}
-                    className="border-b border-gray-100 hover:bg-gray-50"
-                  >
-                    <td className="py-3 px-4 text-gray-800">{item.name}</td>
-                    <td className="py-3 px-4 text-gray-600">{item.category}</td>
-                    <td className="text-right py-3 px-4 font-semibold text-green-600">
-                      {(Number(item.units) ?? 0).toLocaleString()}
-                    </td>
-                    {/* <td className="text-right py-3 px-4 text-gray-600">
-                      {item.percentage ?? 0}%
-                    </td> */}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Low Moving Items Table */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Slow-Moving Products Summary
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                    Product
-                  </th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                    Category
-                  </th>
-                  <th className="text-right py-3 px-4 font-semibold text-gray-700">
-                    Units
-                  </th>
-                  {/* <th className="text-right py-3 px-4 font-semibold text-gray-700">
-                    %
-                  </th> */}
-                </tr>
-              </thead>
-              <tbody>
-                {lowMovingItemsData.map((item, idx) => (
-                  <tr
-                    key={idx}
-                    className="border-b border-gray-100 hover:bg-gray-50"
-                  >
-                    <td className="py-3 px-4 text-gray-800">{item.name}</td>
-                    <td className="py-3 px-4 text-gray-600">{item.category}</td>
-                    <td className="text-right py-3 px-4 font-semibold text-orange-600">
-                      {(Number(item.units) ?? 0).toLocaleString()}
-                    </td>
-                    {/* <td className="text-right py-3 px-4 text-gray-600">
-                      {item.percentage ?? 0}%
-                    </td> */}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
         </div>
       </div>
 
-      {/* Category Performance Table */}
-      <div className="bg-white rounded-lg shadow p-6 mb-8">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          Product Category Summary
+      {/* ── Tables ────────────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Fast-moving table */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <h3 className="text-base font-semibold text-[#073c56] mb-4">Fast-Moving Summary</h3>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-100">
+                <th className="text-left py-2 px-3 font-semibold text-gray-600">Product</th>
+                <th className="text-left py-2 px-3 font-semibold text-gray-600">Category</th>
+                <th className="text-right py-2 px-3 font-semibold text-gray-600">Units</th>
+              </tr>
+            </thead>
+            <tbody>
+              {highMoving.length === 0 ? (
+                <tr><td colSpan={3} className="text-center py-8 text-gray-400 text-xs">No data</td></tr>
+              ) : highMoving.map((r, i) => (
+                <tr key={i} className="border-b border-gray-50 hover:bg-gray-50">
+                  <td className="py-2 px-3 text-gray-800">{r.name}</td>
+                  <td className="py-2 px-3 text-gray-500 text-xs">{r.category}</td>
+                  <td className="py-2 px-3 text-right font-semibold text-green-600">{r.units}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Slow-moving table */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <h3 className="text-base font-semibold text-[#073c56] mb-4">Slow-Moving Summary</h3>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-100">
+                <th className="text-left py-2 px-3 font-semibold text-gray-600">Product</th>
+                <th className="text-left py-2 px-3 font-semibold text-gray-600">Category</th>
+                <th className="text-right py-2 px-3 font-semibold text-gray-600">Units</th>
+              </tr>
+            </thead>
+            <tbody>
+              {lowMoving.length === 0 ? (
+                <tr><td colSpan={3} className="text-center py-8 text-gray-400 text-xs">No data</td></tr>
+              ) : lowMoving.map((r, i) => (
+                <tr key={i} className="border-b border-gray-50 hover:bg-gray-50">
+                  <td className="py-2 px-3 text-gray-800">{r.name}</td>
+                  <td className="py-2 px-3 text-gray-500 text-xs">{r.category}</td>
+                  <td className="py-2 px-3 text-right font-semibold text-amber-600">{r.units}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ── Category performance table ────────────────────────────────────── */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <h3 className="text-base font-semibold text-[#073c56] mb-4">
+          Category Performance Summary
         </h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                  Category
-                </th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700">
-                  Items Sold
-                </th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700">
-                  Items Rented
-                </th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700">
-                  Total Activity
-                </th>
+              <tr className="border-b border-gray-100">
+                <th className="text-left py-2 px-4 font-semibold text-gray-600">Category</th>
+                <th className="text-right py-2 px-4 font-semibold text-gray-600">Items Sold</th>
+                <th className="text-right py-2 px-4 font-semibold text-gray-600">Items Rented</th>
+                <th className="text-right py-2 px-4 font-semibold text-gray-600">Total Activity</th>
               </tr>
             </thead>
             <tbody>
-              {categoryPerformanceData.map((item, idx) => (
-                <tr
-                  key={idx}
-                  className="border-b border-gray-100 hover:bg-gray-50"
-                >
-                  <td className="py-3 px-4 font-medium text-gray-800">
-                    {item.category}
-                  </td>
-                  <td className="text-right py-3 px-4 text-gray-600">
-                    {(Number(item.sold) ?? 0).toLocaleString()}
-                  </td>
-                  <td className="text-right py-3 px-4 text-gray-600">
-                    {(Number(item.rented) ?? 0).toLocaleString()}
-                  </td>
-                  <td className="text-right py-3 px-4 text-gray-600">
-                    {(
-                      Number(item.sold ?? 0) + Number(item.rented ?? 0)
-                    ).toLocaleString()}
-                  </td>
-                </tr>
-              ))}
-              <tr className="bg-gray-50 font-semibold">
-                <td className="py-3 px-4 text-gray-800">Total</td>
-                <td className="text-right py-3 px-4 text-gray-800">
-                  {categoryPerformanceData
-                    .reduce((sum, item) => sum + item.sold, 0)
-                    .toLocaleString()}
-                </td>
-                <td className="text-right py-3 px-4 text-gray-800">
-                  {categoryPerformanceData
-                    .reduce((sum, item) => sum + item.rented, 0)
-                    .toLocaleString()}
-                </td>
-                <td className="text-right py-3 px-4 text-gray-800">
-                  {categoryPerformanceData
-                    .reduce((sum, item) => sum + item.sold + item.rented, 0)
-                    .toLocaleString()}
-                </td>
-              </tr>
+              {categoryData.length === 0 ? (
+                <tr><td colSpan={4} className="text-center py-8 text-gray-400 text-xs">No data</td></tr>
+              ) : (
+                <>
+                  {categoryData.map((r, i) => (
+                    <tr key={i} className="border-b border-gray-50 hover:bg-gray-50">
+                      <td className="py-2 px-4 font-medium text-gray-800">{r.category}</td>
+                      <td className="py-2 px-4 text-right text-gray-600">{r.sold}</td>
+                      <td className="py-2 px-4 text-right text-gray-600">{r.rented}</td>
+                      <td className="py-2 px-4 text-right font-semibold text-[#073c56]">
+                        {r.sold + r.rented}
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className="bg-gray-50 font-semibold border-t border-gray-200">
+                    <td className="py-2 px-4 text-gray-800">Total</td>
+                    <td className="py-2 px-4 text-right">{categoryData.reduce((s, r) => s + r.sold, 0)}</td>
+                    <td className="py-2 px-4 text-right">{categoryData.reduce((s, r) => s + r.rented, 0)}</td>
+                    <td className="py-2 px-4 text-right text-[#073c56]">
+                      {categoryData.reduce((s, r) => s + r.sold + r.rented, 0)}
+                    </td>
+                  </tr>
+                </>
+              )}
             </tbody>
           </table>
         </div>

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { LogOut } from 'lucide-react';
+import { LogOut, Warehouse, Briefcase } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { usePortalStore } from '../store/portalStore';
 import Modal from '../components/ui/Modal';
 import { isTokenExpired } from '../utils/auth';
 
@@ -12,6 +13,7 @@ export default function Navbar() {
 
   const logout = useAuthStore((s) => s.logout);
   const user = useAuthStore((s) => s.user);
+  const activePortal = usePortalStore((s) => s.activePortal);
 
   useEffect(() => {
     function handleOutside(e: MouseEvent) {
@@ -60,7 +62,25 @@ export default function Navbar() {
 
   return (
     <div className="w-full bg-white shadow h-16 px-6 flex items-center justify-between">
-      <h2 className="font-semibold text-primary">Dashboard</h2>
+      <div className="flex items-center gap-3">
+        <h2 className="font-semibold text-primary">Dashboard</h2>
+        {activePortal && (
+          <span
+            className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
+              activePortal === 'main'
+                ? 'bg-[#073c56]/10 text-[#073c56]'
+                : 'bg-amber-50 text-amber-600'
+            }`}
+          >
+            {activePortal === 'main' ? (
+              <Warehouse size={12} />
+            ) : (
+              <Briefcase size={12} />
+            )}
+            {activePortal === 'main' ? 'Main Stock' : 'Mini Stock'}
+          </span>
+        )}
+      </div>
 
       <div className="relative">
         <div className="flex items-center gap-4">

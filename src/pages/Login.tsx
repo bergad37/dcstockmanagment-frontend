@@ -25,7 +25,7 @@ const Login = () => {
       toast.error('Login failed');
     }
     if (ok) {
-      navigate('/dashboard');
+      navigate('/portal-select');
     }
   };
 

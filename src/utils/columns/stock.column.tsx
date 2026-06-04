@@ -43,7 +43,7 @@ export const stockColumns = (actions?: any) => [
     name: 'Cost Price',
     selector: (row: any) => row?.costPrice,
     cell: (row: any) => (
-      <span>${row?.costPrice?.toFixed(2) ?? '0.00'}</span>
+      <span>{row?.costPrice?.toFixed(2) ?? '0.00'}</span>
     )
   },
   {
@@ -51,7 +51,7 @@ export const stockColumns = (actions?: any) => [
     selector: (row: any) => row?.quantity * row?.costPrice,
     cell: (row: any) => {
       const totalValue = (row?.quantity ?? 0) * (row?.costPrice ?? 0);
-      return <span className="font-semibold">${totalValue.toFixed(2)}</span>;
+      return <span className="font-semibold">{totalValue.toFixed(2)}</span>;
     }
   },
   ...(actions
