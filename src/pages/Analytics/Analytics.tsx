@@ -20,6 +20,7 @@ import {
   RotateCcw,
   ShoppingCart,
   Loader2,
+  type LucideIcon,
 } from 'lucide-react';
 import { getStatistics, downloadExcelReport } from '../../api/statisticsApi';
 import { toast } from 'sonner';
@@ -38,7 +39,7 @@ interface StatCardProps {
   title: string;
   value: string | number;
   sub?: string;
-  icon: React.ComponentType<{ size: number; className?: string }>;
+  icon: LucideIcon;
   accent: string;
   loading?: boolean;
 }

@@ -137,10 +137,10 @@ export default function MainStockStockIn() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const totalValue = stockIns.reduce(
-    (sum, r) => sum + Number(r.unitCost ?? 0) * r.quantity,
-    0,
-  );
+  // const totalValue = stockIns.reduce(
+  //   (sum, r) => sum + Number(r.unitCost ?? 0) * r.quantity,
+  //   0,
+  // );
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
