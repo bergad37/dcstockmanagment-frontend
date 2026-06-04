@@ -1,15 +1,20 @@
 import { useEffect, useState } from 'react';
 import DataTable from 'react-data-table-component';
-import { Package, Plus, Search } from 'lucide-react';
+import { Package, Plus, Search, ArrowRightLeft, Trash2, AlertTriangle } from 'lucide-react';
 import { customStyles } from '../../utils/ui.helper.styles';
 import { useProductStore } from '../../store/productStore';
 import { useCategoryStore } from '../../store/categoriesStore';
 import Modal from '../../components/ui/Modal';
 import MainStockProductForm from './MainStockProductForm';
+import StockTransferForm from './StockTransferForm';
+import { toast } from 'sonner';
 
 const LOW_STOCK_THRESHOLD = 3;
 
-const columns = [
+const buildColumns = (
+  onTransfer: (row: any) => void,
+  onArchive: (row: any) => void
+) => [
   {
     name: 'Product Name',
     selector: (row: any) => row.name,
@@ -98,16 +103,44 @@ const columns = [
           })
         : '—',
   },
+  {
+    name: 'Actions',
+    cell: (row: any) => (
+      <div className="flex items-center gap-1.5">
+        <button
+          title={`Transfer ${row.name} to Mini Stock`}
+          onClick={() => onTransfer(row)}
+          disabled={(row.stock?.quantity ?? 0) === 0}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 hover:bg-amber-500 hover:text-white border border-amber-200 transition text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <ArrowRightLeft size={13} />
+          {/* Transfer */}
+        </button>
+        <button
+          title={`Remove ${row.name} from Main Stock`}
+          onClick={() => onArchive(row)}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-red-200 transition text-xs font-semibold"
+        >
+          <Trash2 size={13} />
+          {/* Remove */}
+        </button>
+      </div>
+    ),
+  },
 ];
 
 export default function MainStockProducts() {
-  const { products, loading, pagination, listProducts } = useProductStore();
+  const { products, loading, pagination, listProducts, deleteProduct } = useProductStore();
   const { categories, fetchCategories } = useCategoryStore();
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
   const [showForm, setShowForm] = useState(false);
+  const [transferProduct, setTransferProduct] = useState<any>(null);
+  const [archiveProduct, setArchiveProduct] = useState<any>(null);
+  const [archiveReason, setArchiveReason] = useState('');
+  const [archiveLoading, setArchiveLoading] = useState(false);
 
   const load = (p = page, pp = perPage, s = search, cat = categoryFilter) => {
     const params: Record<string, any> = {
@@ -136,6 +169,26 @@ export default function MainStockProducts() {
     setCategoryFilter(cat);
     setPage(1);
     load(1, perPage, search, cat);
+  };
+
+  const handleArchiveConfirm = async () => {
+    if (!archiveProduct) return;
+    if (!archiveReason.trim()) {
+      toast.error('Please provide a reason before removing');
+      return;
+    }
+    setArchiveLoading(true);
+    try {
+      await deleteProduct(archiveProduct.id, archiveReason.trim());
+      toast.success(`"${archiveProduct.name}" removed from Main Stock`);
+      setArchiveProduct(null);
+      setArchiveReason('');
+      load(page, perPage);
+    } catch {
+      toast.error('Failed to remove product');
+    } finally {
+      setArchiveLoading(false);
+    }
   };
 
   return (
@@ -185,7 +238,10 @@ export default function MainStockProducts() {
         </div>
 
         <DataTable
-          columns={columns}
+          columns={buildColumns(
+            (row) => setTransferProduct(row),
+            (row) => { setArchiveProduct(row); setArchiveReason(''); }
+          )}
           data={products}
           highlightOnHover
           pointerOnHover
@@ -220,6 +276,100 @@ export default function MainStockProducts() {
           onClose={() => setShowForm(false)}
           onSuccess={() => { setShowForm(false); load(1, perPage); }}
         />
+      </Modal>
+
+      <Modal
+        isOpen={!!transferProduct}
+        onClose={() => setTransferProduct(null)}
+        title="Transfer to Mini Stock"
+        maxHeight={640}
+      >
+        {transferProduct && (
+          <StockTransferForm
+            product={transferProduct}
+            onClose={() => setTransferProduct(null)}
+            onSuccess={() => {
+              setTransferProduct(null);
+              load(page, perPage);
+            }}
+          />
+        )}
+      </Modal>
+
+      {/* Archive / Remove confirmation modal */}
+      <Modal
+        isOpen={!!archiveProduct}
+        onClose={() => { setArchiveProduct(null); setArchiveReason(''); }}
+        title="Remove Product from Main Stock"
+        maxHeight={500}
+      >
+        {archiveProduct && (
+          <div className="space-y-5 p-1">
+            {/* Product summary */}
+            <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-3">
+              <p className="font-semibold text-red-700">{archiveProduct.name}</p>
+              <p className="text-xs text-red-400 mt-0.5">
+                {archiveProduct.category?.name}
+                {archiveProduct.stock?.quantity != null
+                  ? ` · ${archiveProduct.stock.quantity} units currently in stock`
+                  : ''}
+              </p>
+            </div>
+
+            {/* Contextual warnings */}
+            <div className="space-y-2">
+              {(archiveProduct.stock?.quantity ?? 0) > 0 && (
+                <div className="flex gap-2 rounded-xl bg-amber-50 border border-amber-100 px-4 py-3">
+                  <AlertTriangle size={15} className="text-amber-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-amber-700">
+                    This product still has <strong>{archiveProduct.stock.quantity} units</strong> in
+                    stock. Removing it will hide it from the catalog but stock records are kept.
+                  </p>
+                </div>
+              )}
+              <div className="flex gap-2 rounded-xl bg-blue-50 border border-blue-100 px-4 py-3">
+                <AlertTriangle size={15} className="text-blue-400 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-blue-600">
+                  If this product was already transferred to Mini Stock, those Mini Stock entries
+                  are <strong>not affected</strong> — they remain fully active.
+                </p>
+              </div>
+            </div>
+
+            {/* Reason */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Reason for removal <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                rows={3}
+                value={archiveReason}
+                onChange={(e) => setArchiveReason(e.target.value)}
+                placeholder="e.g. Added by mistake, duplicate entry..."
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#073c56]"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => { setArchiveProduct(null); setArchiveReason(''); }}
+                className="px-4 py-2 rounded-full border border-gray-300 text-sm  text-white hover:bg-white hover:text-primary transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleArchiveConfirm}
+                disabled={archiveLoading || !archiveReason.trim()}
+                className="flex items-center gap-2 px-5 py-2 rounded-full bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Trash2 size={14} />
+                {archiveLoading ? 'Removing...' : 'Remove Product'}
+              </button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );

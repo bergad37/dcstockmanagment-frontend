@@ -139,8 +139,8 @@ export default function StockInForm({ onClose, onSuccess }: Props) {
           {/* Unit Cost + Invoice */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelCls}>Unit Cost (USD)</label>
-              <Field name="unitCost" type="number" min={0} step="0.01" placeholder="0.00" className={inputCls} />
+              <label className={labelCls}>Unit Cost (RWF)</label>
+              <Field name="unitCost" type="number" min={0} step="0.01" placeholder="0 RWF" className={inputCls} />
               <ErrorMessage name="unitCost" component="div" className={errCls} />
             </div>
             <div>
@@ -171,7 +171,7 @@ export default function StockInForm({ onClose, onSuccess }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-full border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+              className="px-4 py-2 rounded-full border border-gray-300 text-sm text-white hover:bg-gray-50  hover:text-primary transition"
             >
               Cancel
             </button>

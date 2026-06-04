@@ -1,33 +1,33 @@
-import { useEffect, useState } from 'react';
-import DataTable from 'react-data-table-component';
-import { ArrowDownToLine, Plus } from 'lucide-react';
-import { customStyles } from '../../utils/ui.helper.styles';
-import { useStockInStore } from '../../store/stockInStore';
-import Modal from '../../components/ui/Modal';
-import StockInForm from './StockInForm';
+import { useEffect, useState } from "react";
+import DataTable from "react-data-table-component";
+import { ArrowDownToLine, Plus } from "lucide-react";
+import { customStyles } from "../../utils/ui.helper.styles";
+import { useStockInStore } from "../../store/stockInStore";
+import Modal from "../../components/ui/Modal";
+import StockInForm from "./StockInForm";
 
 const columns = [
   {
-    name: 'Date',
+    name: "Date",
     selector: (row: any) => row.receivedAt,
     sortable: true,
     cell: (row: any) =>
       row.receivedAt
-        ? new Date(row.receivedAt).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
+        ? new Date(row.receivedAt).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
           })
-        : '—',
+        : "—",
   },
   {
-    name: 'Product',
+    name: "Product",
     selector: (row: any) => row.product?.name,
     sortable: true,
     grow: 2,
     cell: (row: any) => (
       <div className="py-1">
-        <p className="font-medium text-gray-800">{row.product?.name ?? '—'}</p>
+        <p className="font-medium text-gray-800">{row.product?.name ?? "—"}</p>
         {row.product?.serialNumber && (
           <p className="text-xs text-gray-400 font-mono">
             SN: {row.product.serialNumber}
@@ -37,13 +37,14 @@ const columns = [
     ),
   },
   {
-    name: 'Supplier',
+    name: "Supplier",
     selector: (row: any) => row.supplier?.name,
     sortable: true,
-    cell: (row: any) => row.supplier?.name ?? <span className="text-gray-300">—</span>,
+    cell: (row: any) =>
+      row.supplier?.name ?? <span className="text-gray-300">—</span>,
   },
   {
-    name: 'Qty Received',
+    name: "Qty Received",
     selector: (row: any) => row.quantity,
     sortable: true,
     grow: 0.6,
@@ -54,33 +55,33 @@ const columns = [
     ),
   },
   {
-    name: 'Unit Cost',
+    name: "Unit Cost",
     selector: (row: any) => row.unitCost,
     sortable: true,
     cell: (row: any) =>
       row.unitCost != null ? (
         <span className="text-sm font-medium text-gray-700">
-          ${Number(row.unitCost).toLocaleString()}
+          {Number(row.unitCost).toLocaleString()}
         </span>
       ) : (
         <span className="text-gray-300">—</span>
       ),
   },
   {
-    name: 'Total Value',
+    name: "Total Value",
     selector: (row: any) => (row.unitCost ?? 0) * row.quantity,
     sortable: true,
     cell: (row: any) =>
       row.unitCost != null ? (
         <span className="text-sm font-semibold text-[#073c56]">
-          ${(Number(row.unitCost) * row.quantity).toLocaleString()}
+          {(Number(row.unitCost) * row.quantity).toLocaleString()}
         </span>
       ) : (
         <span className="text-gray-300">—</span>
       ),
   },
   {
-    name: 'Invoice #',
+    name: "Invoice #",
     selector: (row: any) => row.invoiceNo,
     cell: (row: any) =>
       row.invoiceNo ? (
@@ -90,12 +91,13 @@ const columns = [
       ),
   },
   {
-    name: 'Received By',
+    name: "Received By",
     selector: (row: any) => row.receivedBy,
-    cell: (row: any) => row.receivedBy ?? <span className="text-gray-300">—</span>,
+    cell: (row: any) =>
+      row.receivedBy ?? <span className="text-gray-300">—</span>,
   },
   {
-    name: 'Notes',
+    name: "Notes",
     selector: (row: any) => row.notes,
     grow: 1.5,
     cell: (row: any) =>
@@ -109,14 +111,20 @@ const columns = [
 
 export default function MainStockStockIn() {
   const { stockIns, loading, pagination, fetchStockIns } = useStockInStore();
-  const [search, setSearch] = useState('');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [search, setSearch] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
   const [showForm, setShowForm] = useState(false);
 
-  const load = (p = page, pp = perPage, s = search, from = dateFrom, to = dateTo) => {
+  const load = (
+    p = page,
+    pp = perPage,
+    s = search,
+    from = dateFrom,
+    to = dateTo,
+  ) => {
     const params: Record<string, any> = { page: p, limit: pp };
     if (s) params.searchKey = s;
     if (from) params.startDate = from;
@@ -130,16 +138,20 @@ export default function MainStockStockIn() {
   }, []);
 
   const totalValue = stockIns.reduce(
-    (sum, r) => sum + (Number(r.unitCost ?? 0) * r.quantity),
-    0
+    (sum, r) => sum + Number(r.unitCost ?? 0) * r.quantity,
+    0,
   );
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="mb-8 flex items-start justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-[#073c56]">Stock In</h2>
-          <p className="py-2 text-gray-600">Record of all incoming stock from suppliers</p>
+          <h2 className="text-3xl font-bold tracking-tight text-[#073c56]">
+            Stock In
+          </h2>
+          <p className="py-2 text-gray-600">
+            Record of all incoming stock from suppliers
+          </p>
         </div>
         <button
           onClick={() => setShowForm(true)}
@@ -156,18 +168,20 @@ export default function MainStockStockIn() {
           <ArrowDownToLine size={18} className="text-[#073c56]" />
           <div>
             <p className="text-xs text-gray-400">Records</p>
-            <p className="text-lg font-bold text-[#073c56]">{pagination?.total ?? stockIns.length}</p>
+            <p className="text-lg font-bold text-[#073c56]">
+              {pagination?.total ?? stockIns.length}
+            </p>
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-5 py-3 flex items-center gap-3">
+        {/* <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-5 py-3 flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center">
-            <span className="text-green-600 font-bold text-sm">$</span>
+            <span className="text-green-600 font-bold text-sm"></span>
           </div>
           <div>
             <p className="text-xs text-gray-400">Total Value (page)</p>
-            <p className="text-lg font-bold text-[#073c56]">${totalValue.toLocaleString()}</p>
+            <p className="text-lg font-bold text-[#073c56]">{totalValue.toLocaleString()}</p>
           </div>
-        </div>
+        </div> */}
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
@@ -185,28 +199,45 @@ export default function MainStockStockIn() {
           />
 
           <div className="flex items-center gap-2">
-            <label className="text-xs text-gray-400 whitespace-nowrap">From</label>
+            <label className="text-xs text-gray-400 whitespace-nowrap">
+              From
+            </label>
             <input
               type="date"
               value={dateFrom}
-              onChange={(e) => { setDateFrom(e.target.value); setPage(1); load(1, perPage, search, e.target.value, dateTo); }}
+              onChange={(e) => {
+                setDateFrom(e.target.value);
+                setPage(1);
+                load(1, perPage, search, e.target.value, dateTo);
+              }}
               className="border border-gray-200 rounded-full px-3 py-2 text-sm focus:outline-none focus:border-[#073c56] text-gray-600"
             />
           </div>
 
           <div className="flex items-center gap-2">
-            <label className="text-xs text-gray-400 whitespace-nowrap">To</label>
+            <label className="text-xs text-gray-400 whitespace-nowrap">
+              To
+            </label>
             <input
               type="date"
               value={dateTo}
-              onChange={(e) => { setDateTo(e.target.value); setPage(1); load(1, perPage, search, dateFrom, e.target.value); }}
+              onChange={(e) => {
+                setDateTo(e.target.value);
+                setPage(1);
+                load(1, perPage, search, dateFrom, e.target.value);
+              }}
               className="border border-gray-200 rounded-full px-3 py-2 text-sm focus:outline-none focus:border-[#073c56] text-gray-600"
             />
           </div>
 
           {(dateFrom || dateTo) && (
             <button
-              onClick={() => { setDateFrom(''); setDateTo(''); setPage(1); load(1, perPage, search, '', ''); }}
+              onClick={() => {
+                setDateFrom("");
+                setDateTo("");
+                setPage(1);
+                load(1, perPage, search, "", "");
+              }}
               className="px-3 py-2 rounded-full border border-gray-200 text-sm text-gray-500 hover:bg-gray-50 transition"
             >
               Clear
@@ -231,8 +262,15 @@ export default function MainStockStockIn() {
           paginationServer
           paginationPerPage={perPage}
           paginationTotalRows={pagination?.total ?? 0}
-          onChangePage={(p) => { setPage(p); load(p, perPage, search, dateFrom, dateTo); }}
-          onChangeRowsPerPage={(pp, p) => { setPerPage(pp); setPage(p); load(p, pp, search, dateFrom, dateTo); }}
+          onChangePage={(p) => {
+            setPage(p);
+            load(p, perPage, search, dateFrom, dateTo);
+          }}
+          onChangeRowsPerPage={(pp, p) => {
+            setPerPage(pp);
+            setPage(p);
+            load(p, pp, search, dateFrom, dateTo);
+          }}
           paginationRowsPerPageOptions={[10, 20, 50]}
           responsive
           striped
@@ -245,10 +283,19 @@ export default function MainStockStockIn() {
         />
       </div>
 
-      <Modal isOpen={showForm} onClose={() => setShowForm(false)} title="Record Stock In" maxHeight={600}>
+      <Modal
+        isOpen={showForm}
+        onClose={() => setShowForm(false)}
+        title="Record Stock In"
+        maxHeight={600}
+      >
         <StockInForm
           onClose={() => setShowForm(false)}
-          onSuccess={() => { setShowForm(false); load(1, perPage); setPage(1); }}
+          onSuccess={() => {
+            setShowForm(false);
+            load(1, perPage);
+            setPage(1);
+          }}
         />
       </Modal>
     </div>

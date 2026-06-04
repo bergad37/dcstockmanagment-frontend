@@ -10,6 +10,7 @@ import {
   Package,
   Truck,
   ArrowDownToLine,
+  ArrowRightLeft,
   RefreshCw,
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -29,6 +30,7 @@ const mainStockItems = [
   { title: 'Products', icon: Package, path: '/main-stock/products' },
   { title: 'Suppliers', icon: Truck, path: '/main-stock/suppliers' },
   { title: 'Stock In', icon: ArrowDownToLine, path: '/main-stock/stock-in' },
+  { title: 'Transfers', icon: ArrowRightLeft, path: '/main-stock/transfers' },
 ];
 
 export default function Sidebar() {
@@ -69,7 +71,7 @@ export default function Sidebar() {
 
       {/* Portal badge */}
       {open && (
-        <div className="mx-4 mb-2 px-3 py-1.5 rounded-lg bg-white/10 text-xs font-semibold flex items-center gap-2">
+        <div className="mb-2 px-3 py-4 rounded-lg bg-white/10 text-xs font-semibold flex items-center gap-2">
           {activePortal === 'main' ? (
             <>
               <Warehouse size={13} />

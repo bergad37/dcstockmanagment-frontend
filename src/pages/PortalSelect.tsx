@@ -68,7 +68,7 @@ export default function PortalSelect() {
           {/* Main Stock Card */}
           {canMain && <button
             onClick={() => handleSelect('main')}
-            className="group relative bg-white rounded-2xl border-2 border-gray-200 hover:border-[#073c56] shadow-sm hover:shadow-lg transition-all duration-300 p-10 text-left flex flex-col gap-5 focus:outline-none focus:ring-2 focus:ring-[#073c56]/40"
+            className="group relative bg-white hover:bg-[#073c56]/[0.04] rounded-2xl border-2 border-gray-200 hover:border-[#073c56] shadow-sm hover:shadow-lg transition-all duration-300 p-10 text-left flex flex-col gap-5 focus:outline-none focus:ring-2 focus:ring-[#073c56]/40"
           >
             <div className="w-16 h-16 rounded-2xl bg-[#073c56]/10 flex items-center justify-center group-hover:bg-[#073c56] transition-colors duration-300">
               <Warehouse
@@ -114,7 +114,7 @@ export default function PortalSelect() {
           {/* Mini Stock Card */}
           {canMini && <button
             onClick={() => handleSelect('mini')}
-            className="group relative bg-white rounded-2xl border-2 border-gray-200 hover:border-[#073c56] shadow-sm hover:shadow-lg transition-all duration-300 p-10 text-left flex flex-col gap-5 focus:outline-none focus:ring-2 focus:ring-[#073c56]/40"
+            className="group relative bg-white hover:bg-amber-50/60 rounded-2xl border-2 border-gray-200 hover:border-amber-400 shadow-sm hover:shadow-lg transition-all duration-300 p-10 text-left flex flex-col gap-5 focus:outline-none focus:ring-2 focus:ring-amber-300/50"
           >
             <div className="w-16 h-16 rounded-2xl bg-amber-50 flex items-center justify-center group-hover:bg-amber-500 transition-colors duration-300">
               <Briefcase

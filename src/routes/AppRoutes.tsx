@@ -16,6 +16,7 @@ import MainStockOverview from '../pages/MainStock/MainStockOverview';
 import MainStockProducts from '../pages/MainStock/MainStockProducts';
 import MainStockSuppliers from '../pages/MainStock/MainStockSuppliers';
 import MainStockStockIn from '../pages/MainStock/MainStockStockIn';
+import MainStockTransfers from '../pages/MainStock/MainStockTransfers';
 
 export default function AppRoutes() {
   return (
@@ -63,6 +64,7 @@ export default function AppRoutes() {
           <Route path="/main-stock/products" element={<MainStockProducts />} />
           <Route path="/main-stock/suppliers" element={<MainStockSuppliers />} />
           <Route path="/main-stock/stock-in" element={<MainStockStockIn />} />
+          <Route path="/main-stock/transfers" element={<MainStockTransfers />} />
         </Route>
       </Routes>
     </BrowserRouter>

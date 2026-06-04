@@ -1,8 +1,18 @@
 import { useEffect, useState } from 'react';
 import DataTable from 'react-data-table-component';
 import { Truck, Plus, Search, Mail, Phone } from 'lucide-react';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
+import { toast } from 'sonner';
 import { customStyles } from '../../utils/ui.helper.styles';
-import { useSupplierStore } from '../../store/supplierStore';
+import useSupplierStore from '../../store/supplierStore';
+import Modal from '../../components/ui/Modal';
+
+const supplierSchema = Yup.object({
+  name: Yup.string().required('Supplier name is required'),
+  phone: Yup.string(),
+  email: Yup.string().email('Invalid email'),
+});
 
 const columns = [
   {
@@ -80,12 +90,20 @@ const columns = [
   },
 ];
 
+const inputCls =
+  'w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#073c56]';
+const labelCls = 'block text-sm font-medium text-gray-700 mb-1';
+const errCls = 'text-red-500 text-xs mt-1';
+
 export default function MainStockSuppliers() {
-  const { suppliers, loading, fetchSuppliers } = useSupplierStore();
+  const { suppliers, loading, fetchSuppliers, createSupplier } = useSupplierStore();
   const [search, setSearch] = useState('');
+  const [showForm, setShowForm] = useState(false);
+
+  const reload = () => fetchSuppliers(undefined, 1, 100);
 
   useEffect(() => {
-    fetchSuppliers(undefined, 1, 100);
+    reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -97,6 +115,32 @@ export default function MainStockSuppliers() {
       s.phone?.includes(search)
   );
 
+  const handleSubmit = async (
+    values: { name: string; phone: string; email: string },
+    { resetForm }: any
+  ) => {
+    try {
+      const res = await createSupplier({
+        name: values.name.trim(),
+        phone: values.phone || undefined,
+        email: values.email || undefined,
+      });
+      const ok = res?.data?.success ?? res?.data?.sucess ?? false;
+      if (ok) {
+        toast.success(`Supplier "${values.name}" added`);
+        resetForm();
+        setShowForm(false);
+        reload();
+      } else {
+        toast.error(res?.data?.message || 'Failed to add supplier');
+      }
+    } catch (e: any) {
+      toast.error(
+        e?.response?.data?.message || e?.message || 'Failed to add supplier'
+      );
+    }
+  };
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="mb-8 flex items-start justify-between">
@@ -104,7 +148,10 @@ export default function MainStockSuppliers() {
           <h2 className="text-3xl font-bold tracking-tight text-[#073c56]">Suppliers</h2>
           <p className="py-2 text-gray-600">Manage your stock suppliers and contacts</p>
         </div>
-        <button className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#073c56] text-white text-sm font-semibold hover:bg-[#062e42] transition">
+        <button
+          onClick={() => setShowForm(true)}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#073c56] text-white text-sm font-semibold hover:bg-[#062e42] transition"
+        >
           <Plus size={16} />
           Add Supplier
         </button>
@@ -148,6 +195,75 @@ export default function MainStockSuppliers() {
           }
         />
       </div>
+
+      {/* Add Supplier modal */}
+      <Modal
+        isOpen={showForm}
+        onClose={() => setShowForm(false)}
+        title="Add Supplier"
+        maxHeight={420}
+      >
+        <Formik
+          initialValues={{ name: '', phone: '', email: '' }}
+          validationSchema={supplierSchema}
+          onSubmit={handleSubmit}
+        >
+          {({ isSubmitting, errors, touched }) => (
+            <Form className="space-y-4 p-1">
+              <div>
+                <label className={labelCls}>Supplier Name *</label>
+                <Field
+                  name="name"
+                  type="text"
+                  placeholder="e.g. Leica Geosystems"
+                  className={`${inputCls} ${errors.name && touched.name ? 'border-red-400' : ''}`}
+                />
+                <ErrorMessage name="name" component="div" className={errCls} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>Phone</label>
+                  <Field
+                    name="phone"
+                    type="text"
+                    placeholder="+250 700 000 000"
+                    className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>Email</label>
+                  <Field
+                    name="email"
+                    type="email"
+                    placeholder="contact@supplier.com"
+                    className={`${inputCls} ${errors.email && touched.email ? 'border-red-400' : ''}`}
+                  />
+                  <ErrorMessage name="email" component="div" className={errCls} />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="px-4 py-2 rounded-full border border-gray-300 text-sm  text-white hover:bg-gray-50 hover:text-primary transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex items-center gap-2 px-5 py-2 rounded-full bg-[#073c56] text-white text-sm font-semibold hover:bg-[#062e42] transition disabled:opacity-50"
+                >
+                  <Truck size={14} />
+                  {isSubmitting ? 'Saving...' : 'Add Supplier'}
+                </button>
+              </div>
+            </Form>
+          )}
+        </Formik>
+      </Modal>
     </div>
   );
 }
