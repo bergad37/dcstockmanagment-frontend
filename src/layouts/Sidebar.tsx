@@ -12,17 +12,20 @@ import {
   ArrowDownToLine,
   ArrowRightLeft,
   RefreshCw,
+  Shield,
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { usePortalStore } from '../store/portalStore';
+import { useAuthStore } from '../store/authStore';
 
-const miniStockItems = [
+const getMiniStockItems = (isAdmin: boolean) => [
   { title: 'Analytics', icon: LayoutDashboard, path: '/dashboard' },
   { title: 'Users', icon: Users, path: '/users' },
   { title: 'Clients', icon: Briefcase, path: '/clients' },
   { title: 'Products/Equipments', icon: Briefcase, path: '/products' },
   { title: 'Stock', icon: ArrowDownUp, path: '/stock' },
   { title: 'Settings', icon: Settings, path: '/settings' },
+  ...(isAdmin ? [{ title: 'Audit Trail', icon: Shield, path: '/audit-trail' }] : []),
 ];
 
 const mainStockItems = [
@@ -38,8 +41,9 @@ export default function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { activePortal, clearPortal } = usePortalStore();
+  const user = useAuthStore((s) => s.user);
 
-  const menuItems = activePortal === 'main' ? mainStockItems : miniStockItems;
+  const menuItems = activePortal === 'main' ? mainStockItems : getMiniStockItems(user?.role === 'ADMIN');
 
   const handleSwitchPortal = () => {
     clearPortal();

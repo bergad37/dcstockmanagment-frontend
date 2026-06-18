@@ -3,6 +3,8 @@ import { useAuthStore } from '../store/authStore';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { toast } from 'sonner';
+import { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 
 // Validation Schema
 const LoginSchema = Yup.object().shape({
@@ -18,6 +20,7 @@ const LoginSchema = Yup.object().shape({
 const Login = () => {
   const navigate = useNavigate();
   const { login, loading } = useAuthStore();
+  const [showPassword, setShowPassword] = useState(false);
 
   const submit = async (values: { email: string; password: string }) => {
     const ok = await login(values);
@@ -99,18 +102,28 @@ const Login = () => {
                     </Link>
                   </div>
 
-                  <Field
-                    id="password"
-                    name="password"
-                    type="password"
-                    className={`mt-2 block w-full rounded-3xl px-3 py-2 text-gray-900 
-                    border ${
-                      errors.password && touched.password
-                        ? 'border-red-500'
-                        : 'border-[#073c56]/40'
-                    }
-                    focus:border-[#073c56] focus:outline-none`}
-                  />
+                  <div className="relative mt-2">
+                    <Field
+                      id="password"
+                      name="password"
+                      type={showPassword ? 'text' : 'password'}
+                      className={`block w-full rounded-3xl px-3 py-2 pr-10 text-gray-900
+                      border ${
+                        errors.password && touched.password
+                          ? 'border-red-500'
+                          : 'border-[#073c56]/40'
+                      }
+                      focus:border-[#073c56] focus:outline-none`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
 
                   <ErrorMessage
                     name="password"

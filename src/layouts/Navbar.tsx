@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { LogOut, Warehouse, Briefcase } from 'lucide-react';
+import { LogOut, Warehouse, Briefcase, KeyRound } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { usePortalStore } from '../store/portalStore';
 import Modal from '../components/ui/Modal';
 import { isTokenExpired } from '../utils/auth';
+import ChangePasswordModal from '../components/ChangePasswordModal';
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
 
@@ -105,6 +107,12 @@ export default function Navbar() {
 
             <div className="p-2">
               <button
+                onClick={() => { setOpen(false); setShowChangePassword(true); }}
+                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded"
+              >
+                <KeyRound size={16} /> <span className="text-sm">Change Password</span>
+              </button>
+              <button
                 onClick={handleLogout}
                 className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded"
               >
@@ -114,6 +122,11 @@ export default function Navbar() {
           </div>
         )}
       </div>
+
+      <ChangePasswordModal
+        isOpen={showChangePassword}
+        onClose={() => setShowChangePassword(false)}
+      />
 
       <Modal
         isOpen={sessionExpired}

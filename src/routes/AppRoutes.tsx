@@ -5,6 +5,8 @@ import Analytics from '../pages/Analytics/Analytics';
 import Settings from '../pages/Categories/Settings';
 import DashboardLayout from '../layouts/DashbordLayout';
 import Login from '../pages/Login';
+import ForgotPassword from '../pages/ForgotPassword';
+import ResetPassword from '../pages/ResetPassword';
 import PublicRoute from './PublicRoutes';
 import ProtectedRoute from './ProtectedRoutes';
 import { Toaster } from 'sonner';
@@ -17,6 +19,7 @@ import MainStockProducts from '../pages/MainStock/MainStockProducts';
 import MainStockSuppliers from '../pages/MainStock/MainStockSuppliers';
 import MainStockStockIn from '../pages/MainStock/MainStockStockIn';
 import MainStockTransfers from '../pages/MainStock/MainStockTransfers';
+import AuditTrail from '../pages/AuditTrail/AuditTrail';
 
 export default function AppRoutes() {
   return (
@@ -24,12 +27,28 @@ export default function AppRoutes() {
       <Toaster richColors position="top-right" />
 
       <Routes>
-        {/* Public Route */}
+        {/* Public Routes */}
         <Route
           path="/"
           element={
             <PublicRoute>
               <Login />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <PublicRoute>
+              <ForgotPassword />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <PublicRoute>
+              <ResetPassword />
             </PublicRoute>
           }
         />
@@ -58,6 +77,8 @@ export default function AppRoutes() {
           <Route path="/stock" element={<Stock />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/settings" element={<Settings />} />
+
+          <Route path="/audit-trail" element={<AuditTrail />} />
 
           {/* Main Stock routes */}
           <Route path="/main-stock/overview" element={<MainStockOverview />} />
