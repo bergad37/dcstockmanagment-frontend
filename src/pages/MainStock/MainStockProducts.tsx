@@ -78,7 +78,7 @@ const buildColumns = (
     cell: (row: any) =>
       row.costPrice != null ? (
         <span className="text-sm font-medium text-gray-700">
-          ${Number(row.costPrice).toLocaleString()}
+          {Number(row.costPrice).toLocaleString()}
         </span>
       ) : (
         <span className="text-gray-300">—</span>

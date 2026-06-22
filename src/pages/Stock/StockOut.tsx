@@ -863,6 +863,14 @@ const Stock = () => {
                   </p>
                 </div>
                 <div>
+                  <p className="text-sm font-medium text-gray-500">Created By</p>
+                  <p className="text-sm text-gray-900">
+                    {selectedTransaction?.transaction?.createdByUser
+                      ? (selectedTransaction?.transaction?.createdByUser.name ?? selectedTransaction?.transaction?.createdByUser?.email)
+                      : (selectedTransaction?.transaction?.createdBy ?? 'N/A')}
+                  </p>
+                </div>
+                <div>
                   <p className="text-sm font-medium text-gray-500">
                     Transaction Type
                   </p>

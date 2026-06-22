@@ -50,7 +50,7 @@ const columns = [
     name: 'Action',
     cell: (row: AuditLog) => actionBadge(row.action),
     sortable: false,
-    width: '140px',
+    width: '200px',
   },
   {
     name: 'Entity',

@@ -1,4 +1,5 @@
 export type ProductType = 'item' | 'quantity' | 'calibration';
+export type ProductCondition = 'NEW' | 'SECOND_HAND' | 'OLD';
 
 export interface ProductFormValues {
   id: string | null;
@@ -13,7 +14,7 @@ export interface ProductFormValues {
   costPrice: number | null;
   entryDate: string;
   supplierName?: string;
-
+  condition: ProductCondition;
 }
 
 // Payload sent to backend - kept flexible to match API expectations
@@ -34,4 +35,5 @@ export interface ProductPayload {
   costPrice?: number | null;
   quantity?: number | null;
   entryDate: string;
+  condition?: ProductCondition;
 }

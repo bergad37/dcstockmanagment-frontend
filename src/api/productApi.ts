@@ -17,6 +17,7 @@ export interface ProductPayload {
   costPrice?: number | null;
   quantity?: number | null;
   entryDate: string;
+  condition?: 'NEW' | 'SECOND_HAND' | 'OLD';
 }
 
 const productApi = {
@@ -26,6 +27,10 @@ const productApi = {
     axiosClient.get('/products', { params }),
 
   fetchAllProducts: () => axiosClient.get('/products/all'),
+
+  fetchSuggestions: (categoryId: string) =>
+    axiosClient.get('/product-suggestions', { params: { categoryId } }),
+
   update: (id: string, payload: ProductPayload) =>
     axiosClient.put(`/products/${id}`, payload),
 

@@ -96,7 +96,7 @@ const ResetPassword = () => {
                       } focus:border-[#073c56] focus:outline-none`}
                     />
                     <button type="button" onClick={() => setShowNew((v) => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" tabIndex={-1}>
+                      className="absolute right-3 top-1/2 -translate-y-1/2 bg-white text-gray-400 hover:text-gray-600" tabIndex={-1}>
                       {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
@@ -119,7 +119,7 @@ const ResetPassword = () => {
                       } focus:border-[#073c56] focus:outline-none`}
                     />
                     <button type="button" onClick={() => setShowConfirm((v) => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" tabIndex={-1}>
+                      className="absolute bg-white right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" tabIndex={-1}>
                       {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>

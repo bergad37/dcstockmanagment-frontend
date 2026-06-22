@@ -110,7 +110,6 @@ const Products = () => {
   };
 
   const editAction = (data: any) => {
-    setShowForm(true);
     setInitialValues({
       id: data.id,
       name: data.name,
@@ -118,14 +117,16 @@ const Products = () => {
       warranty: data.warranty,
       categoryId: data.categoryId ?? data.category?.id ?? data.category ?? '',
       supplierId: data.supplierId ?? data.supplier?.id ?? '',
-      quantity: data.stock.quantity ?? null,
+      quantity: data.stock?.quantity ?? null,
       serialNumber: data.serialNumber || '',
       costPrice: data.costPrice || null,
       entryDate: data.entryDate
-        ? new Date(data?.entryDate).toISOString().split('T')[0]
+        ? new Date(data.entryDate).toISOString().split('T')[0]
         : '',
-      type: data.type ? data.type.toLowerCase() : 'item'
+      type: data.type ? data.type.toLowerCase() : 'item',
+      condition: data.condition ?? 'NEW',
     });
+    setShowForm(true);
   };
 
   //   const handleDelete = () => {
@@ -149,6 +150,7 @@ const Products = () => {
   const handleClose = () => {
     setShowDeleteModal(false);
     setShowForm(false);
+    setInitialValues(productInitialValues);
   };
 
   const handleChangePage = async (newPage: number) => {

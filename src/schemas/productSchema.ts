@@ -12,18 +12,22 @@ export const productInitialValues: ProductFormValues = {
   quantity: null,
   serialNumber: '',
   costPrice: null,
-  entryDate: ''
+  entryDate: '',
+  condition: 'NEW',
 };
 
 export const ProductSchema = Yup.object().shape({
   id: Yup.string().nullable(),
   name: Yup.string()
     .min(2, 'Product name too short')
-    .max(50, 'Product name too long')
+    .max(100, 'Product name too long')
     .required('Product name is required'),
   type: Yup.string()
     .oneOf(['item', 'quantity','calibration'], 'Invalid product type')
     .required('Product type is required'),
+  condition: Yup.string()
+    .oneOf(['NEW', 'SECOND_HAND', 'OLD'], 'Invalid condition')
+    .required('Condition is required'),
   description: Yup.string().nullable(),
   warranty: Yup.string().nullable(),
   categoryId: Yup.string().required('Category is required'),

@@ -1,25 +1,47 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { toast } from 'sonner';
+import Select from 'react-select';
+import CreatableSelect from 'react-select/creatable';
 import { useProductStore } from '../../store/productStore';
 import { useCategoryStore } from '../../store/categoriesStore';
 import { useSupplierStore } from '../../store/supplierStore';
+import productApi from '../../api/productApi';
 
 interface Props {
   onClose: () => void;
   onSuccess: () => void;
 }
 
+const selectStyles = {
+  control: (base: any, state: any) => ({
+    ...base,
+    borderRadius: '0.75rem',
+    padding: '2px',
+    borderColor: state.isFocused ? '#073c56' : '#e5e7eb',
+    boxShadow: state.isFocused ? '0 0 0 2px rgba(7,60,86,0.15)' : 'none',
+    '&:hover': { borderColor: '#073c56' },
+    fontSize: '0.875rem',
+  }),
+  placeholder: (base: any) => ({ ...base, color: '#9ca3af', fontSize: '0.875rem' }),
+  menu: (base: any) => ({ ...base, borderRadius: '0.75rem', overflow: 'hidden', zIndex: 9999 }),
+  menuPortal: (base: any) => ({ ...base, zIndex: 9999 }),
+  option: (base: any, state: any) => ({
+    ...base,
+    backgroundColor: state.isSelected ? '#073c56' : state.isFocused ? '#073c5620' : 'white',
+    color: state.isSelected ? 'white' : '#111827',
+    fontSize: '0.875rem',
+    cursor: 'pointer',
+  }),
+};
+
 const schema = Yup.object({
   name: Yup.string().required('Product name is required'),
   categoryId: Yup.string().required('Category is required'),
-  type: Yup.string()
-    .oneOf(['ITEM', 'QUANTITY', 'CALIBRATION'])
-    .required('Type is required'),
-  quantity: Yup.number()
-    .min(1, 'Quantity must be at least 1')
-    .required('Quantity is required'),
+  type: Yup.string().oneOf(['ITEM', 'QUANTITY', 'CALIBRATION']).required('Type is required'),
+  quantity: Yup.number().min(1, 'Quantity must be at least 1').required('Quantity is required'),
+  condition: Yup.string().oneOf(['NEW', 'SECOND_HAND', 'OLD']).required(),
   supplierId: Yup.string().nullable(),
   supplierName: Yup.string(),
   costPrice: Yup.number().min(0).nullable(),
@@ -28,10 +50,25 @@ const schema = Yup.object({
   description: Yup.string(),
 });
 
+const typeOptions = [
+  { value: 'QUANTITY', label: 'Quantity' },
+  { value: 'ITEM', label: 'Item' },
+  { value: 'CALIBRATION', label: 'Calibration' },
+];
+
+const conditionOptions = [
+  { value: 'NEW', label: 'New' },
+  { value: 'SECOND_HAND', label: 'Second Hand' },
+  { value: 'OLD', label: 'Old' },
+];
+
 export default function MainStockProductForm({ onClose, onSuccess }: Props) {
   const { createProduct, loading } = useProductStore();
   const { categories, fetchCategories } = useCategoryStore();
   const { suppliers, fetchSuppliers } = useSupplierStore();
+
+  const [nameOptions, setNameOptions] = useState<{ value: string; label: string }[]>([]);
+  const [loadingNames, setLoadingNames] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -39,17 +76,52 @@ export default function MainStockProductForm({ onClose, onSuccess }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const loadNamesForCategory = async (categoryId: string) => {
+    if (!categoryId) { setNameOptions([]); return; }
+    setLoadingNames(true);
+    try {
+      const [suggestionsRes, productsRes] = await Promise.allSettled([
+        productApi.fetchSuggestions(categoryId),
+        productApi.fetchProducts({ categoryId, scope: 'MAIN_STOCK', limit: 200 }),
+      ]);
+      const suggestionNames: string[] =
+        suggestionsRes.status === 'fulfilled' ? (suggestionsRes.value.data?.data?.names ?? []) : [];
+      const productNames: string[] =
+        productsRes.status === 'fulfilled'
+          ? (productsRes.value.data?.data?.products ?? []).map((p: any) => p.name)
+          : [];
+      const merged = [...new Set([...suggestionNames, ...productNames])].sort();
+      setNameOptions(merged.map((n) => ({ value: n, label: n })));
+    } catch {
+      setNameOptions([]);
+    } finally {
+      setLoadingNames(false);
+    }
+  };
+
+  const categoryOptions = (categories ?? []).map((c: any) => ({ value: c.id, label: c.name }));
+  const supplierOptions = (suppliers ?? []).map((s: any) => ({ value: s.id, label: s.name }));
+
   const handleSubmit = async (values: any) => {
     try {
-      await createProduct({
-        ...values,
-        scope: 'MAIN_STOCK',
+      const payload: any = {
+        name: values.name,
+        categoryId: values.categoryId,
+        type: values.type,
+        condition: values.condition,
         quantity: Number(values.quantity),
         costPrice: values.costPrice ? Number(values.costPrice) : null,
         supplierId: values.supplierId || null,
-        supplierName: values.supplierName || undefined,
+        serialNumber: values.serialNumber || null,
+        warranty: values.warranty || null,
+        description: values.description || null,
+        scope: 'MAIN_STOCK',
         entryDate: new Date().toISOString(),
-      });
+      };
+      if (!values.supplierId && values.supplierName) {
+        payload.supplierName = values.supplierName;
+      }
+      await createProduct(payload);
       toast.success('Product added to Main Stock');
       onSuccess();
     } catch (e: any) {
@@ -57,10 +129,9 @@ export default function MainStockProductForm({ onClose, onSuccess }: Props) {
     }
   };
 
-  const inputCls =
-    'w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#073c56]';
   const errCls = 'text-red-500 text-xs mt-1';
   const labelCls = 'block text-sm font-medium text-gray-700 mb-1';
+  const inputCls = 'w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#073c56]';
 
   return (
     <Formik
@@ -68,6 +139,7 @@ export default function MainStockProductForm({ onClose, onSuccess }: Props) {
         name: '',
         categoryId: '',
         type: 'QUANTITY',
+        condition: 'NEW',
         quantity: 1,
         supplierId: '',
         supplierName: '',
@@ -79,66 +151,90 @@ export default function MainStockProductForm({ onClose, onSuccess }: Props) {
       validationSchema={schema}
       onSubmit={handleSubmit}
     >
-      {({ errors, touched, values }) => (
+      {({ values, errors, touched, setFieldValue }) => (
         <Form className="space-y-4 p-1">
-          {/* Name */}
-          <div>
-            <label className={labelCls}>Product Name *</label>
-            <Field
-              name="name"
-              type="text"
-              placeholder="e.g. Total Station TS06"
-              className={`${inputCls} ${errors.name && touched.name ? 'border-red-400' : ''}`}
-            />
-            <ErrorMessage name="name" component="div" className={errCls} />
-          </div>
 
-          {/* Category + Type */}
+          {/* Row 1: Category + Type */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelCls}>Category *</label>
-              <Field
-                as="select"
-                name="categoryId"
-                className={`${inputCls} ${errors.categoryId && touched.categoryId ? 'border-red-400' : ''}`}
-              >
-                <option value="">— Select category —</option>
-                {categories?.map((c: any) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </Field>
+              <Select
+                options={categoryOptions}
+                placeholder="Select category first"
+                isClearable
+                menuPortalTarget={document.body}
+                styles={selectStyles}
+                value={categoryOptions.find((o) => o.value === values.categoryId) ?? null}
+                onChange={(opt) => {
+                  const id = opt?.value ?? '';
+                  setFieldValue('categoryId', id);
+                  if (id !== values.categoryId) setFieldValue('name', '');
+                  loadNamesForCategory(id);
+                }}
+              />
               <ErrorMessage name="categoryId" component="div" className={errCls} />
             </div>
             <div>
               <label className={labelCls}>Type *</label>
-              <Field
-                as="select"
-                name="type"
-                className={`${inputCls} ${errors.type && touched.type ? 'border-red-400' : ''}`}
-              >
-                <option value="QUANTITY">QUANTITY</option>
-                <option value="ITEM">ITEM</option>
-                <option value="CALIBRATION">CALIBRATION</option>
-              </Field>
+              <Select
+                options={typeOptions}
+                menuPortalTarget={document.body}
+                styles={selectStyles}
+                value={typeOptions.find((o) => o.value === values.type) ?? null}
+                onChange={(opt) => setFieldValue('type', opt?.value ?? 'QUANTITY')}
+              />
               <ErrorMessage name="type" component="div" className={errCls} />
             </div>
           </div>
 
-          {/* Quantity + Cost */}
+          {/* Row 2: Name + Condition */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Product Name *</label>
+              <CreatableSelect
+                isDisabled={!values.categoryId}
+                isLoading={loadingNames}
+                isClearable
+                menuPortalTarget={document.body}
+                placeholder={values.categoryId ? 'Select or type a name' : 'Select category first'}
+                options={nameOptions}
+                styles={selectStyles}
+                formatCreateLabel={(v) => `Use "${v}"`}
+                value={values.name ? { value: values.name, label: values.name } : null}
+                onChange={(opt) => setFieldValue('name', opt?.value ?? '')}
+              />
+              <ErrorMessage name="name" component="div" className={errCls} />
+            </div>
+            <div>
+              <label className={labelCls}>Condition</label>
+              <Select
+                options={conditionOptions}
+                menuPortalTarget={document.body}
+                styles={selectStyles}
+                value={conditionOptions.find((o) => o.value === values.condition) ?? null}
+                onChange={(opt) => setFieldValue('condition', opt?.value ?? 'NEW')}
+              />
+            </div>
+          </div>
+
+          {/* Row 3: Quantity + Cost */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelCls}>Initial Quantity *</label>
-              <Field
-                name="quantity"
-                type="number"
-                min={values.type === 'ITEM' ? 1 : 1}
-                max={values.type === 'ITEM' ? 1 : undefined}
-                className={`${inputCls} ${errors.quantity && touched.quantity ? 'border-red-400' : ''}`}
-              />
+              {values.type === 'ITEM' ? (
+                <input readOnly value={1} className="w-full border border-gray-100 rounded-xl px-3 py-2 text-sm bg-gray-50 text-gray-400" />
+              ) : (
+                <Field
+                  name="quantity"
+                  type="number"
+                  min={1}
+                  className={`${inputCls} ${errors.quantity && touched.quantity ? 'border-red-400' : ''}`}
+                />
+              )}
               <ErrorMessage name="quantity" component="div" className={errCls} />
             </div>
             <div>
-              <label className={labelCls}>Unit Cost (USD)</label>
+              <label className={labelCls}>Unit Cost</label>
               <Field name="costPrice" type="number" min={0} step="0.01" placeholder="0.00" className={inputCls} />
             </div>
           </div>
@@ -146,22 +242,21 @@ export default function MainStockProductForm({ onClose, onSuccess }: Props) {
           {/* Supplier */}
           <div>
             <label className={labelCls}>Supplier</label>
-            <Field as="select" name="supplierId" className={inputCls}>
-              <option value="">— Select existing supplier —</option>
-              {(suppliers ?? []).map((s: any) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </Field>
-            <p className="text-xs text-gray-400 mt-1">
-              Or enter a new supplier name below (will be created automatically)
-            </p>
-            <Field
-              name="supplierName"
-              type="text"
-              placeholder="New supplier name..."
-              className={`${inputCls} mt-1`}
-              disabled={!!values.supplierId}
+            <Select
+              options={supplierOptions}
+              placeholder="Select existing supplier"
+              isClearable
+              menuPortalTarget={document.body}
+              styles={selectStyles}
+              value={supplierOptions.find((o) => o.value === values.supplierId) ?? null}
+              onChange={(opt) => setFieldValue('supplierId', opt?.value ?? '')}
             />
+            {!values.supplierId && (
+              <div className="mt-2">
+                <label className="block text-xs text-gray-400 mb-1">Or enter a new supplier name</label>
+                <Field name="supplierName" type="text" placeholder="New supplier name..." className={inputCls} />
+              </div>
+            )}
           </div>
 
           {/* Serial + Warranty */}
@@ -186,7 +281,7 @@ export default function MainStockProductForm({ onClose, onSuccess }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-full border border-gray-300 text-sm  text-white hover:bg-gray-50 hover:text-primary transition"
+              className="px-4 py-2 rounded-full border border-gray-300 text-sm text-white hover:bg-gray-50  hover:text-primary transition"
             >
               Cancel
             </button>

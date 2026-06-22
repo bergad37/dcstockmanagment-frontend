@@ -15,6 +15,12 @@ const stockTransferApi = {
 
   create: (payload: TransferPayload) =>
     axiosClient.post('/stock-transfers', payload),
+
+  batchCreate: (items: TransferPayload[]) =>
+    axiosClient.post('/stock-transfers/batch', { items }),
+
+  revert: (id: string) =>
+    axiosClient.post(`/stock-transfers/${id}/revert`),
 };
 
 export default stockTransferApi;

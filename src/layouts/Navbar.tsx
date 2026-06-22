@@ -98,26 +98,46 @@ export default function Navbar() {
         {open && (
           <div
             ref={menuRef}
-            className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-50 overflow-hidden"
+            className="absolute right-0 mt-3 w-64 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 overflow-hidden"
           >
-            <div className="p-3 border-b">
-              <div className="text-sm font-medium">{user?.name ?? 'User'}</div>
-              <div className="text-xs text-gray-500">{user?.email ?? ''}</div>
+            {/* User info header */}
+            <div className="px-4 py-4 bg-[#073c56]/5 border-b border-gray-100 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[#073c56] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                {initials}
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-gray-900 truncate">{user?.name ?? 'User'}</p>
+                <p className="text-xs text-gray-400 truncate">{user?.email ?? ''}</p>
+              </div>
             </div>
 
-            <div className="p-2">
+            {/* Menu items */}
+            <div className="p-2 space-y-0.5">
               <button
                 onClick={() => { setOpen(false); setShowChangePassword(true); }}
-                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 bg-white hover:bg-[#073c56]/5 hover:text-[#073c56] transition text-sm font-medium"
               >
-                <KeyRound size={16} /> <span className="text-sm">Change Password</span>
+                <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                  <KeyRound size={14} />
+                </div>
+                Change Password
               </button>
+
+              <div className="border-t border-gray-100 my-1" />
+
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-500  bg-white hover:bg-red-50 transition text-sm font-medium"
               >
-                <LogOut size={16} /> <span className="text-sm">Logout</span>
+                <div className="w-7 h-7 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0">
+                  <LogOut size={14} />
+                </div>
+                Logout
               </button>
+            </div>
+
+            <div className="px-4 py-2.5 border-t border-gray-100 bg-gray-50">
+              <p className="text-[10px] text-gray-400 text-center">DC Stock Management</p>
             </div>
           </div>
         )}

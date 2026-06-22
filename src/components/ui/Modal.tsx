@@ -33,7 +33,7 @@ const Modal: React.FC<ModalProps> = ({
         >
           {/* Modal Container */}
           <motion.div
-            className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 relative"
+            className="bg-white rounded-xl shadow-xl w-full max-w-xl p-6 relative"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
