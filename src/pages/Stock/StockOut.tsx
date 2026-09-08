@@ -15,6 +15,7 @@ import ReturnStockForm from './Return.item';
 import { useCategoryStore } from '../../store/categoriesStore';
 import { formatStockTransactions, getOverdueDays } from '../../utils/auth';
 import { LogOut, Plus, RotateCcw } from 'lucide-react';
+import Badge from '../../components/Badge';
 
 type TabType = 'STOCK' | 'STOCK_OUT' | 'CALIBRATION_STOCK';
 
@@ -31,7 +32,8 @@ const Stock = () => {
     stockPagination,
     transactionsPagination,
     cancelTransaction,
-    cancelTransactionLoading
+    cancelTransactionLoading,
+    allTransactionsLoading
   } = useStockStore();
 
   const { resetStockOutSuccess } = useStockStore();
@@ -153,6 +155,15 @@ const Stock = () => {
   //   const categoryOptions =
   //     categories?.map((c: any) => ({ value: c.id, label: c.name })) ?? [];
 
+  const loadingIndicator = (
+    <div className="flex items-center justify-center h-64">
+      <div className="text-center">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#073c56]"></div>
+        <p className="mt-4 text-gray-600">Loading records...</p>
+      </div>
+    </div>
+  );
+
   const closeStockOutModal = () => {
     setShowForm(false);
     setSelectedProduct(null);
@@ -179,6 +190,24 @@ const Stock = () => {
         name: 'Serial Number',
         selector: (row: any) => row?.product?.serialNumber ?? '---',
         sortable: true
+      },
+      {
+        name: 'Condition',
+        selector: (row: any) => row?.product?.condition ?? '',
+        sortable: true,
+        cell: (row: any) => {
+          const condition = row?.product?.condition;
+          if (!condition) return <span className="text-gray-400">-</span>;
+          const variant =
+            condition === 'NEW'
+              ? 'success'
+              : condition === 'SECOND_HAND'
+                ? 'warning'
+                : 'default';
+          return (
+            <Badge label={condition.replace(/_/g, ' ')} variant={variant} />
+          );
+        }
       },
       {
         name: 'Quantity',
@@ -702,23 +731,20 @@ const Stock = () => {
 
         {/* DataTable */}
         <div className="bg-white my-12 shadow overflow-hidden">
-          {stockLoading ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="text-center">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#073c56]"></div>
-                <p className="mt-4 text-gray-600">Loading records...</p>
-              </div>
-            </div>
-          ) : activeTab === 'STOCK' ? (
+          {activeTab === 'STOCK' ? (
             <DataTable
               columns={stockInColumns(handleOpenQuantityModal, false, user)}
               data={stock?.stocks}
               highlightOnHover
               pointerOnHover
               customStyles={customStyles}
+              progressPending={stockLoading}
+              progressComponent={loadingIndicator}
+              persistTableHead
               pagination
               paginationServer
               paginationPerPage={stockPerPage}
+              paginationDefaultPage={stockPage}
               paginationTotalRows={
                 stockPagination?.total ?? stock?.stocks?.length ?? 0
               }
@@ -735,9 +761,13 @@ const Stock = () => {
               highlightOnHover
               pointerOnHover
               customStyles={customStyles}
+              progressPending={allTransactionsLoading}
+              progressComponent={loadingIndicator}
+              persistTableHead
               pagination
               paginationServer
               paginationPerPage={txPerPage}
+              paginationDefaultPage={txPage}
               paginationTotalRows={
                 transactionsPagination?.total ??
                 filteredStockOutData?.length ??
@@ -757,9 +787,13 @@ const Stock = () => {
                 highlightOnHover
                 pointerOnHover
                 customStyles={customStyles}
+                progressPending={stockLoading}
+                progressComponent={loadingIndicator}
+                persistTableHead
                 pagination
                 paginationServer
                 paginationPerPage={stockPerPage}
+                paginationDefaultPage={stockPage}
                 paginationTotalRows={
                   stockPagination?.total ?? stock?.stocks?.length ?? 0
                 }
