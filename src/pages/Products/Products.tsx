@@ -12,24 +12,8 @@ import DeleteModal from '../../components/ui/ConfirmModal';
 import { productColumns } from '../../utils/columns/products.column';
 import Modal from '../../components/ui/Modal';
 import { useCategoryStore } from '../../store/categoriesStore';
-import { customStyles } from '../../utils/ui.helper.styles';
+import { selectionStyles } from '../../utils/ui.helper.styles';
 import { useAuthStore } from '../../store/authStore';
-// selected rows need to stand out clearly in screenshots, so override the
-// subtle default highlight with a tinted row plus a left accent bar
-const selectionStyles = {
-  ...customStyles,
-  rows: {
-    ...customStyles.rows,
-    selectedHighlightStyle: {
-      backgroundColor: '#e6f0f6',
-      borderLeft: '4px solid #073c56',
-      '&:hover': {
-        backgroundColor: '#dbe9f2'
-      }
-    }
-  }
-};
-
 const Products = () => {
   const { listProducts, products, deleteProduct, pagination } =
     useProductStore();
@@ -274,7 +258,7 @@ const Products = () => {
               </span>
               <button
                 onClick={clearSelection}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold text-[#073c56] hover:bg-[#073c56] hover:text-white border border-[#073c56]/30 transition"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-white text-xs font-semibold  hover:bg-[#073c56]  border border-[#073c56]/30 transition"
               >
                 <X size={12} />
                 Clear

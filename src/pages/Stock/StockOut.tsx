@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import DataTable from 'react-data-table-component';
 import StockOutForm from './stock-out.form';
 import Modal from '../../components/ui/Modal';
@@ -8,13 +8,13 @@ import Filters, {
   type FilterOption
 } from '../../components/ui/Filters';
 import DateRangeFilter from '../../components/ui/DatePicker';
-import { customStyles } from '../../utils/ui.helper.styles';
+import { customStyles, selectionStyles } from '../../utils/ui.helper.styles';
 import { useStockStore } from '../../store/stockStore';
 import { useAuthStore } from '../../store/authStore';
 import ReturnStockForm from './Return.item';
 import { useCategoryStore } from '../../store/categoriesStore';
 import { formatStockTransactions, getOverdueDays } from '../../utils/auth';
-import { LogOut, Plus, RotateCcw } from 'lucide-react';
+import { LogOut, Plus, RotateCcw, X } from 'lucide-react';
 import ConditionBadge from '../../components/ConditionBadge';
 
 type TabType = 'STOCK' | 'STOCK_OUT' | 'CALIBRATION_STOCK';
@@ -63,6 +63,24 @@ const Stock = () => {
   // pagination state for transactions (STOCK_OUT)
   const [txPage, setTxPage] = useState<number>(1);
   const [txPerPage, setTxPerPage] = useState<number>(10);
+
+  // row selection on the stock table (for highlighting / screenshots)
+  const [selectedStockRows, setSelectedStockRows] = useState<any[]>([]);
+  // flipping this boolean tells DataTable to drop its internal selection
+  const [clearStockSelection, setClearStockSelection] = useState(false);
+
+  // must be stable: DataTable re-fires this on every render otherwise
+  const handleSelectedStockRowsChange = useCallback(
+    ({ selectedRows }: { selectedRows: any[] }) => {
+      setSelectedStockRows(selectedRows);
+    },
+    []
+  );
+
+  const resetStockSelection = () => {
+    setClearStockSelection((t) => !t);
+    setSelectedStockRows([]);
+  };
 
   // keep current stock search query so we can carry it across pages
   const [stockSearch, setStockSearch] = useState<string>('');
@@ -635,6 +653,7 @@ const Stock = () => {
                 key={tab}
                 onClick={() => {
                   setActiveTab(tab);
+                  resetStockSelection();
                   // reset pages when switching tabs
                   if (tab === 'STOCK' || tab === 'CALIBRATION_STOCK') {
                     setStockPage(1);
@@ -725,6 +744,22 @@ const Stock = () => {
           />
         </Modal>
 
+        {activeTab === 'STOCK' && selectedStockRows.length > 0 && (
+          <div className="flex items-center justify-between gap-3 mt-12 px-4 py-2.5 rounded-full bg-[#073c56]/5 border border-[#073c56]/20">
+            <span className="text-sm font-semibold text-[#073c56]">
+              {selectedStockRows.length}{' '}
+              {selectedStockRows.length === 1 ? 'item' : 'items'} selected
+            </span>
+            <button
+              onClick={resetStockSelection}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold text-[#073c56] hover:bg-[#073c56] hover:text-white border border-[#073c56]/30 transition"
+            >
+              <X size={12} />
+              Clear
+            </button>
+          </div>
+        )}
+
         {/* DataTable */}
         <div className="bg-white my-12 shadow overflow-hidden">
           {activeTab === 'STOCK' ? (
@@ -733,7 +768,11 @@ const Stock = () => {
               data={stock?.stocks}
               highlightOnHover
               pointerOnHover
-              customStyles={customStyles}
+              customStyles={selectionStyles}
+              selectableRows
+              selectableRowsHighlight
+              onSelectedRowsChange={handleSelectedStockRowsChange}
+              clearSelectedRows={clearStockSelection}
               progressPending={stockLoading}
               progressComponent={loadingIndicator}
               persistTableHead
