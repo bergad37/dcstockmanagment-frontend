@@ -26,10 +26,11 @@ const COLORS = {
 function today() {
   return new Date().toISOString().split('T')[0];
 }
-function thirtyDaysAgo() {
-  const d = new Date();
-  d.setDate(d.getDate() - 30);
-  return d.toISOString().split('T')[0];
+function startOfYear() {
+  // Year to date: 1 January of the current year through today. Built from the
+  // local year rather than toISOString(), which would shift to the previous
+  // year for anyone east of UTC on 1 January.
+  return `${new Date().getFullYear()}-01-01`;
 }
 
 // ── Stat card ─────────────────────────────────────────────────────────────────
@@ -174,8 +175,8 @@ function MiniStockPanel({
     <>
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 mb-8">
-        <StatCard title="Total Sell Transactions" value={totals.totalSoldTx ?? 0} sub="completed sell transactions" icon={ShoppingCart} accent={COLORS.success} loading={loading} />
-        <StatCard title="Total Rental Transactions" value={totals.activeRentals ?? 0} sub={`${totals.totalRentTx ?? 0} total rent transactions`} icon={RotateCcw} accent={COLORS.warning} loading={loading} />
+        <StatCard title="Sell Transactions" value={totals.totalSoldTx ?? 0} sub="in selected date range" icon={ShoppingCart} accent={COLORS.success} loading={loading} />
+        <StatCard title="Rental Transactions" value={totals.totalRentTx ?? 0} sub={`${totals.activeRentals ?? 0} still out (all time)`} icon={RotateCcw} accent={COLORS.warning} loading={loading} />
         <StatCard title="Total Customers" value={totals.totalCustomers ?? 0} sub="registered clients" icon={Users} accent={COLORS.secondary} loading={loading} />
         {/* <StatCard title="Products in Stock" value={totals.allProducts ?? 0} sub={`${(totals.totalStockUnits ?? 0).toLocaleString()} total units`} icon={Package} accent={PRIMARY} loading={loading} /> */}
       </div>
@@ -396,7 +397,7 @@ type PortalTab = 'mini' | 'main';
 
 const Analytics = () => {
   const [portalTab, setPortalTab] = useState<PortalTab>('mini');
-  const [startDate, setStartDate] = useState(thirtyDaysAgo());
+  const [startDate, setStartDate] = useState(startOfYear());
   const [endDate, setEndDate] = useState(today());
   const [excelLoading, setExcelLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -15,7 +15,7 @@ import ReturnStockForm from './Return.item';
 import { useCategoryStore } from '../../store/categoriesStore';
 import { formatStockTransactions, getOverdueDays } from '../../utils/auth';
 import { LogOut, Plus, RotateCcw } from 'lucide-react';
-import Badge from '../../components/Badge';
+import ConditionBadge from '../../components/ConditionBadge';
 
 type TabType = 'STOCK' | 'STOCK_OUT' | 'CALIBRATION_STOCK';
 
@@ -195,19 +195,9 @@ const Stock = () => {
         name: 'Condition',
         selector: (row: any) => row?.product?.condition ?? '',
         sortable: true,
-        cell: (row: any) => {
-          const condition = row?.product?.condition;
-          if (!condition) return <span className="text-gray-400">-</span>;
-          const variant =
-            condition === 'NEW'
-              ? 'success'
-              : condition === 'SECOND_HAND'
-                ? 'warning'
-                : 'default';
-          return (
-            <Badge label={condition.replace(/_/g, ' ')} variant={variant} />
-          );
-        }
+        cell: (row: any) => (
+          <ConditionBadge condition={row?.product?.condition} />
+        )
       },
       {
         name: 'Quantity',

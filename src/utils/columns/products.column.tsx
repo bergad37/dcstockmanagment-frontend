@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Edit2, Trash2 } from 'lucide-react';
+import ConditionBadge from '../../components/ConditionBadge';
 
 export const productColumns = (actions: any, user: any) => [
   {
@@ -15,6 +16,12 @@ export const productColumns = (actions: any, user: any) => [
   {
     name: 'Category',
     selector: (row: any) => row?.category?.name ?? row?.category ?? '',
+    grow: 1,
+  },
+  {
+    name: 'Condition',
+    selector: (row: any) => row?.condition ?? '',
+    cell: (row: any) => <ConditionBadge condition={row?.condition} />,
     grow: 1,
   },
   {

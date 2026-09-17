@@ -8,6 +8,7 @@ import Modal from '../../components/ui/Modal';
 import MainStockProductForm from './MainStockProductForm';
 import StockTransferForm from './StockTransferForm';
 import { toast } from 'sonner';
+import ConditionBadge from '../../components/ConditionBadge';
 
 const LOW_STOCK_THRESHOLD = 3;
 
@@ -43,12 +44,20 @@ const buildColumns = (
     name: 'Type',
     selector: (row: any) => row.type,
     sortable: true,
+    omit: true,
     grow: 0.6,
     cell: (row: any) => (
       <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-600 text-xs font-medium">
         {row.type}
       </span>
     ),
+  },
+  {
+    name: 'Condition',
+    selector: (row: any) => row.condition ?? '',
+    sortable: true,
+    grow: 0.6,
+    cell: (row: any) => <ConditionBadge condition={row.condition} />,
   },
   {
     name: 'In Stock',
