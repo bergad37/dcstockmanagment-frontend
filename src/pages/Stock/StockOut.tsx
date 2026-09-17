@@ -178,7 +178,10 @@ const Stock = () => {
       {
         name: 'Product',
         selector: (row: any) => row?.product?.name,
-        sortable: true
+        sortable: true,
+        cell: (row: any) => (
+          <span title={row?.product?.name}>{row?.product?.name}</span>
+        )
       },
       {
         name: 'Category',
@@ -283,7 +286,10 @@ const Stock = () => {
       cell: (row: any) => (
         <div className="relative inline-block max-w-full">
           {/* Product name */}
-          <span className="block font-medium text-gray-900 pr-10">
+          <span
+            className="block font-medium text-gray-900 pr-10"
+            title={row.productName}
+          >
             {row.productName}
           </span>
           <span className="block font-light text-gray-900 pr-10 py-1">

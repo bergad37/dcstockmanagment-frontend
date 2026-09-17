@@ -6,6 +6,7 @@ export const productColumns = (actions: any, user: any) => [
   {
     name: 'Names',
     selector: (row: any) => row?.name,
+    cell: (row: any) => <span title={row?.name}>{row?.name}</span>,
     grow: 1,
   },
   {

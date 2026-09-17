@@ -23,7 +23,9 @@ const buildColumns = (
     grow: 2,
     cell: (row: any) => (
       <div className="py-1">
-        <p className="font-medium text-gray-800">{row.name}</p>
+        <p className="font-medium text-gray-800" title={row.name}>
+          {row.name}
+        </p>
         {row.serialNumber && (
           <p className="text-xs text-gray-400 font-mono">SN: {row.serialNumber}</p>
         )}

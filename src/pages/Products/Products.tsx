@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useProductStore } from '../../store/productStore';
 import ProductForm from './product.form';
 import type { ProductFormValues as InitialValuesType } from '../../types/product';
@@ -7,13 +7,29 @@ import DataTable from 'react-data-table-component';
 import Button from '../../components/ui/Button';
 import SearchBar from '../../components/ui/SearchBar';
 import CustomSelect from '../../components/ui/SelectField';
-import { Edit2, TrashIcon } from 'lucide-react';
+import { Edit2, TrashIcon, X } from 'lucide-react';
 import DeleteModal from '../../components/ui/ConfirmModal';
 import { productColumns } from '../../utils/columns/products.column';
 import Modal from '../../components/ui/Modal';
 import { useCategoryStore } from '../../store/categoriesStore';
 import { customStyles } from '../../utils/ui.helper.styles';
 import { useAuthStore } from '../../store/authStore';
+// selected rows need to stand out clearly in screenshots, so override the
+// subtle default highlight with a tinted row plus a left accent bar
+const selectionStyles = {
+  ...customStyles,
+  rows: {
+    ...customStyles.rows,
+    selectedHighlightStyle: {
+      backgroundColor: '#e6f0f6',
+      borderLeft: '4px solid #073c56',
+      '&:hover': {
+        backgroundColor: '#dbe9f2'
+      }
+    }
+  }
+};
+
 const Products = () => {
   const { listProducts, products, deleteProduct, pagination } =
     useProductStore();
@@ -31,6 +47,24 @@ const Products = () => {
   const [page, setPage] = useState<number>(1);
   const [perPage, setPerPage] = useState<number>(10);
   const user = useAuthStore((s) => s.user);
+
+  // row selection (for highlighting / screenshots)
+  const [selectedRows, setSelectedRows] = useState<any[]>([]);
+  // flipping this boolean tells DataTable to drop its internal selection
+  const [clearSelectionToggle, setClearSelectionToggle] = useState(false);
+
+  // must be stable: DataTable re-fires this on every render otherwise
+  const handleSelectedRowsChange = useCallback(
+    ({ selectedRows: rows }: { selectedRows: any[] }) => {
+      setSelectedRows(rows);
+    },
+    []
+  );
+
+  const clearSelection = () => {
+    setClearSelectionToggle((t) => !t);
+    setSelectedRows([]);
+  };
 
   useEffect(() => {
     // initial load
@@ -232,12 +266,32 @@ const Products = () => {
             </div>
           </div>
 
+          {selectedRows.length > 0 && (
+            <div className="flex items-center justify-between gap-3 mx-4 px-4 py-2.5 rounded-full bg-[#073c56]/5 border border-[#073c56]/20">
+              <span className="text-sm font-semibold text-[#073c56]">
+                {selectedRows.length}{' '}
+                {selectedRows.length === 1 ? 'product' : 'products'} selected
+              </span>
+              <button
+                onClick={clearSelection}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold text-[#073c56] hover:bg-[#073c56] hover:text-white border border-[#073c56]/30 transition"
+              >
+                <X size={12} />
+                Clear
+              </button>
+            </div>
+          )}
+
           {/* Table wrapper for horizontal scrolling on mobile */}
           <div className="overflow-x-auto my-12">
             <DataTable
               columns={productColumns(actions, user)}
               data={Array.isArray(products) ? products : []}
-              customStyles={customStyles}
+              customStyles={selectionStyles}
+              selectableRows
+              selectableRowsHighlight
+              onSelectedRowsChange={handleSelectedRowsChange}
+              clearSelectedRows={clearSelectionToggle}
               pagination
               paginationServer
               paginationPerPage={perPage}
