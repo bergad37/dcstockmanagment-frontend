@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useProductStore } from '../../store/productStore';
 import ProductForm from './product.form';
 import type { ProductFormValues as InitialValuesType } from '../../types/product';
@@ -7,12 +7,13 @@ import DataTable from 'react-data-table-component';
 import Button from '../../components/ui/Button';
 import SearchBar from '../../components/ui/SearchBar';
 import CustomSelect from '../../components/ui/SelectField';
-import { Edit2, TrashIcon, X } from 'lucide-react';
+import { Edit2, TrashIcon } from 'lucide-react';
 import DeleteModal from '../../components/ui/ConfirmModal';
 import { productColumns } from '../../utils/columns/products.column';
 import Modal from '../../components/ui/Modal';
 import { useCategoryStore } from '../../store/categoriesStore';
-import { selectionStyles } from '../../utils/ui.helper.styles';
+import { useRowSelection } from '../../hooks/useRowSelection';
+import SelectionBanner from '../../components/SelectionBanner';
 import { useAuthStore } from '../../store/authStore';
 const Products = () => {
   const { listProducts, products, deleteProduct, pagination } =
@@ -33,22 +34,7 @@ const Products = () => {
   const user = useAuthStore((s) => s.user);
 
   // row selection (for highlighting / screenshots)
-  const [selectedRows, setSelectedRows] = useState<any[]>([]);
-  // flipping this boolean tells DataTable to drop its internal selection
-  const [clearSelectionToggle, setClearSelectionToggle] = useState(false);
-
-  // must be stable: DataTable re-fires this on every render otherwise
-  const handleSelectedRowsChange = useCallback(
-    ({ selectedRows: rows }: { selectedRows: any[] }) => {
-      setSelectedRows(rows);
-    },
-    []
-  );
-
-  const clearSelection = () => {
-    setClearSelectionToggle((t) => !t);
-    setSelectedRows([]);
-  };
+  const { selectedRows, clearSelection, selectionProps } = useRowSelection();
 
   useEffect(() => {
     // initial load
@@ -250,32 +236,19 @@ const Products = () => {
             </div>
           </div>
 
-          {selectedRows.length > 0 && (
-            <div className="flex items-center justify-between gap-3 mx-4 px-4 py-2.5 rounded-full bg-[#073c56]/5 border border-[#073c56]/20">
-              <span className="text-sm font-semibold text-[#073c56]">
-                {selectedRows.length}{' '}
-                {selectedRows.length === 1 ? 'product' : 'products'} selected
-              </span>
-              <button
-                onClick={clearSelection}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-white text-xs font-semibold  hover:bg-[#073c56]  border border-[#073c56]/30 transition"
-              >
-                <X size={12} />
-                Clear
-              </button>
-            </div>
-          )}
+          <SelectionBanner
+            count={selectedRows.length}
+            onClear={clearSelection}
+            noun="product"
+            className="mx-4"
+          />
 
           {/* Table wrapper for horizontal scrolling on mobile */}
           <div className="overflow-x-auto my-12">
             <DataTable
               columns={productColumns(actions, user)}
               data={Array.isArray(products) ? products : []}
-              customStyles={selectionStyles}
-              selectableRows
-              selectableRowsHighlight
-              onSelectedRowsChange={handleSelectedRowsChange}
-              clearSelectedRows={clearSelectionToggle}
+              {...selectionProps}
               pagination
               paginationServer
               paginationPerPage={perPage}

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import { ArrowDownToLine, Plus } from "lucide-react";
-import { customStyles } from "../../utils/ui.helper.styles";
+import SelectionBanner from "../../components/SelectionBanner";
+import { useRowSelection } from "../../hooks/useRowSelection";
 import { useStockInStore } from "../../store/stockInStore";
 import Modal from "../../components/ui/Modal";
 import StockInForm from "./StockInForm";
@@ -117,6 +118,9 @@ export default function MainStockStockIn() {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
   const [showForm, setShowForm] = useState(false);
+
+  // row selection (for highlighting / screenshots)
+  const { selectedRows, clearSelection, selectionProps } = useRowSelection();
 
   const load = (
     p = page,
@@ -245,12 +249,19 @@ export default function MainStockStockIn() {
           )}
         </div>
 
+        <SelectionBanner
+          count={selectedRows.length}
+          onClear={clearSelection}
+          noun="record"
+          className="mb-3"
+        />
+
         <DataTable
           columns={columns}
           data={stockIns}
           highlightOnHover
           pointerOnHover
-          customStyles={customStyles}
+          {...selectionProps}
           progressPending={loading}
           progressComponent={
             <div className="py-16 text-center text-gray-400">

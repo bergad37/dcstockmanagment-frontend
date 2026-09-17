@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import DataTable from 'react-data-table-component';
 import { Package, Plus, Search, ArrowRightLeft, Trash2, AlertTriangle } from 'lucide-react';
-import { customStyles } from '../../utils/ui.helper.styles';
 import { useProductStore } from '../../store/productStore';
 import { useCategoryStore } from '../../store/categoriesStore';
 import Modal from '../../components/ui/Modal';
@@ -9,6 +8,8 @@ import MainStockProductForm from './MainStockProductForm';
 import StockTransferForm from './StockTransferForm';
 import { toast } from 'sonner';
 import ConditionBadge from '../../components/ConditionBadge';
+import SelectionBanner from '../../components/SelectionBanner';
+import { useRowSelection } from '../../hooks/useRowSelection';
 
 const LOW_STOCK_THRESHOLD = 3;
 
@@ -153,6 +154,9 @@ export default function MainStockProducts() {
   const [archiveReason, setArchiveReason] = useState('');
   const [archiveLoading, setArchiveLoading] = useState(false);
 
+  // row selection (for highlighting / screenshots)
+  const { selectedRows, clearSelection, selectionProps } = useRowSelection();
+
   const load = (p = page, pp = perPage, s = search, cat = categoryFilter) => {
     const params: Record<string, any> = {
       page: p,
@@ -248,6 +252,13 @@ export default function MainStockProducts() {
           </div>
         </div>
 
+        <SelectionBanner
+          count={selectedRows.length}
+          onClear={clearSelection}
+          noun="product"
+          className="mx-6 mb-3"
+        />
+
         <DataTable
           columns={buildColumns(
             (row) => setTransferProduct(row),
@@ -256,7 +267,7 @@ export default function MainStockProducts() {
           data={products}
           highlightOnHover
           pointerOnHover
-          customStyles={customStyles}
+          {...selectionProps}
           progressPending={loading}
           progressComponent={
             <div className="py-16 text-center text-gray-400">
