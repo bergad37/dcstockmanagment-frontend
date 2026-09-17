@@ -182,7 +182,7 @@ function MiniStockPanel({
       </div>
 
       {/* Secondary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-4 flex items-center gap-4">
           <TrendingUp size={20} style={{ color: COLORS.success }} />
           <div>
@@ -197,13 +197,13 @@ function MiniStockPanel({
             <p className="text-xl font-bold text-[#073c56]">{loading ? '—' : totalFlow.toLocaleString()}</p>
           </div>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-4 flex items-center gap-4">
+        {/* <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-4 flex items-center gap-4">
           <Package size={20} style={{ color: PRIMARY }} />
           <div>
             <p className="text-xs text-gray-400">Net Stock Movement</p>
             <p className="text-xl font-bold text-[#073c56]">{loading ? '—' : (totalFlow - totalOutbound).toLocaleString()}</p>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Charts */}
