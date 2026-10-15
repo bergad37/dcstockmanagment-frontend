@@ -23,6 +23,8 @@ interface TransferItem {
   mainProductId: string;
   mainProductName: string;
   mainCategory: string;
+  mainSerial: string | null;
+  isSerialised: boolean;
   available: number;
   quantity: number;
   autoMatchId: string | null;
@@ -84,16 +86,28 @@ export default function StockTransferForm({ product, onClose, onSuccess }: Props
   }, [dataLoaded, miniProducts]);
 
   function buildItem(
-    p: { id: string; name: string; stock?: { quantity: number }; category?: { name: string } },
+    p: {
+      id: string; name: string; type?: string; serialNumber?: string | null;
+      stock?: { quantity: number }; category?: { name: string };
+    },
     mini: any[]
   ): TransferItem {
-    const match = mini.find(
-      (m) => m.name.trim().toLowerCase() === p.name.trim().toLowerCase()
-    );
+    const serial = p.serialNumber?.trim() || null;
+    const isSerialised = p.type === 'ITEM' && !!serial;
+
+    const match = isSerialised
+      ? undefined
+      : mini.find(
+          (m) =>
+            m.name.trim().toLowerCase() === p.name.trim().toLowerCase() &&
+            !m.serialNumber?.trim()
+        );
     return {
       mainProductId: p.id,
       mainProductName: p.name,
       mainCategory: p.category?.name ?? '',
+      mainSerial: serial,
+      isSerialised,
       available: p.stock?.quantity ?? 0,
       quantity: 1,
       autoMatchId: match?.id ?? null,
@@ -161,10 +175,16 @@ export default function StockTransferForm({ product, onClose, onSuccess }: Props
 
   const mainProductOptions = mainProducts
     .filter((p) => !items.some((i) => i.mainProductId === p.id))
-    .map((p) => ({
-      value: p.id,
-      label: `${p.name}${p.stock?.quantity != null ? ` · ${p.stock.quantity} in stock` : ''}`,
-    }));
+    .map((p) => {
+      const serial = p.serialNumber?.trim();
+      return {
+        value: p.id,
+        label:
+          `${p.name}` +
+          (serial ? ` · S/N ${serial}` : '') +
+          (p.stock?.quantity != null ? ` · ${p.stock.quantity} in stock` : ''),
+      };
+    });
 
   const labelCls = 'block text-xs font-medium text-gray-500 mb-1';
   const inputCls =
@@ -187,6 +207,9 @@ export default function StockTransferForm({ product, onClose, onSuccess }: Props
                 </div>
                 <div className="min-w-0">
                   <p className="font-semibold text-sm text-[#073c56] truncate">{item.mainProductName}</p>
+                  {item.mainSerial && (
+                    <p className="text-xs font-mono text-slate-600 mt-0.5">S/N {item.mainSerial}</p>
+                  )}
                   <p className="text-xs text-gray-400">{item.mainCategory} · {item.available} available</p>
                 </div>
               </div>
@@ -201,7 +224,7 @@ export default function StockTransferForm({ product, onClose, onSuccess }: Props
             </div>
 
             {/* Auto-match banner */}
-            {item.autoMatchId && (
+            {!item.isSerialised && item.autoMatchId && (
               <div className="flex gap-2 rounded-lg bg-green-50 border border-green-200 px-3 py-2">
                 <Info size={13} className="text-green-600 flex-shrink-0 mt-0.5" />
                 <p className="text-xs text-green-700">
@@ -209,7 +232,16 @@ export default function StockTransferForm({ product, onClose, onSuccess }: Props
                 </p>
               </div>
             )}
-            {!item.autoMatchId && item.autoMatchResolved && (
+            {item.isSerialised && (
+              <div className="flex gap-2 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
+                <Info size={13} className="text-slate-500 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-slate-700">
+                  Serialised unit — <strong className="font-mono">{item.mainSerial}</strong> moves to
+                  Mini Stock keeping its serial. Quantity is fixed at 1.
+                </p>
+              </div>
+            )}
+            {!item.isSerialised && !item.autoMatchId && item.autoMatchResolved && (
               <div className="flex gap-2 rounded-lg bg-amber-50 border border-amber-100 px-3 py-2">
                 <Info size={13} className="text-amber-500 flex-shrink-0 mt-0.5" />
                 <p className="text-xs text-amber-700">
@@ -222,15 +254,21 @@ export default function StockTransferForm({ product, onClose, onSuccess }: Props
             <div className="flex items-center gap-3">
               <label className="text-xs font-medium text-gray-500 whitespace-nowrap">
                 Qty to transfer
-                <span className="ml-1 text-gray-400 font-normal">(max {item.available})</span>
+                <span className="ml-1 text-gray-400 font-normal">
+                  {item.isSerialised ? '(single unit)' : `(max ${item.available})`}
+                </span>
               </label>
               <input
                 type="number"
                 min={1}
-                max={item.available}
-                value={item.quantity}
+                max={item.isSerialised ? 1 : item.available}
+                value={item.isSerialised ? 1 : item.quantity}
+                disabled={item.isSerialised}
+                title={item.isSerialised ? 'A serialised unit is one physical item' : undefined}
                 onChange={(e) => updateQty(idx, Math.max(1, Number(e.target.value)))}
-                className="w-24 border border-gray-200 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:border-[#073c56] text-center font-semibold"
+                className={`w-24 border border-gray-200 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:border-[#073c56] text-center font-semibold ${
+                  item.isSerialised ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''
+                }`}
               />
             </div>
           </div>

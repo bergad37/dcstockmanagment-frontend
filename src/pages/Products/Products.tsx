@@ -38,13 +38,15 @@ const Products = () => {
 
   useEffect(() => {
     // initial load
-    void listProducts({ page, limit: perPage });
+    void listProducts(buildQueryParams());
     void fetchCategories();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listProducts, fetchCategories]);
 
   // filters state
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  const [view, setView] = useState<'active' | 'depleted'>('active');
   const [selectedCategory, setSelectedCategory] = useState<{
     value: string;
     label: string;
@@ -69,6 +71,7 @@ const Products = () => {
 
     if (searchQuery) params.searchKey = searchQuery;
     if (selectedCategory?.value) params.categoryId = selectedCategory.value;
+    params.depleted = view === 'depleted' ? 'only' : 'exclude';
 
     return params;
   };
@@ -89,6 +92,7 @@ const Products = () => {
       };
       if (trimmed) params.searchKey = trimmed;
       if (selectedCategory?.value) params.categoryId = selectedCategory.value;
+      params.depleted = view === 'depleted' ? 'only' : 'exclude';
       await listProducts(params);
     }, 300);
   };
@@ -105,6 +109,7 @@ const Products = () => {
     };
     if (searchQuery) params.searchKey = searchQuery;
     if (opt?.value) params.categoryId = opt.value;
+    params.depleted = view === 'depleted' ? 'only' : 'exclude';
     await listProducts(params);
   };
 
@@ -203,9 +208,47 @@ const Products = () => {
         <div className="w-full  m-2 rounded-xl border border-[#EAECF0] bg-white">
           {/* Header row (Responsive) */}
           <div className="flex flex-col sm:flex-row w-full items-start sm:items-center justify-between gap-2 px-4 py-4">
-            <h2 className="text-lg sm:text-xl font-bold tracking-tight text-[#073c56]">
-              Registered products
-            </h2>
+            <div className="flex flex-col gap-2">
+              <h2 className="text-lg sm:text-xl font-bold tracking-tight text-[#073c56]">
+                Registered products
+              </h2>
+              <div className="flex gap-1 rounded-lg bg-gray-100 p-1 self-start">
+                {([
+                  ['active', 'In stock'],
+                  ['depleted', 'Sold out (serialised)'],
+                ] as const).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={async () => {
+                      if (view === key) return;
+                      setView(key);
+                      setPage(1);
+                      await listProducts({
+                        page: 1,
+                        limit: perPage,
+                        ...(searchQuery ? { searchKey: searchQuery } : {}),
+                        ...(selectedCategory?.value ? { categoryId: selectedCategory.value } : {}),
+                        depleted: key === 'depleted' ? 'only' : 'exclude',
+                      });
+                    }}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${
+                      view === key
+                        ? 'bg-white text-[#073c56] shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {view === 'depleted' && (
+                <p className="text-xs text-gray-500">
+                  Serialised units with no stock left. A serial identifies one physical item, so
+                  these cannot be restocked — they stay here as a record.
+                </p>
+              )}
+            </div>
 
             <div className="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto">
               <div className="mr-2 w-full sm:w-72">

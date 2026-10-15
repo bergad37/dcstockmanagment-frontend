@@ -137,6 +137,36 @@ export default function MainStockTransfers() {
       ),
     },
     {
+      name: 'Serial Number',
+      selector: (row: any) => row.mainStockProduct?.serialNumber ?? '',
+      sortable: true,
+      grow: 1.1,
+      cell: (row: any) => {
+        const serial = row.mainStockProduct?.serialNumber?.trim();
+        const otherSerial = row.miniStockProduct?.serialNumber?.trim();
+        const sameUnit = row.mainStockProduct?.id === row.miniStockProduct?.id;
+        if (!serial) {
+          return <span className="text-xs text-gray-400">bulk item</span>;
+        }
+        return (
+          <div className="py-1">
+            <span
+              className={`font-mono text-xs px-2 py-0.5 rounded border ${
+                row.revertedAt
+                  ? 'bg-gray-50 text-gray-400 border-gray-200 line-through'
+                  : 'bg-slate-50 text-slate-700 border-slate-200'
+              }`}
+            >
+              {serial}
+            </span>
+            {!sameUnit && otherSerial && otherSerial !== serial && (
+              <p className="text-xs text-amber-600 mt-1">recorded into {otherSerial}</p>
+            )}
+          </div>
+        );
+      },
+    },
+    {
       name: 'To (Mini Stock)',
       selector: (row: any) => row.miniStockProduct?.name,
       sortable: true,
@@ -147,7 +177,11 @@ export default function MainStockTransfers() {
             {row.miniStockProduct?.name ?? '—'}
           </p>
           <p className="text-xs text-gray-400">
-            {!row.revertedAt && row.miniStockProduct?.stock?.quantity != null
+            {row.revertedAt
+              ? ''
+              : row.mainStockProduct?.id === row.miniStockProduct?.id
+              ? 'this unit moved across'
+              : row.miniStockProduct?.stock?.quantity != null
               ? `${row.miniStockProduct.stock.quantity} now in mini stock`
               : ''}
           </p>
